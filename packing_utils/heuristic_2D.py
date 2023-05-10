@@ -1,9 +1,50 @@
 from typing import List, Tuple
 
+import greedypacker
+
 from data.container import Container
 from data.item import Item
 from data.space import Space
 
+
+class GreedyPackerWrapper():
+    def __init__(self):
+        self.pack_algo = "maximal_rectangle"
+        self.heuristic = "bottom_left"
+        self.wastemap = True
+        self.rotation = True
+
+    def solve(self,
+            container: Container,
+            items: List[Item]
+    ) -> List[Item]:
+
+        solver = greedypacker.BinManager(
+            container.width, container.height, 
+            pack_algo=self.pack_algo, 
+            heuristic=self.heuristic, 
+            wastemap=self.wastemap, 
+            rotation=self.rotation,
+            sorting=False)
+
+        _items = []
+        for item in items:
+            _items.append(greedypacker.Item(width=item.width, height=item.height))
+        solver.add_items(*_items,)
+        solver.execute()
+        result = self._convert_to_item_list(solver.bins[0])
+
+        return result
+
+    def _convert_to_item_list(self, bin):
+        items = []
+        if isinstance(bin, greedypacker.maximal_rectangles.MaximalRectangle):
+            for e in bin.items:
+                items.append(Item(width=e.width, height=e.height).pack(x=e.x, y=e.y))
+        else:
+            return NotImplemented
+
+        return items 
 
 class Guillotine_cut_solver():
 
@@ -343,7 +384,7 @@ class Guillotine_cut_solver():
 
 
 if __name__ == "__main__":
-    solver = Guillotine_cut_solver()
-    c = Container(10, 10)
+    solver = GreedyPackerWrapper() #Guillotine_cut_solver()
+    c = Container(5,5)
     items = [Item(1, 2) for _ in range(8)]
     print(solver.solve(c, items))
