@@ -49,6 +49,16 @@ class Item:
         self.weight = weight
         self.position = position
 
+    def centerpoint(self) -> Position:
+        """
+        Returns the centerpoint of the object.
+
+        Returns:
+            position (Position): The position of the centerpoint,
+
+        """
+        return self.position
+
     def pack(self, position: Position):
         """
         Sets the position of the item in the container.
@@ -80,4 +90,4 @@ class Item:
             str: The string representation of the item.
 
         """
-        return f"Item: width={self.width}, length={self.length}, height={self.height}, position={self.position}"
+        return f"{self.id}: width={self.width}, length={self.length}, height={self.height}, position={self.position}"
