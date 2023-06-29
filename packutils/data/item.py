@@ -82,6 +82,26 @@ class Item:
         """
         return self.position is not None
 
+    def get_rotated_dimensions_3D(self):
+        if not self.is_packed():
+            return self.width, self.length, self.height
+
+        rot_type = self.position.rotation
+        if rot_type == 1:
+            h, w, l = self.width, self.height, self.length
+        elif rot_type == 2:
+            l, w, h = self.width, self.height, self.length
+        elif rot_type == 3:
+            l, h, w = self.width, self.height, self.length
+        elif rot_type == 4:
+            h, l, w = self.width, self.height, self.length
+        elif rot_type == 5:
+            w, l, h = self.width, self.height, self.length
+        else:  # rotation None or 0
+            w, h, l = self.width, self.height, self.length
+
+        return w, l, h
+
     def __str__(self) -> str:
         """
         Returns a string representation of the item.

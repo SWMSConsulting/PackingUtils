@@ -71,3 +71,6 @@ class Bin:
                     y: y + item.length,
                     x: x + item.width] = len(self.packed_items)
         return True, None
+
+    def __str__(self):
+        return f"Bin: {self.width} {self.length} {self.height} - {len(self.packed_items)} Items"
