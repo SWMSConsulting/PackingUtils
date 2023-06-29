@@ -1,5 +1,10 @@
 # PackingUtils
 
+## install the package
+```
+pip install git+https://github.com/ArnoSchiller/PackingUtils.git
+```
+
 ## Requirements
 **greedypacker does not work with Python 3.10**, use 3.8 instead: 
 ```bash 
