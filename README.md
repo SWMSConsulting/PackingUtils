@@ -9,11 +9,14 @@ env\Scripts\activate # Windows
 git clone https://github.com/ArnoSchiller/PackingUtils.git
 git pull
 pip install -e PackingUtils
+
 ```
 ### Unit tests
 ```
 cd PackungUtils
 python -m unittest 
+cd ..
+
 ```
 ## Requirements
 **greedypacker does not work with Python 3.10**, use 3.8 instead: 
