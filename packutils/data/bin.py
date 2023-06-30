@@ -72,5 +72,49 @@ class Bin:
                     x: x + item.width] = len(self.packed_items)
         return True, None
 
+    def is_packing_2d(self) -> Tuple[bool, List[str]]:
+        """
+        Checks if the bin is packed in 2D.
+
+        Returns:
+            Tuple[bool, List[str]]: A tuple containing a boolean indicating if the bin is packed in 2D and a string list of the two dimensions being packed.
+
+        """
+        if self.width <= 1:
+            return True, ["length", "height"]
+        elif self.length <= 1:
+            return True, ["width", "height"]
+        elif self.height <= 1:
+            return True, ["width", "length"]
+        return False, []
+
+    def get_dimension_2d(self, dimensions: List[str]) -> List[int]:
+        """
+        Retrieves the dimensions of the bin for the specified 2D packing dimensions.
+
+        Args:
+            dimensions (List[str]): The two dimensions for the 2D packing. Should contain two strings out of ["width", "length", "height"].
+
+        Returns:
+            List[int]: A list containing the corresponding dimensions of the bin.
+
+        Raises:
+            ValueError: If the dimensions list does not contain two valid dimension strings.
+
+        """
+        if dimensions.count("width") + dimensions.count("length") + dimensions.count("height") != 2:
+            raise ValueError(
+                "Dimensions should contain two strings out of [width, length, height].")
+
+        dim = []
+        for d in dimensions:
+            if d == "width":
+                dim.append(self.width)
+            if d == "length":
+                dim.append(self.length)
+            if d == "height":
+                dim.append(self.height)
+        return dim
+
     def __str__(self):
         return f"Bin: {self.width} {self.length} {self.height} - {len(self.packed_items)} Items"

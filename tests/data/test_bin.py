@@ -51,6 +51,51 @@ class TestBin(unittest.TestCase):
         self.assertEqual(len(self.bin.packed_items), 0)
         self.assertEqual(np.count_nonzero(self.bin.matrix), 0)
 
+    def test_is_packing_2d(self):
+        bin1 = Bin(width=1, length=10, height=10)
+        result, dimensions = bin1.is_packing_2d()
+        self.assertTrue(result)
+        self.assertEqual(dimensions, ["length", "height"])
+
+        bin2 = Bin(width=10, length=1, height=10)
+        result, dimensions = bin2.is_packing_2d()
+        self.assertTrue(result)
+        self.assertEqual(dimensions, ["width", "height"])
+
+        bin3 = Bin(width=10, length=10, height=1)
+        result, dimensions = bin3.is_packing_2d()
+        self.assertTrue(result)
+        self.assertEqual(dimensions, ["width", "length"])
+
+        result, dimensions = self.bin.is_packing_2d()
+        self.assertFalse(result)
+        self.assertEqual(dimensions, [])
+
+    def test_get_dimension_2d(self):
+        self.bin.width = 50
+        self.bin.length = 60
+        self.bin.height = 70
+
+        dimensions = ["width", "length"]
+        result = self.bin.get_dimension_2d(dimensions)
+        self.assertEqual(result, [50, 60])
+
+        dimensions = ["length", "height"]
+        result = self.bin.get_dimension_2d(dimensions)
+        self.assertEqual(result, [60, 70])
+
+        dimensions = ["width", "height"]
+        result = self.bin.get_dimension_2d(dimensions)
+        self.assertEqual(result, [50, 70])
+
+        with self.assertRaises(ValueError):
+            dimensions = ["width", "length", "height"]
+            self.bin.get_dimension_2d(dimensions)
+
+        with self.assertRaises(ValueError):
+            dimensions = ["width", "depth"]
+            self.bin.get_dimension_2d(dimensions)
+
 
 if __name__ == '__main__':
     unittest.main()
