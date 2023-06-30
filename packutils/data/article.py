@@ -5,8 +5,8 @@ class Article:
 
     Attributes:
         article_id (str): The ID of the article.
-        length (int): The length of the article.
         width (int): The width of the article.
+        length (int): The length of the article.
         height (int): The height of the article.
         amount (int): The amount of the article.
         weight (float): The weight of the article.
@@ -17,22 +17,22 @@ class Article:
 
     """
 
-    def __init__(self, article_id: str, length: int, width: int, height: int, amount: int, weight: float = 0.0):
+    def __init__(self, article_id: str, width: int, length: int, height: int, amount: int, weight: float = 0.0):
         """
         Initializes an Article object with the specified attributes.
 
         Args:
             article_id (str): The ID of the article.
-            length (int): The length of the article.
             width (int): The width of the article.
+            length (int): The length of the article.
             height (int): The height of the article.
             amount (int): The amount of the article.
             weight (float, optional): The weight of the article. Default is 0.0.
 
         """
         self.article_id = article_id
-        self.length = length
         self.width = width
+        self.length = length
         self.height = height
         self.amount = amount
         self.weight = weight
@@ -47,8 +47,8 @@ class Article:
         """
         json_data = {
             "id": self.article_id,
-            "length": self.length,
             "width": self.width,
+            "length": self.length,
             "height": self.height,
             "weight": self.weight,
             "amount": self.amount,
@@ -68,10 +68,17 @@ class Article:
 
         """
         article_id = json_data["id"]
-        length = json_data["length"]
         width = json_data["width"]
+        length = json_data["length"]
         height = json_data["height"]
         amount = json_data["amount"]
         weight = json_data.get("weight", 0.0)
 
-        return cls(article_id, length, width, height, amount, weight)
+        return cls(
+            article_id=article_id,
+            width=width,
+            length=length,
+            height=height,
+            amount=amount,
+            weight=weight
+        )

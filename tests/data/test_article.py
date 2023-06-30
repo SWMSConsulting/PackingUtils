@@ -12,17 +12,22 @@ class ArticleTests(unittest.TestCase):
         self.weight = 2.5
 
         self.article = Article(
-            self.article_id, self.length, self.width, self.height, self.amount, self.weight
+            article_id=self.article_id,
+            width=self.width,
+            length=self.length,
+            height=self.height,
+            amount=self.amount,
+            weight=self.weight
         )
 
     def test_to_json(self):
         expected_json = {
             "id": "article123",
-            "length": 10,
-            "width": 20,
-            "height": 30,
-            "weight": 2.5,
-            "amount": 5,
+            "length": self.length,
+            "width": self.width,
+            "height": self.height,
+            "weight": self.weight,
+            "amount": self.amount,
         }
 
         json_data = self.article.to_json()
@@ -31,8 +36,8 @@ class ArticleTests(unittest.TestCase):
     def test_from_json(self):
         json_data = {
             "id": "article123",
-            "length": 10,
-            "width": 20,
+            "width": 10,
+            "length": 20,
             "height": 30,
             "weight": 2.5,
             "amount": 5,
@@ -41,8 +46,8 @@ class ArticleTests(unittest.TestCase):
         article = Article.from_json(json_data)
 
         self.assertEqual(article.article_id, "article123")
-        self.assertEqual(article.length, 10)
-        self.assertEqual(article.width, 20)
+        self.assertEqual(article.width, 10)
+        self.assertEqual(article.length, 20)
         self.assertEqual(article.height, 30)
         self.assertEqual(article.weight, 2.5)
         self.assertEqual(article.amount, 5)

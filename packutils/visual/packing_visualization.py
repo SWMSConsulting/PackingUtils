@@ -19,7 +19,7 @@ class PackingVisualization():
         return color
 
     def visualize_bin(
-        self, bin: Bin, show: bool = True, output_dir: str | None = None
+        self, bin: Bin, show: bool = True, output_dir: 'str | None' = None
     ):
         is_2d, _ = bin.is_packing_2d()
         if is_2d:
@@ -27,12 +27,12 @@ class PackingVisualization():
         else:
             return self._visualize_bin_3d(bin, show, output_dir)
 
-    def visualize_packing_variant(self, variant: PackingVariant, show: bool = True, output_dir: str | None = None):
+    def visualize_packing_variant(self, variant: PackingVariant, show: bool = True, output_dir: 'str | None' = None):
         for bin in variant.bins:
             self.visualize_bin(bin, show, output_dir)
 
     def _visualize_bin_2d(
-        self, bin: Bin, show: bool = True, output_dir: str | None = None
+        self, bin: Bin, show: bool = True, output_dir: 'str | None' = None
     ):
         is_2d, dimensions = bin.is_packing_2d()
         if not is_2d:
@@ -76,7 +76,7 @@ class PackingVisualization():
         return img
 
     def _visualize_bin_3d(
-        self, bin: Bin, show: bool = True, output_dir: str | None = None
+        self, bin: Bin, show: bool = True, output_dir: 'str | None' = None
     ):
         items = bin.packed_items
         fig = plt.figure()

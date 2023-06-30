@@ -19,7 +19,7 @@ class Bin:
 
     """
 
-    def __init__(self, width: int, length: int, height: int, max_weight: float | None = None):
+    def __init__(self, width: int, length: int, height: int, max_weight: 'float | None' = None):
         """
         Initializes a Bin object with specified dimensions and optional maximum weight.
 
@@ -38,7 +38,7 @@ class Bin:
         self.matrix = np.zeros((height, length, width), dtype=int)
         self.packed_items: List[Item] = []
 
-    def pack_item(self, item: Item) -> Tuple[bool, str | None]:
+    def pack_item(self, item: Item) -> Tuple[bool, 'str | None']:
         """
         Packs an item into the bin at a valid position.
 

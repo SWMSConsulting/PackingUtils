@@ -51,7 +51,7 @@ class Supply:
 
 class Order:
     """
-    Represents an order.
+    Represents an packing order.
 
     Attributes:
         order_id (str): The ID of the order.

@@ -27,7 +27,7 @@ class PackingVariant:
         """
         self.bins.append(bin)
 
-    def add_unpacked_item(self, item: Item, error_message: str | None):
+    def add_unpacked_item(self, item: Item, error_message: 'str | None'):
         """
         Add an unpacked item along with the corresponding error message (if provided).
 
