@@ -29,3 +29,6 @@ class Position:
         self.y = y
         self.z = z
         self.rotation = rotation
+
+    def __str__(self):
+        return f"Postion: {self.x, self.y, self.z, self.rotation}"

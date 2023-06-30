@@ -10,7 +10,7 @@ default_bin = Bin(width=10, length=10, height=10, max_weight=None)
 
 
 class AbstractPacker(ABC):
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         if "bins" not in kwargs:
             self.reference_bins = [default_bin]
             logging.info(
