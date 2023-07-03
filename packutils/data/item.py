@@ -59,7 +59,12 @@ class Item:
             position (Position): The position of the centerpoint,
 
         """
-        return self.position
+        return Position(
+            x=self.position.x + self.width / 2,
+            y=self.position.y + self.length / 2,
+            z=self.position.z + self.height / 2,
+            rotation=self.position.rotation
+        )
 
     def pack(self, position: Position):
         """
@@ -152,7 +157,7 @@ class Item:
         """
         return int(self.width * self.length * self.height)
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """
         Returns a string representation of the item.
 
@@ -162,7 +167,10 @@ class Item:
         """
         return f"{self.id}: width={self.width}, length={self.length}, height={self.height}, position={self.position}"
 
-    @staticmethod
+    def __eq__(self, other):
+        return self.id == other.id and self.width == other.width and self.length == other.length and self.height == other.height and self.position == other.position
+
+    @classmethod
     def from_article(article: Article) -> 'Item':
         """
         Create an Item object from an Article object.

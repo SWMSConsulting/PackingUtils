@@ -1,7 +1,10 @@
 import json
 from typing import List
 from packutils.data.article import Article
+from packutils.data.bin import Bin
+from packutils.data.item import Item
 from packutils.data.packing_variant import PackingVariant
+from packutils.data.position import Position
 
 
 class PackedOrder:
@@ -87,6 +90,12 @@ class PackedOrder:
                 )
         return articles
 
+    def __repr__(self):
+        return f"PackedOrder({self.order_id}, {self.packing_variants})"
+
+    def __eq__(self, other: object) -> bool:
+        return self.order_id == other.order_id and self.packing_variants == other.packing_variants
+
     def to_json(self) -> str:
         """
         Convert the PackedOrder object to JSON format.
@@ -108,11 +117,13 @@ class PackedOrder:
                 for item in bin.packed_items:
                     positions.append({
                         "article_id": item.id,
+                        "x": item.position.x,
+                        "y": item.position.y,
+                        "z": item.position.z,
+                        "rotation": item.position.rotation,
                         "centerpoint_x": item.centerpoint().x,
                         "centerpoint_y": item.centerpoint().y,
-                        "centerpoint_z": item.centerpoint().z,
-                        "rotation": item.centerpoint().rotation
-
+                        "centerpoint_z": item.centerpoint().z
                     })
 
                 variant_data.append({
@@ -140,3 +151,76 @@ class PackedOrder:
         json_data = self.to_json()
         with open(file_path, "w") as file:
             file.write(json_data)
+
+    @classmethod
+    def load_from_json(cls, json_str: str) -> 'PackedOrder':
+        """
+        Load a PackedOrder object from a JSON string.
+
+        Args:
+            json_str (str): The JSON string representing the PackedOrder object.
+
+        Returns:
+            PackedOrder: The loaded PackedOrder object.
+        """
+        data = json.loads(json_str)
+        order_id = data.get("order_id", None)
+        if order_id is None:
+            raise ValueError("Invalid JSON format. Missing 'order_id' field.")
+
+        packed_order = cls(order_id)
+
+        article_dict = {}
+        for a in data.get("articles", []):
+            article = Article.from_json(a)
+            article_dict[article.article_id] = article
+
+        variants_data = data.get("packing_variants", [])
+        for variant_data in variants_data:
+            variant = PackingVariant()
+            for bin_data in variant_data:
+
+                colli_dim = bin_data.get("colli_dimension")
+                bin = Bin(
+                    colli_dim["width"], colli_dim["length"], colli_dim["height"])
+
+                for pos_data in bin_data.get("positions", []):
+                    article = article_dict[pos_data["article_id"]]
+                    pos = Position(
+                        x=int(pos_data["x"]),
+                        y=int(pos_data["y"]),
+                        z=int(pos_data["z"]),
+                        rotation=pos_data["rotation"]
+                    )
+                    item = Item(
+                        id=article.article_id,
+                        width=article.width,
+                        length=article.length,
+                        height=article.height,
+                        weight=article.weight,
+                        position=pos
+                    )
+                    is_packed, _ = bin.pack_item(item)
+
+                    if not is_packed:
+                        variant.unpacked_items.append(item)
+                variant.add_bin(bin)
+
+            packed_order.add_packing_variant(variant)
+
+        return packed_order
+
+    @classmethod
+    def load_from_file(cls, file_path: str) -> 'PackedOrder':
+        """
+        Load a PackedOrder object from a JSON file.
+
+        Args:
+            file_path (str): The path of the JSON file.
+
+        Returns:
+            PackedOrder: The loaded PackedOrder object.
+        """
+        with open(file_path, "r") as file:
+            json_data = file.read()
+        return cls.load_from_json(json_data)

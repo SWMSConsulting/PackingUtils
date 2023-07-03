@@ -30,5 +30,8 @@ class Position:
         self.z = z
         self.rotation = rotation
 
-    def __str__(self):
+    def __repr__(self):
         return f"Postion: {self.x, self.y, self.z, self.rotation}"
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.z == other.z and self.rotation == other.rotation

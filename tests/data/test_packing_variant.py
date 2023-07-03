@@ -34,6 +34,17 @@ class TestPackingVariant(unittest.TestCase):
         self.assertEqual(variant.unpacked_items[0], item)
         self.assertEqual(len(variant.error_messages), 0)
 
+    def test_compare(self):
+        variant1 = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        variant1.add_bin(bin)
+
+        variant2 = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        variant2.add_bin(bin)
+
+        self.assertEqual(variant1, variant2)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -143,5 +143,8 @@ class Bin:
             return int(used_volume / self.volume * 100)
         return used_volume
 
-    def __str__(self):
-        return f"Bin: {self.width} {self.length} {self.height} - {len(self.packed_items)} Items"
+    def __repr__(self):
+        return f"Bin: {self.width} {self.length} {self.height} - Items{self.packed_items}"
+
+    def __eq__(self, other):
+        return self.width == other.width and self.length == other.length and self.height == other.height and self.packed_items == other.packed_items

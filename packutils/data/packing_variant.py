@@ -38,3 +38,9 @@ class PackingVariant:
         self.unpacked_items.append(item)
         if error_message is not None:
             self.error_messages.append(error_message)
+
+    def __repr__(self):
+        return f"Bins: {self.bins}, unpacked items: {self.unpacked_items}"
+
+    def __eq__(self, other):
+        return self.bins == other.bins and self.unpacked_items == other.unpacked_items

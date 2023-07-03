@@ -123,10 +123,13 @@ class TestPackedOrder(unittest.TestCase):
                         "positions": [
                             {
                                 "article_id": "item1",
-                                "centerpoint_x": 0,
-                                "centerpoint_y": 0,
-                                "centerpoint_z": 0,
-                                "rotation": 0.0
+                                "x": 0,
+                                "y": 0,
+                                "z": 0,
+                                "rotation": 0,
+                                "centerpoint_x": 0.5,
+                                "centerpoint_y": 0.5,
+                                "centerpoint_z": 0.5
                             }
                         ]
                     }
@@ -143,17 +146,23 @@ class TestPackedOrder(unittest.TestCase):
                         "positions": [
                             {
                                 "article_id": "item2",
-                                "centerpoint_x": 0,
-                                "centerpoint_y": 0,
-                                "centerpoint_z": 0.0,
-                                "rotation": 0.0
+                                "x": 0,
+                                "y": 0,
+                                "z": 0,
+                                "rotation": 0,
+                                "centerpoint_x": 0.5,
+                                "centerpoint_y": 0.5,
+                                "centerpoint_z": 0.5
                             },
                             {
                                 "article_id": "item1",
-                                "centerpoint_x": 1,
-                                "centerpoint_y": 0,
-                                "centerpoint_z": 0,
-                                "rotation": 0.0
+                                "x": 1,
+                                "y": 0,
+                                "z": 0,
+                                "rotation": 0,
+                                "centerpoint_x": 1.5,
+                                "centerpoint_y": 0.5,
+                                "centerpoint_z": 0.5
                             }
                         ]
                     }
@@ -190,7 +199,25 @@ class TestPackedOrder(unittest.TestCase):
         self.assertEqual(parsed_json["packing_variants"],
                          expected_json["packing_variants"])
 
+        loaded_packed_order = PackedOrder.load_from_file(path)
+        self.assertEqual(loaded_packed_order, packed_order)
+
         os.remove(path)
+
+    def test_compare(self):
+        order1 = PackedOrder("test")
+        variant1 = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        variant1.add_bin(bin)
+        order1.add_packing_variant(variant1)
+
+        order2 = PackedOrder("test")
+        variant2 = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        variant2.add_bin(bin)
+        order2.add_packing_variant(variant2)
+
+        self.assertEqual(order1, order2)
 
 
 if __name__ == "__main__":
