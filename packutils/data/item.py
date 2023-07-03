@@ -1,5 +1,6 @@
 from ast import Tuple
 from typing import List
+from packutils.data.article import Article
 from packutils.data.position import Position
 
 
@@ -150,3 +151,30 @@ class Item:
 
         """
         return f"{self.id}: width={self.width}, length={self.length}, height={self.height}, position={self.position}"
+
+    @staticmethod
+    def from_article(article: Article) -> 'Item':
+        """
+        Create an Item object from an Article object.
+
+        Args:
+            article (Article): The Article object to create the Item from.
+
+        Returns:
+            Item: The created Item object.
+
+        Example:
+            >>> article = Article(article_id=1, width=10, length=20, height=5, weight=2)
+            >>> item = Item.from_article(article)
+            >>> print(item)
+            Item(id=1, width=10, length=20, height=5, weight=2, position=None)
+
+        """
+        return Item(
+            id=article.article_id,
+            width=article.width,
+            length=article.length,
+            height=article.height,
+            weight=article.weight,
+            position=None
+        )
