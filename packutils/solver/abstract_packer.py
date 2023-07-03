@@ -19,10 +19,14 @@ class AbstractPacker(ABC):
             self.reference_bins = kwargs.get('bins')
 
     def pack_order(self, order: Order) -> PackedOrder:
-        variant = self.pack(order)
+        variant = self.pack_variant(order)
         packed = PackedOrder(order_id=order.order_id)
         packed.add_packing_variant(variant)
         return packed
+
+    @abstractmethod
+    def get_params(self) -> dict:
+        return {}
 
     @abstractmethod
     def pack_variant(self, order: Order) -> PackingVariant:

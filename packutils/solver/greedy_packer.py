@@ -43,6 +43,14 @@ class GreedyPacker(AbstractPacker):
         elif self.dimensions == ["length", "height"]:
             self.bin_dim = (reference_bin.length, reference_bin.height)
 
+    def get_params(self) -> dict:
+        return {
+            "rotation": self.rotation,
+            "wastemap": self.wastemap,
+            "heuristic": self.heuristic,
+            "pack_algo": self.pack_algo
+        }
+
     def pack_variant(self, order: Order) -> 'PackingVariant | None':
         if not self.is_packer_available():
             raise ImportError(
@@ -92,7 +100,7 @@ class GreedyPacker(AbstractPacker):
                         pos = Position(x=i.x, y=i.y, z=0)
 
                     item = Item(
-                        id=f"Item {len(bin.packed_items)}",
+                        id=f"Item {w}x{l}x{h}",
                         width=w,
                         length=l,
                         height=h,

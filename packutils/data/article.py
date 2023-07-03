@@ -55,6 +55,12 @@ class Article:
         }
         return json_data
 
+    def __repr__(self):
+        return f"{self.amount}x {self.article_id} {self.width, self.length, self.height, self.weight}"
+
+    def __eq__(self, other):
+        return self.article_id == other.article_id and self.width == other.width and self.length == other.length and self.height == other.height and self.weight == other.weight and self.amount == other.amount
+
     @classmethod
     def from_json(cls, json_data: dict) -> 'Article':
         """

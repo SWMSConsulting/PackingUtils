@@ -32,6 +32,9 @@ class Py3dbpPacker(AbstractPacker):
             self.bin_dim = (reference_bin.length, reference_bin.height)
         """
 
+    def get_params(self) -> dict:
+        return {}
+
     def pack_variant(self, order: Order) -> 'PackingVariant | None':
         if not self.is_packer_available():
             raise ImportError(

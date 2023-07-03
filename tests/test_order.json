@@ -1,5 +1,12 @@
 {
     "order_id": "xyz",
+    "colli_details": {
+        "width": 10,
+        "length": 1,
+        "height": 10,
+        "max_weight": 0.0,
+        "amount":1
+    },
     "articles": [
         {
             "id": "test",

@@ -10,6 +10,10 @@ class SubClassWithNoImplementations(AbstractPacker):
 
 
 class SubClassWithAllImplementations(AbstractPacker):
+
+    def get_params(self) -> dict:
+        return {}
+
     def pack_variant(self, order: Order) -> PackingVariant:
         pass
 

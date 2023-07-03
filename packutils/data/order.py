@@ -102,6 +102,12 @@ class Order:
             for article in self.articles
         ]
 
+    def __repr__(self):
+        return f"{self.order_id} ({self.articles})"
+
+    def __eq__(self, other):
+        return self.order_id == other.order_id and self.articles == other.articles
+
     @classmethod
     def from_json_file(cls, file_path: str) -> 'Order':
         """
