@@ -34,4 +34,7 @@ The following dependencies are optional. Select the module you want to use and i
 ```bash
 # Module: GreedyPacker
 pip install -r requirements_greedy.txt 
+
+# Module: Py3dbpPacker
+pip install py3dbp
 ```
