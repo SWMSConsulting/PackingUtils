@@ -116,5 +116,32 @@ class Bin:
                 dim.append(self.height)
         return dim
 
+    @property
+    def volume(self) -> int:
+        """
+        Calculate the volume of the Bin.
+
+        Returns:
+        int: The volume of the Bin.
+        """
+        return int(self.width * self.length * self.height)
+
+    def get_used_volume(self, use_percentage=False):
+        """
+        Calculate the used volume of the Bin.
+
+        Args:
+            use_percentage (bool, optional): Whether to return the used volume as a percentage of the total volume. 
+                                            Defaults to False.
+
+        Returns:
+            float: The used volume of the Bin.
+        """
+        used_volume = sum([item.volume for item in self.packed_items])
+
+        if use_percentage:
+            return int(used_volume / self.volume * 100)
+        return used_volume
+
     def __str__(self):
         return f"Bin: {self.width} {self.length} {self.height} - {len(self.packed_items)} Items"

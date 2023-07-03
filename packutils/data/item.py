@@ -142,6 +142,16 @@ class Item:
 
         return tuple(pos), tuple(dim)
 
+    @property
+    def volume(self) -> int:
+        """
+        Calculate the volume of the Item.
+
+        Returns:
+        int: The volume of the Item.
+        """
+        return int(self.width * self.length * self.height)
+
     def __str__(self) -> str:
         """
         Returns a string representation of the item.

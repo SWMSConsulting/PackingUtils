@@ -96,6 +96,19 @@ class TestBin(unittest.TestCase):
             dimensions = ["width", "depth"]
             self.bin.get_dimension_2d(dimensions)
 
+    def test_volume(self):
+        bin = Bin(width=10, length=20, height=5)
+        self.assertEqual(bin.volume, 1000)
+
+    def test_used_volume(self):
+        bin = Bin(width=10, length=20, height=5)
+        bin.pack_item(Item(id="test1", width=2, length=10,
+                      height=2, position=Position(x=0, y=0, z=0)))
+        bin.pack_item(Item(id="test2", width=3, length=5,
+                      height=2, position=Position(x=4, y=0, z=0)))
+        self.assertEqual(bin.get_used_volume(), 40 + 30)
+        self.assertEqual(bin.get_used_volume(use_percentage=True), 7)
+
 
 if __name__ == '__main__':
     unittest.main()
