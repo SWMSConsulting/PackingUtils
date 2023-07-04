@@ -19,6 +19,8 @@ class DataGenerator2d:
         articles: List[Article],
         packing_solver: str = "greedy"
     ):
+        self.allow_rotation = False
+        self.dimensions = ["width", "height"]
         self.dimensionality = "2D"
         self.num_data = num_data
 
@@ -35,7 +37,8 @@ class DataGenerator2d:
 
         self.packing_solver = packing_solver
         if packing_solver == "greedy":
-            self.solver = GreedyPacker(bins=reference_bins)
+            self.solver = GreedyPacker(
+                bins=reference_bins, rotation=self.allow_rotation)
         else:
             raise ValueError(f"Solver not supported: {packing_solver}")
         self.date = datetime.datetime.now()
@@ -85,6 +88,8 @@ class DataGenerator2d:
     def write_info(self):
         info = {
             "dimensionality": self.dimensionality,
+            "dimensions": self.dimensions,
+            "max_rotation_type": int(self.allow_rotation),
             "num_data": self.num_data,
             "solver": {
                 "name": self.packing_solver,

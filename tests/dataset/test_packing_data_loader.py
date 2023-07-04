@@ -4,11 +4,9 @@ import shutil
 import unittest
 from packutils.data.article import Article
 from packutils.data.bin import Bin
-from packutils.data.item import Item
 from packutils.data.packed_order import PackedOrder
 from packutils.dataset.data_generator_2d import DataGenerator2d
-
-from packutils.dataset.data_loader import DataLoader
+from packutils.dataset.packing_data_loader import PackingDataLoader
 
 
 class DataLoaderTestCase(unittest.TestCase):
@@ -28,16 +26,15 @@ class DataLoaderTestCase(unittest.TestCase):
             articles=self.articles
         )
         self.generator.generate_data()
-
-        self.data_loader = DataLoader()
+        self.data_loader = PackingDataLoader(self.generator.dataset_dir)
 
     def tearDown(self):
-        remove_temporary_directory(self.temp_dir)
+        shutil.rmtree(self.temp_dir)
 
     def test_load_valid_dataset(self):
 
         # Load the dataset
-        self.data_loader.load(self.generator.dataset_dir)
+        self.data_loader.load_data()
 
         # Check the loaded data and info
         self.assertEqual(len(self.data_loader.data), 1)
@@ -45,7 +42,8 @@ class DataLoaderTestCase(unittest.TestCase):
 
     def test_load_missing_dataset(self):
         with self.assertRaises(ValueError):
-            self.data_loader.load("nonexistent_dataset")
+            data_loader = PackingDataLoader("nodirfound")
+            data_loader.load_data()
 
     def test_load_empty_dataset(self):
         # Create an empty test dataset directory
@@ -53,13 +51,14 @@ class DataLoaderTestCase(unittest.TestCase):
         os.makedirs(dataset_dir)
 
         with self.assertRaises(ValueError):
-            self.data_loader.load(dataset_dir)
+            data_loader = PackingDataLoader(dataset_dir)
+            data_loader.load_data()
 
     def test_load_missing_info(self):
 
         os.remove(os.path.join(self.generator.dataset_dir, "info.json"))
         with self.assertRaises(ValueError):
-            self.data_loader.load(self.generator.dataset_dir)
+            self.data_loader = PackingDataLoader(self.generator.dataset_dir)
 
     def test_load_with_transform_fn(self):
 
@@ -72,8 +71,9 @@ class DataLoaderTestCase(unittest.TestCase):
             return data_x, data_y
 
         # Load the dataset with the transform function
-        data_loader = DataLoader(transform_fn=_item_dim_pos)
-        data_loader.load(self.generator.dataset_dir)
+        data_loader = PackingDataLoader(
+            path=self.generator.dataset_dir, transform_fn=_item_dim_pos)
+        data_loader.load_data()
 
         x, y = data_loader.data[0]
         self.assertEqual(x[0], [2, 2])
@@ -84,10 +84,6 @@ def create_temporary_directory():
     temp_dir = os.path.join(os.path.dirname(__file__), "temp")
     os.makedirs(temp_dir, exist_ok=True)
     return temp_dir
-
-
-def remove_temporary_directory(directory):
-    shutil.rmtree(directory)
 
 
 if __name__ == "__main__":

@@ -15,11 +15,11 @@ class TestDataGenerator2d(unittest.TestCase):
         self.temp_dir = create_temporary_directory()
 
         self.num_data = 5
-        reference_bins = [Bin(100, 1, 100)]
+        reference_bins = [Bin(10, 1, 10)]
         articles = [
-            Article("item1", 10, 1, 10, 3),
-            Article("item2", 20, 1, 20, 4),
-            Article("item3", 30, 1, 30, 5)
+            Article("item1", 1, 1, 2, 3),
+            Article("item2", 2, 1, 2, 4),
+            Article("item3", 3, 1, 1, 5)
         ]
 
         self.generator = DataGenerator2d(
