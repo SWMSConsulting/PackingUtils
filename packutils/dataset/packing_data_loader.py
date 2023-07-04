@@ -27,12 +27,20 @@ class PackingDataLoader:
         self.transform_fn = transform_fn
         self.info = None
         self.data = []
+        self._bin_list = []
 
         if not os.path.exists(path):
             raise ValueError("Could not find dataset")
 
         self.path = path
         self._load_info()
+
+    def get_bin_list(self):
+        if len(self._bin_list) < 1:
+            self._bin_list = []
+            for data in self.data:
+                for bin in data.packing_variants[0].bins:
+                    self._bin_list.append(bin)
 
     def load_data(self):
         """
@@ -42,6 +50,7 @@ class PackingDataLoader:
             ValueError: If the dataset is empty or order files are not found.
 
         """
+        self._bin_list = []
         if not os.path.exists(os.path.join(self.path, "order1.json")):
             raise ValueError("Dataset is empty")
 
