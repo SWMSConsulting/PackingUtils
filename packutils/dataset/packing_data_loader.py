@@ -1,6 +1,8 @@
 import os
 import json
+from typing import List
 from packutils.data.packed_order import PackedOrder
+from packutils.data.bin import Bin
 
 
 class PackingDataLoader:
@@ -35,12 +37,13 @@ class PackingDataLoader:
         self.path = path
         self._load_info()
 
-    def get_bin_list(self):
+    def get_bin_list(self) -> List[Bin]:
         if len(self._bin_list) < 1:
             self._bin_list = []
             for data in self.data:
                 for bin in data.packing_variants[0].bins:
                     self._bin_list.append(bin)
+        return self._bin_list
 
     def load_data(self):
         """

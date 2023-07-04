@@ -39,6 +39,7 @@ class DataLoaderTestCase(unittest.TestCase):
         # Check the loaded data and info
         self.assertEqual(len(self.data_loader.data), 1)
         self.assertEqual(self.data_loader.info["dimensionality"], "2D")
+        self.assertEqual(len(self.data_loader.get_bin_list()), 1)
 
     def test_load_missing_dataset(self):
         with self.assertRaises(ValueError):
