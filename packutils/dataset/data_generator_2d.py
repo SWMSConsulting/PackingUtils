@@ -90,7 +90,6 @@ class DataGenerator2d:
             "dimensionality": self.dimensionality,
             "dimensions": self.dimensions,
             "max_rotation_type": int(self.allow_rotation),
-            "num_data": self.num_data,
             "solver": {
                 "name": self.packing_solver,
                 "params": self.solver.get_params()
@@ -104,7 +103,7 @@ class DataGenerator2d:
             ],
             "items": [
                 {
-                    "name": f"Item {a.width}x{a.length}x{a.height}",
+                    "name": f"Item {a.width, a.length, a.height, a.weight}",
                     "width": a.width,
                     "length": a.length,
                     "height": a.height,

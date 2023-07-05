@@ -100,10 +100,11 @@ class GreedyPacker(AbstractPacker):
                         pos = Position(x=i.x, y=i.y, z=0)
 
                     item = Item(
-                        id=f"Item {w}x{l}x{h}",
+                        id=f"Item {w, l, h, 0.0}",
                         width=w,
                         length=l,
                         height=h,
+                        weight=0.0,
                         position=pos
                     )
                     bin.pack_item(item)
