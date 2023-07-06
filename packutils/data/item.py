@@ -171,7 +171,7 @@ class Item:
         return self.id == other.id and self.width == other.width and self.length == other.length and self.height == other.height and self.position == other.position
 
     @classmethod
-    def from_article(article: Article) -> 'Item':
+    def from_article(cls, article: Article) -> 'Item':
         """
         Create an Item object from an Article object.
 
@@ -188,7 +188,7 @@ class Item:
             Item(id=1, width=10, length=20, height=5, weight=2, position=None)
 
         """
-        return Item(
+        return cls(
             id=article.article_id,
             width=article.width,
             length=article.length,
