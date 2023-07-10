@@ -25,11 +25,11 @@ class GreedyPacker(AbstractPacker):
 
         reference_bin = self.reference_bins[0]
         is_2d, dims = reference_bin.is_packing_2d()
-        if not is_2d or (
-            dims.count("width") + dims.count("length") +
-            dims.count("height") != 2
-        ):
+        if not is_2d:
             raise ValueError("GreedyPacker can only handle 2D packings.")
+        if dims != ["width", "length"]:
+            raise ValueError(
+                "GreedyPacker does not fullfil stability condition required for handling height dimension.")
         self.max_bins = len(self.reference_bins)
 
         self.dimensions = dims
@@ -68,10 +68,12 @@ class GreedyPacker(AbstractPacker):
 
         if self.dimensions == ["width", "length"]:
             self.bin_dim = (reference_bin.width, reference_bin.length)
+        """
         elif self.dimensions == ["width", "height"]:
             self.bin_dim = (reference_bin.width, reference_bin.height)
         elif self.dimensions == ["length", "height"]:
             self.bin_dim = (reference_bin.length, reference_bin.height)
+        """
 
     def get_params(self) -> dict:
         return {
@@ -109,10 +111,12 @@ class GreedyPacker(AbstractPacker):
                 w, l, h = article.width, article.length, article.height
                 if self.dimensions == ["width", "length"]:
                     greedy_items.append(greedypacker.Item(w, l))
+                """
                 elif self.dimensions == ["width", "height"]:
                     greedy_items.append(greedypacker.Item(w, h))
                 elif self.dimensions == ["length", "height"]:
                     greedy_items.append(greedypacker.Item(l, h))
+                """
         packer.add_items(*greedy_items)
         packer.execute()
 

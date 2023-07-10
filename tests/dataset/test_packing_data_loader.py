@@ -14,9 +14,9 @@ class DataLoaderTestCase(unittest.TestCase):
         self.temp_dir = create_temporary_directory()
 
         self.num_data = 1
-        reference_bins = [Bin(10, 1, 10)]
+        reference_bins = [Bin(10, 10, 1)]
         self.articles = [
-            Article("item1", 2, 1, 2, 4)
+            Article("item1", 2, 2, 1, 4)
         ]
 
         self.generator = DataGenerator2d(
@@ -66,8 +66,8 @@ class DataLoaderTestCase(unittest.TestCase):
         def _item_dim_pos(packed_order: PackedOrder):
             data_x, data_y = [], []
             for item in packed_order.packing_variants[0].bins[0].packed_items:
-                data_x.append([item.width, item.height])
-                data_y.append([item.position.x, item.position.z])
+                data_x.append([item.width, item.length])
+                data_y.append([item.position.x, item.position.y])
 
             return data_x, data_y
 

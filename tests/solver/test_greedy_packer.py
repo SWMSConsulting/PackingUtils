@@ -9,7 +9,7 @@ from packutils.solver.greedy_packer import GreedyPacker
 class TestGreedyPacker(unittest.TestCase):
 
     def setUp(self):
-        packer = GreedyPacker(bins=[Bin(1, 1, 1)])
+        packer = GreedyPacker(bins=[Bin(2, 2, 1)])
         if not packer.is_packer_available():
             import sys
             if sys.version.startswith("3.8"):
@@ -26,27 +26,6 @@ class TestGreedyPacker(unittest.TestCase):
 
     def test_pack_single_item(self):
 
-        # test missing width
-        bins = [Bin(1, 10, 10)]
-        packer = GreedyPacker(bins=bins)
-        variant = packer.pack_variant(self.order)
-
-        self.assertIsInstance(variant, PackingVariant)
-        self.assertEqual(len(variant.unpacked_items), 0)
-        self.assertEqual(len(variant.bins), 1)
-        self.assertEqual(len(variant.bins[0].packed_items), 1)
-
-        # test missing length
-        bins = [Bin(10, 1, 10)]
-        packer = GreedyPacker(bins=bins)
-        variant = packer.pack_variant(self.order)
-
-        self.assertIsInstance(variant, PackingVariant)
-        self.assertEqual(len(variant.unpacked_items), 0)
-        self.assertEqual(len(variant.bins), 1)
-        self.assertEqual(len(variant.bins[0].packed_items), 1)
-
-        # test missing height
         bins = [Bin(10, 10, 1)]
         packer = GreedyPacker(bins=bins)
         variant = packer.pack_variant(self.order)
@@ -58,7 +37,7 @@ class TestGreedyPacker(unittest.TestCase):
 
     def test_pack_multiple_items(self):
         # test missing length
-        bins = [Bin(10, 1, 10)]
+        bins = [Bin(10, 10, 1)]
         packer = GreedyPacker(bins=bins)
         self.order.articles[0].amount = 3
         variant = packer.pack_variant(self.order)

@@ -15,15 +15,15 @@ class TestDataGenerator2d(unittest.TestCase):
         self.temp_dir = create_temporary_directory()
 
         self.num_data = 5
-        self.reference_bins = [Bin(10, 1, 20)]
+        self.reference_bins = [Bin(10, 20, 1)]
         self.articles = [
-            Article("item1", 2, 1, 5, 8),
-            Article("item2", 3, 1, 6, 8),
-            Article("item3", 4, 1, 7, 8)
+            Article("item1", 2, 5, 1, 8),
+            Article("item2", 3, 6, 1, 8),
+            Article("item3", 4, 7, 1, 8)
         ]
 
     def tearDown(self):
-        pass  # remove_temporary_directory(self.temp_dir)
+        remove_temporary_directory(self.temp_dir)
 
     def test_generate_data_shelf(self):
         for pack_algo in ["guillotine"]:
