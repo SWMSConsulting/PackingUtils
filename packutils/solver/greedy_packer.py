@@ -34,7 +34,7 @@ class GreedyPacker(AbstractPacker):
 
         self.dimensions = dims
         self.bin_algo = kwargs.get("bin_algo", "bin_best_fit")
-        self.pack_algo = kwargs.get("pack_algo", "max_rectangle")
+        self.pack_algo = kwargs.get("pack_algo", "maximal_rectangle")
         self.heuristic = kwargs.get("heuristic", "default")
         self.split_heuristic = kwargs.get("split_heuristic", "default")
         self.rotation = kwargs.get("rotation", False)
