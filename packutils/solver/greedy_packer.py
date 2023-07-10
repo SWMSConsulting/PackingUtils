@@ -116,9 +116,6 @@ class GreedyPacker(AbstractPacker):
         packer.add_items(*greedy_items)
         packer.execute()
 
-        print(greedy_items)
-        print(packer.bins[0])
-
         variant = PackingVariant()
         for idx, b in enumerate(packer.bins):
             bin = copy.deepcopy(
