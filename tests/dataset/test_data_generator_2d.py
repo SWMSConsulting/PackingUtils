@@ -17,9 +17,9 @@ class TestDataGenerator2d(unittest.TestCase):
         self.num_data = 5
         reference_bins = [Bin(10, 1, 10)]
         articles = [
-            Article("item1", 1, 1, 2, 3),
-            Article("item2", 2, 1, 2, 4),
-            Article("item3", 3, 1, 1, 5)
+            Article("item1", 2, 1, 5, 1),
+            Article("item2", 3, 1, 6, 1),
+            Article("item3", 4, 1, 7, 1)
         ]
 
         self.generator = DataGenerator2d(
@@ -30,7 +30,7 @@ class TestDataGenerator2d(unittest.TestCase):
         )
 
     def tearDown(self):
-        remove_temporary_directory(self.temp_dir)
+        pass  # remove_temporary_directory(self.temp_dir)
 
     def test_generate_data(self):
         # Generate data

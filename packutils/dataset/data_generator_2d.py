@@ -17,12 +17,15 @@ class DataGenerator2d:
         output_path: str,
         reference_bins: List[Bin],
         articles: List[Article],
-        packing_solver: str = "greedy"
+        packing_solver: str = "greedy",
+        **kwargs
     ):
         self.allow_rotation = False
-        self.dimensions = ["width", "height"]
+        is_2D, self.dimensions = reference_bins[0].is_packing_2d()
         self.dimensionality = "2D"
         self.num_data = num_data
+
+        assert is_2D == True, "DataGenerator2d can only handle 2D data"
 
         assert os.path.exists(output_path), "output_path not exists"
         self.output_path = output_path
@@ -38,7 +41,7 @@ class DataGenerator2d:
         self.packing_solver = packing_solver
         if packing_solver == "greedy":
             self.solver = GreedyPacker(
-                bins=reference_bins, rotation=self.allow_rotation)
+                bins=reference_bins, rotation=self.allow_rotation, **kwargs)
         else:
             raise ValueError(f"Solver not supported: {packing_solver}")
         self.date = datetime.datetime.now()

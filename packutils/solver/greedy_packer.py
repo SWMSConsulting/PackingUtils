@@ -36,6 +36,14 @@ class GreedyPacker(AbstractPacker):
         self.heuristic = kwargs.get("heuristic", "best_width_fit")
         self.pack_algo = kwargs.get("pack_algo", "shelf")
 
+        print(
+            f"Using GreedyPacker with:" +
+            f"\n  rotation = {self.rotation}" +
+            f"\n  wastemap = {self.wastemap}" +
+            f"\n  heuristic = {self.heuristic}" +
+            f"\n  pack_algo = {self.pack_algo}"
+        )
+
         if self.dimensions == ["width", "length"]:
             self.bin_dim = (reference_bin.width, reference_bin.length)
         elif self.dimensions == ["width", "height"]:
