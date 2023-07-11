@@ -75,8 +75,12 @@ class DataGenerator2d:
                 )
                 for a in self.articles
             ]
-            if len(articles) > self.max_articles_per_order:
-                articles = articles[0:self.max_articles_per_order]
+            num_articles = 0
+            for idx, a in enumerate(articles):
+                num_articles += a.amount
+                if num_articles > self.max_articles_per_order:
+                    articles[idx].amount = self.max_articles_per_order - (num_articles - a.amount)
+                    articles = articles[0:idx+1]
 
             order = Order(f"order", articles=articles)
             if orders.count(order) > 0:
