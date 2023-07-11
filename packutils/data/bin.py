@@ -2,6 +2,9 @@ from packutils.data.item import Item
 from typing import List, Tuple
 import numpy as np
 
+# describes the percentage of the bottom area required to lay on top of other item
+STABILITY_FACTOR = 0.75
+
 
 class Bin:
     """
@@ -61,16 +64,36 @@ class Bin:
             or y + item.length > self.length
             or z + item.height > self.height
         ):
-            return False, f"{item.id}: Item is out of bounds of the bin."
+            return False, f"{item.id}: Item is out of bounds of the bin (containment condition)."
 
         if np.any(self.matrix[z: z + item.height, y: y + item.length, x: x + item.width]):
-            return False, f"{item.id}: Position is already occupied."
+            return False, f"{item.id}: Position is already occupied (non-overlapping condition)."
+
+        if not self._is_item_position_stable(item):
+            return False, f"{item.id}: Position is not stable (stability condition)."
 
         self.packed_items.append(item)
         self.matrix[z: z + item.height,
                     y: y + item.length,
                     x: x + item.width] = len(self.packed_items)
         return True, None
+
+    def _is_item_position_stable(self, item: Item):
+        # every position with z == 0 is stable
+        if item.position.z == 0:
+            return True
+
+        if not item.is_packed():
+            return False
+
+        positions_below = self.matrix[item.position.z - 1,
+                                      item.position.y: item.position.y + item.length,
+                                      item.position.x: item.position.x + item.width]
+
+        if np.count_nonzero(positions_below) < item.width * item.length * STABILITY_FACTOR:
+            return False
+
+        return True
 
     def is_packing_2d(self) -> Tuple[bool, List[str]]:
         """

@@ -20,6 +20,57 @@ class TestBin(unittest.TestCase):
         self.assertEqual(len(self.bin.packed_items), 1)
         self.assertEqual(np.count_nonzero(self.bin.matrix), 27)
 
+    def test_pack_item_stability_check(self):
+
+        # item is flying
+        bin = Bin(width=10, length=10, height=10)
+        flying_item = Item(
+            id="test", width=3, length=3, height=3, position=Position(0, 0, 1)
+        )
+        result, _ = bin.pack_item(flying_item)
+        self.assertFalse(result)
+
+        # item is packed on the bottom of container
+        bin = Bin(width=10, length=10, height=10)
+        valid_item = Item(
+            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
+        )
+        result, _ = bin.pack_item(valid_item)
+        self.assertTrue(result)
+
+        # item is placed fully on top of other item
+        bin = Bin(width=10, length=10, height=10)
+        bin.pack_item(Item(
+            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
+        ))
+        valid_item = Item(
+            id="test", width=3, length=3, height=3, position=Position(0, 0, 3)
+        )
+        result, _ = bin.pack_item(valid_item)
+        self.assertTrue(result)
+
+        # item is placed fully on top of other item with small overhang
+        bin = Bin(width=10, length=10, height=10)
+        bin.pack_item(Item(
+            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
+        ))
+        valid_item = Item(
+            id="test", width=4, length=3, height=3, position=Position(0, 0, 3)
+        )
+        result, _ = bin.pack_item(valid_item)
+        self.assertTrue(result)
+
+        # item is placed fully on top of other item with too much overhang
+        bin = Bin(width=10, length=10, height=10)
+        bin.pack_item(Item(
+            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
+        ))
+        too_much_overhang_item = Item(
+            id="test", width=3, length=3, height=3, position=Position(2, 0, 3)
+        )
+        result, _ = bin.pack_item(too_much_overhang_item)
+        self.assertFalse(result)
+
     def test_pack_item_out_of_bounds(self):
         item = Item(
             id="test", width=5, length=5, height=5, position=Position(7, 7, 7))
