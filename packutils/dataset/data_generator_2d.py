@@ -17,6 +17,7 @@ class DataGenerator2d:
         output_path: str,
         reference_bins: List[Bin],
         articles: List[Article],
+        max_articles_per_order: int = None,
         packing_solver: str = "greedy",
         **kwargs
     ):
@@ -37,6 +38,7 @@ class DataGenerator2d:
         assert len(articles) > 0 and isinstance(articles[0], Article), \
             "requires at least one article"
         self.articles = articles
+        self.max_articles_per_order = max_articles_per_order
 
         self.packing_solver = packing_solver
         if packing_solver == "greedy":
@@ -73,6 +75,9 @@ class DataGenerator2d:
                 )
                 for a in self.articles
             ]
+            if len(articles) > self.max_articles_per_order:
+                articles = articles[0:self.max_articles_per_order]
+
             order = Order(f"order", articles=articles)
             if orders.count(order) > 0:
                 continue
