@@ -79,8 +79,10 @@ class DataGenerator2d:
             for idx, a in enumerate(articles):
                 num_articles += a.amount
                 if num_articles > self.max_articles_per_order:
-                    articles[idx].amount = self.max_articles_per_order - (num_articles - a.amount)
+                    articles[idx].amount = self.max_articles_per_order - \
+                        (num_articles - a.amount)
                     articles = articles[0:idx+1]
+                    break
 
             order = Order(f"order", articles=articles)
             if orders.count(order) > 0:
