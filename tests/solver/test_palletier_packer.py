@@ -65,6 +65,18 @@ class TestPalletierPacker(unittest.TestCase):
         self.assertEqual(len(variant.bins), 1)
         self.assertEqual(len(variant.bins[0].packed_items), 1)
 
+    def test_with_visual(self):
+        return
+        bins = [Bin(10, 10, 10)]
+        packer = PalletierPacker(bins=bins)
+        self.order.articles[0].length = 10
+        self.order.articles[0].amount = 2
+        variant = packer.pack_variant(self.order)
+
+        from packutils.visual.packing_visualization import PackingVisualization
+        vis = PackingVisualization()
+        vis.visualize_packing_variant(variant)
+
 
 if __name__ == '__main__':
     unittest.main()
