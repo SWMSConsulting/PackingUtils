@@ -1,0 +1,1 @@
+-e git+https://github.com/ArnoSchiller/palletier.git#egg=palletier

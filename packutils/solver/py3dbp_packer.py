@@ -91,7 +91,9 @@ class Py3dbpPacker(AbstractPacker):
                     height=int(packed.height),
                     position=pos
                 )
-                bin.pack_item(item)
+                is_packed, error_msg = bin.pack_item(item)
+                if not is_packed:
+                    variant.add_unpacked_item(item, error_msg)
 
             variant.add_bin(bin)
         return variant

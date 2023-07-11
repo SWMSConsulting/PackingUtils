@@ -1,2 +1,2 @@
-git+https://github.com/ArnoSchiller/greedypacker.git#egg=greedypacker
+-e git+https://github.com/ArnoSchiller/greedypacker.git#egg=greedypacker
 sortedcontainers==1.5.7
