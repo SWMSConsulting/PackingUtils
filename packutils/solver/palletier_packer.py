@@ -44,10 +44,11 @@ class PalletierPacker(AbstractPacker):
         boxes = []
         for article in order.articles:
             for idx in range(article.amount):
-                boxes.append(palletier.Box(
+                box = palletier.Box(
                     dims=(article.width, article.length, article.height),
                     name=f"{article.article_id} ({idx+1})"
-                ))
+                )
+                boxes.append(box)
 
         packer = palletier.Solver(
             pallets=pallets, boxes=boxes, allow_rotation=self.allow_rotation)
@@ -58,7 +59,7 @@ class PalletierPacker(AbstractPacker):
             if not tuple(p.pallet.dims) in bin_dimensions:
                 for box in p.boxes:
                     variant.add_unpacked_item(Item(
-                        id=f"Item {idx+1}",
+                        id=box.name,
                         width=int(box.dims[0]),
                         length=int(box.dims[1]),
                         height=int(box.dims[2]),
@@ -74,7 +75,7 @@ class PalletierPacker(AbstractPacker):
                 max_weight=p.pallet.max_weight
             )
             bin_dimensions.remove(tuple(p.pallet.dims))
-            
+
             for box in p.boxes:
                 pos = Position(
                     x=int(box.pos[0]),
@@ -83,7 +84,7 @@ class PalletierPacker(AbstractPacker):
                     rotation=self._get_rotation_type(box),
                 )
                 item = Item(
-                    id=f"Item {idx+1}",
+                    id=box.name,
                     width=int(box.dims[0]),
                     length=int(box.dims[1]),
                     height=int(box.dims[2]),

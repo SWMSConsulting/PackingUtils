@@ -8,6 +8,8 @@ from packutils.data.bin import Bin
 
 from packutils.data.order import Order
 from packutils.solver.greedy_packer import GreedyPacker
+from packutils.solver.palletier_packer import PalletierPacker
+from packutils.solver.py3dbp_packer import Py3dbpPacker
 
 
 class DataGenerator2d:
@@ -44,6 +46,12 @@ class DataGenerator2d:
         if packing_solver == "greedy":
             self.solver = GreedyPacker(
                 bins=reference_bins, rotation=self.allow_rotation, **kwargs)
+        elif packing_solver == "palletier":
+            self.solver = PalletierPacker(
+                bins=reference_bins, rotation=self.allow_rotation, **kwargs)
+        elif packing_solver == "py3dbp":
+            self.solver = Py3dbpPacker(
+                bins=reference_bins, rotation=self.allow_rotation, **kwargs)
         else:
             raise ValueError(f"Solver not supported: {packing_solver}")
         self.date = datetime.datetime.now()
@@ -78,7 +86,7 @@ class DataGenerator2d:
             num_articles = 0
             for idx, a in enumerate(articles):
                 num_articles += a.amount
-                if num_articles > self.max_articles_per_order:
+                if self.max_articles_per_order is not None and num_articles and num_articles > self.max_articles_per_order:
                     articles[idx].amount = self.max_articles_per_order - \
                         (num_articles - a.amount)
                     articles = articles[0:idx+1]
@@ -91,7 +99,6 @@ class DataGenerator2d:
             packed = self.solver.pack_order(order)
             if len(packed.packing_variants[0].bins[0].packed_items) < 1:
                 continue
-
             f_path = os.path.join(
                 self.dataset_dir, f"order{len(packed_orders)+1}.json")
             packed.write_to_file(f_path)
