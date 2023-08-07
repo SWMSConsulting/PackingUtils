@@ -95,16 +95,18 @@ class DataGenerator2d:
             order = Order(f"order", articles=articles)
             if orders.count(order) > 0:
                 continue
+            try:
+                packed = self.solver.pack_order(order)
+                if len(packed.packing_variants[0].bins[0].packed_items) < 1:
+                    continue
+                f_path = os.path.join(
+                    self.dataset_dir, f"order{len(packed_orders)+1}.json")
+                packed.write_to_file(f_path)
 
-            packed = self.solver.pack_order(order)
-            if len(packed.packing_variants[0].bins[0].packed_items) < 1:
-                continue
-            f_path = os.path.join(
-                self.dataset_dir, f"order{len(packed_orders)+1}.json")
-            packed.write_to_file(f_path)
-
-            orders.append(order)
-            packed_orders.append(packed)
+                orders.append(order)
+                packed_orders.append(packed)
+            except Exception as e:
+                print(e)
 
     def write_info(self):
         info = {

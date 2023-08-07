@@ -46,7 +46,7 @@ class PalletierPacker(AbstractPacker):
             for idx in range(article.amount):
                 box = palletier.Box(
                     dims=(article.width, article.length, article.height),
-                    name=f"{article.article_id} ({idx+1})"
+                    name=article.article_id
                 )
                 boxes.append(box)
 
