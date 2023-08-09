@@ -18,19 +18,6 @@ class Py3dbpPacker(AbstractPacker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        """
-        self.rotation = kwargs.get("rotation", False)
-        self.wastemap = kwargs.get("wastemap", True)
-        self.heuristic = kwargs.get("heuristic", "best_width_fit")
-        self.pack_algo = kwargs.get("pack_algo", "shelf")
-
-        if self.dimensions == ["width", "length"]:
-            self.bin_dim = (reference_bin.width, reference_bin.length)
-        elif self.dimensions == ["width", "height"]:
-            self.bin_dim = (reference_bin.width, reference_bin.height)
-        elif self.dimensions == ["length", "height"]:
-            self.bin_dim = (reference_bin.length, reference_bin.height)
-        """
         self.larger_first = kwargs.get("larger_first", True)
 
     def get_params(self) -> dict:
