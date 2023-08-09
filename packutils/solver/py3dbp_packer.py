@@ -31,6 +31,7 @@ class Py3dbpPacker(AbstractPacker):
         elif self.dimensions == ["length", "height"]:
             self.bin_dim = (reference_bin.length, reference_bin.height)
         """
+        self.larger_first = kwargs.get("larger_first", True)
 
     def get_params(self) -> dict:
         return {}
@@ -65,7 +66,7 @@ class Py3dbpPacker(AbstractPacker):
                         weight=int(article.weight)
                     )
                 )
-        packer.pack()
+        packer.pack(larger_first=self.larger_first)
 
         variant = PackingVariant()
         for b in packer.bins:
