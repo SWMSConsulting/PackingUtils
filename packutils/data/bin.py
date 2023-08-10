@@ -2,6 +2,8 @@ from packutils.data.item import Item
 from typing import List, Tuple
 import numpy as np
 
+from packutils.data.position import Position
+
 # describes the percentage of the bottom area required to lay on top of other item
 STABILITY_FACTOR = 0.75
 
@@ -9,17 +11,6 @@ STABILITY_FACTOR = 0.75
 class Bin:
     """
     Represents a bin for packing items.
-
-    Attributes:
-        width (int): The width of the bin.
-        length (int): The length of the bin.
-        height (int): The height of the bin.
-        max_weight (float, optional): The maximum weight limit of the bin.
-
-    Methods:
-        pack_item(item: Item) -> Tuple[bool, str]:
-            Packs an item into the bin at a valid position.
-
     """
 
     def __init__(self, width: int, length: int, height: int, max_weight: 'float | None' = None):
@@ -78,7 +69,17 @@ class Bin:
                     x: x + item.width] = len(self.packed_items)
         return True, None
 
-    def _is_item_position_stable(self, item: Item):
+    def _is_item_position_stable(self, item: Item) -> bool:
+        """
+        Check if an item's position is stable based on the already packed items below it.
+
+        Args:
+            item (Item): The item to check for stability.
+
+        Returns:
+            bool: True if the item's position is stable, False otherwise.
+        """
+
         # every position with z == 0 is stable
         if item.position.z == 0:
             return True
@@ -166,8 +167,26 @@ class Bin:
             return int(used_volume / self.volume * 100)
         return used_volume
 
+    def get_height_map(self):
+
+        height_matrix = np.zeros(self.matrix.shape)
+        for z in range(height_matrix.shape[0]):
+            height_matrix[z] = z+1
+        height_matrix *= self.matrix != 0
+
+        height_map = np.max(height_matrix, axis=0)
+        return height_map
+
     def __repr__(self):
         return f"Bin: {self.width} {self.length} {self.height} - Items{self.packed_items}"
 
     def __eq__(self, other):
         return self.width == other.width and self.length == other.length and self.height == other.height and self.packed_items == other.packed_items
+
+
+if __name__ == '__main__':
+    bin = Bin(2, 2, 2)
+    item = Item("", 1, 1, 2, position=Position(0, 0, 0))
+    bin.pack_item(item)
+
+    print(bin.get_height_map())

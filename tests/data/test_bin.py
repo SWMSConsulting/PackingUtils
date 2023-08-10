@@ -160,6 +160,39 @@ class TestBin(unittest.TestCase):
         self.assertEqual(bin.get_used_volume(), 40 + 30)
         self.assertEqual(bin.get_used_volume(use_percentage=True), 7)
 
+    def test_get_height_map_empty_bin(self):
+        height_map = self.bin.get_height_map()
+        expected_height_map = np.zeros((10, 10), dtype=int)
+        np.testing.assert_array_equal(height_map, expected_height_map)
+
+    def test_get_height_map_single_item(self):
+        # You need to import Item class or create it if not available
+        item = Item("test", width=1, length=1, height=1,
+                    position=Position(0, 0, 0))
+        self.bin.pack_item(item)
+
+        height_map = self.bin.get_height_map()
+        expected_height_map = np.zeros((10, 10), dtype=int)
+        expected_height_map[0, 0] = 1  # The packed item occupies this cell
+        np.testing.assert_array_equal(height_map, expected_height_map)
+
+    def test_get_height_map_multiple_items(self):
+        item1 = Item("test", 2, 2, 1, position=Position(0, 0, 0))
+        item2 = Item("test", 3, 1, 2, position=Position(2, 0, 0))
+        item3 = Item("test", 1, 3, 3, position=Position(0, 2, 0))
+        self.bin.pack_item(item1)
+        self.bin.pack_item(item2)
+        self.bin.pack_item(item3)
+
+        height_map = self.bin.get_height_map()
+
+        expected_height_map = np.zeros((10, 10), dtype=int)
+        expected_height_map[0:2, 0:2] = 1  # Item1
+        expected_height_map[0:1, 2:5] = 2  # Item2
+        expected_height_map[2:5, 0:1] = 3  # Item3
+
+        np.testing.assert_array_equal(height_map, expected_height_map)
+
 
 if __name__ == '__main__':
     unittest.main()
