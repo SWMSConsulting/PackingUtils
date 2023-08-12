@@ -167,8 +167,13 @@ class Bin:
             return int(used_volume / self.volume * 100)
         return used_volume
 
-    def get_height_map(self):
+    def get_height_map(self) -> np.ndarray:
+        """
+        Calculate the height map of the bin's packing matrix.
 
+        Returns:
+            numpy.ndarray: A 2D array representing the height map of the bin's packing matrix.
+        """
         height_matrix = np.zeros(self.matrix.shape)
         for z in range(height_matrix.shape[0]):
             height_matrix[z] = z+1
@@ -176,6 +181,31 @@ class Bin:
 
         height_map = np.max(height_matrix, axis=0)
         return height_map
+
+    def get_center_of_gravity(self, use_volume=False) -> Position:
+        """
+        Calculate the center of gravity for the items packed in the bin.
+
+        Args:
+            use_volume (bool, optional): Whether to calculate the center of gravity based on item volume or weight.
+                                         Defaults to False, which calculates based on item weight.
+
+        Returns:
+            Position: The calculated center of gravity.
+        """
+        m, x, y, z = [], [], [], []
+
+        for item in self.packed_items:
+            m.append(item.volume if use_volume else item.weight)
+            x.append(item.centerpoint().x)
+            y.append(item.centerpoint().y)
+            z.append(item.centerpoint().z)
+
+        m, x, y, z = np.array(m), np.array(x), np.array(y), np.array(z)
+        cgx = np.sum(x*m)/np.sum(m)
+        cgy = np.sum(y*m)/np.sum(m)
+        cgz = np.sum(z*m)/np.sum(m)
+        return Position(x=int(cgx), y=int(cgy), z=int(cgz))
 
     def __repr__(self):
         return f"Bin: {self.width} {self.length} {self.height} - Items{self.packed_items}"

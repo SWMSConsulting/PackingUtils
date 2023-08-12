@@ -193,6 +193,27 @@ class TestBin(unittest.TestCase):
 
         np.testing.assert_array_equal(height_map, expected_height_map)
 
+    # Tests for the get_center_of_gravity function
+    def test_get_center_of_gravity(self):
+        bin = Bin(width=10, length=10, height=10)
+        item1 = Item("test", width=3, length=1, height=3, weight=1)
+        item1.position = Position(x=1, y=0, z=1)  # center: 2.5, 0.5, 2.5
+
+        item2 = Item("test", width=2, length=1, height=2, weight=1)
+        item2.position = Position(x=5, y=0, z=2)  # center: 6, 0.5, 3
+
+        bin.packed_items = [item1, item2]
+
+        cg_weight = bin.get_center_of_gravity()
+        self.assertEqual(cg_weight.x, 4)  # (2.5*1 + 6*1) / (1+1) = 4.25 => 4
+        self.assertEqual(cg_weight.y, 0)  # (0.5 + 0.5) / (1+1) = 0.5 => 0
+        self.assertEqual(cg_weight.z, 2)  # (2.5*1 + 3*1) / (1+1) = 2.75 => 2
+
+        cg_volume = bin.get_center_of_gravity(use_volume=True)
+        self.assertEqual(cg_volume.x, 3)  # (2.5*9 + 6*4) / (9 + 4) = 3.5 => 3
+        self.assertEqual(cg_volume.y, 0)  # 0.5*(9 + 4) / (9 + 4) = 0.5 => 0
+        self.assertEqual(cg_volume.z, 2)  # (2.5*9 + 3*4) / (9 + 4) = 2.6 => 2
+
 
 if __name__ == '__main__':
     unittest.main()
