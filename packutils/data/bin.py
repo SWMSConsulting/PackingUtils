@@ -201,6 +201,9 @@ class Bin:
             y.append(item.centerpoint().y)
             z.append(item.centerpoint().z)
 
+        if len(m) < 1:
+            return Position(x=0, y=0, z=0)
+
         m, x, y, z = np.array(m), np.array(x), np.array(y), np.array(z)
         cgx = np.sum(x*m)/np.sum(m)
         cgy = np.sum(y*m)/np.sum(m)
