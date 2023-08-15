@@ -21,6 +21,7 @@ class DataGenerator2d:
         articles: List[Article],
         max_articles_per_order: int = None,
         packing_solver: str = "greedy",
+        equally_dist_seq_len=False,
         **kwargs
     ):
         self.allow_rotation = False
@@ -42,6 +43,11 @@ class DataGenerator2d:
         self.articles = articles
         self.max_articles_per_order = max_articles_per_order
 
+        assert not equally_dist_seq_len or (
+            equally_dist_seq_len and max_articles_per_order is not None), \
+            "When using equally_dist_seq_len also define max_articles_per_order."
+        self.equally_dist_seq_len = equally_dist_seq_len
+
         self.packing_solver = packing_solver
         if packing_solver == "greedy":
             self.solver = GreedyPacker(
@@ -57,9 +63,12 @@ class DataGenerator2d:
         self.date = datetime.datetime.now()
         date_str = self.date.strftime("%Y%m%d")
         dataset_name = f"data_{self.dimensionality}_{num_data}_{date_str}"
-        self.dataset_dir = os.path.join(self.output_path, dataset_name)
+        if kwargs.get("create_dataset_dir", True):
+            self.dataset_dir = os.path.join(self.output_path, dataset_name)
+        else:
+            self.dataset_dir = self.output_path
 
-        if os.path.exists(self.dataset_dir):
+        if os.path.exists(os.path.join(self.dataset_dir, "info.json")):
             raise ValueError(f"dataset already exists: {self.dataset_dir}")
 
         os.makedirs(self.dataset_dir, exist_ok=True)
@@ -72,26 +81,40 @@ class DataGenerator2d:
 
         while len(packed_orders) < self.num_data:
             # generate random order
-            articles = [
-                Article(
-                    article_id=a.article_id,
-                    width=a.width,
-                    length=a.length,
-                    height=a.height,
-                    weight=a.weight,
-                    amount=random.randint(0, a.amount)
-                )
-                for a in self.articles
-            ]
-            num_articles = 0
-            for idx, a in enumerate(articles):
-                num_articles += a.amount
-                if self.max_articles_per_order is not None and num_articles and num_articles > self.max_articles_per_order:
-                    articles[idx].amount = self.max_articles_per_order - \
-                        (num_articles - a.amount)
-                    articles = articles[0:idx+1]
-                    break
+            if self.equally_dist_seq_len:
+                num_articles = random.randint(1, self.max_articles_per_order)
+                articles = []
+                for _ in range(num_articles):
+                    random_article = random.choice(self.articles)
+                    filtered = list(filter(
+                        lambda indexed: indexed[1].article_id == random_article.article_id, enumerate(articles)))
+                    if len(filtered) < 1:
+                        random_article.amount = 1
+                        articles.append(random_article)
+                    else:
+                        articles[filtered[0][0]].amount += 1
 
+            else:
+                articles = [
+                    Article(
+                        article_id=a.article_id,
+                        width=a.width,
+                        length=a.length,
+                        height=a.height,
+                        weight=a.weight,
+                        amount=random.randint(0, a.amount)
+                    )
+                    for a in self.articles
+                ]
+                num_articles = 0
+                for idx, a in enumerate(articles):
+                    num_articles += a.amount
+                    if self.max_articles_per_order is not None and num_articles > self.max_articles_per_order:
+                        articles[idx].amount = self.max_articles_per_order - \
+                            (num_articles - a.amount)
+                        articles = articles[0:idx+1]
+                        break
+            
             order = Order(f"order", articles=articles)
             if orders.count(order) > 0:
                 continue
@@ -107,7 +130,9 @@ class DataGenerator2d:
                 packed_orders.append(packed)
             except Exception as e:
                 print(e)
-
+            
+            print(f"Generated packing {len(packed_orders)} of {self.num_data}")
+    
     def write_info(self):
         info = {
             "dimensionality": self.dimensionality,
