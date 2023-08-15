@@ -1,3 +1,4 @@
+import glob
 import os
 import json
 from typing import List
@@ -35,6 +36,10 @@ class PackingDataLoader:
             raise ValueError("Could not find dataset")
 
         self.path = path
+        self.orders_path = path
+        if os.path.isdir(os.path.join(self.orders_path, "orders")):
+            self.orders_path = os.path.join(self.orders_path, "orders")
+
         self._load_info()
 
     def get_bin_list(self) -> List[Bin]:
@@ -54,14 +59,12 @@ class PackingDataLoader:
 
         """
         self._bin_list = []
-        if not os.path.exists(os.path.join(self.path, "order1.json")):
+        if not os.path.exists(os.path.join(self.orders_path, "order1.json")):
             raise ValueError("Dataset is empty")
 
-        order_files = [f for f in os.listdir(
-            self.path) if f.startswith("order")]
+        order_files = glob.glob(os.path.join(self.orders_path, "order*.json"))
         for order_path in order_files:
-            packed = PackedOrder.load_from_file(
-                os.path.join(self.path, order_path))
+            packed = PackedOrder.load_from_file(order_path)
             if self.transform_fn:
                 packed = self.transform_fn(packed)
             self.data.append(packed)

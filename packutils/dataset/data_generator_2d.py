@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import os
 import random
 from typing import List
@@ -67,6 +68,8 @@ class DataGenerator2d:
             self.dataset_dir = os.path.join(self.output_path, dataset_name)
         else:
             self.dataset_dir = self.output_path
+        self.orders_dir = os.path.join(self.dataset_dir, "orders")
+        os.makedirs(self.orders_dir, exist_ok=True)
 
         if os.path.exists(os.path.join(self.dataset_dir, "info.json")):
             raise ValueError(f"dataset already exists: {self.dataset_dir}")
@@ -114,7 +117,7 @@ class DataGenerator2d:
                             (num_articles - a.amount)
                         articles = articles[0:idx+1]
                         break
-            
+
             order = Order(f"order", articles=articles)
             if orders.count(order) > 0:
                 continue
@@ -123,16 +126,17 @@ class DataGenerator2d:
                 if len(packed.packing_variants[0].bins[0].packed_items) < 1:
                     continue
                 f_path = os.path.join(
-                    self.dataset_dir, f"order{len(packed_orders)+1}.json")
+                    self.orders_dir, f"order{len(packed_orders)+1}.json")
                 packed.write_to_file(f_path)
 
                 orders.append(order)
                 packed_orders.append(packed)
             except Exception as e:
-                print(e)
-            
-            print(f"Generated packing {len(packed_orders)} of {self.num_data}")
-    
+                logging.warning(e.with_traceback())
+
+            logging.info(
+                f"Generated packing {len(packed_orders)} of {self.num_data}")
+
     def write_info(self):
         info = {
             "dimensionality": self.dimensionality,
