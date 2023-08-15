@@ -39,6 +39,7 @@ class PackingDataLoader:
         self.orders_path = path
         if os.path.isdir(os.path.join(self.orders_path, "orders")):
             self.orders_path = os.path.join(self.orders_path, "orders")
+        print(self.orders_path)
 
         self._load_info()
 
@@ -59,10 +60,11 @@ class PackingDataLoader:
 
         """
         self._bin_list = []
-        if not os.path.exists(os.path.join(self.orders_path, "order1.json")):
-            raise ValueError("Dataset is empty")
 
         order_files = glob.glob(os.path.join(self.orders_path, "order*.json"))
+        if len(order_files) < 1:
+            raise ValueError("Dataset is empty")
+
         for order_path in order_files:
             packed = PackedOrder.load_from_file(order_path)
             if self.transform_fn:
