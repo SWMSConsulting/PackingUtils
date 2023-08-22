@@ -37,12 +37,12 @@ class Article:
         self.amount = amount
         self.weight = weight
 
-    def to_json(self) -> dict:
+    def to_dict(self) -> dict:
         """
-        Converts the Article object to JSON data.
+        Converts the Article object into a JSON-compatible dictionary.
 
         Returns:
-            dict: The JSON data representing the Article object.
+            dict: The JSON-compatible dictionary representing the Article object.
 
         """
         json_data = {

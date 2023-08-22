@@ -102,6 +102,21 @@ class Order:
             for article in self.articles
         ]
 
+    def to_dict(self) -> dict:
+        """
+        Transforms the Order object into a JSON-compatible dictionary.
+
+        Returns:
+            dict: The JSON-compatible dictionary representing the Order.
+
+        """
+        json_data = {
+            "order_id": self.order_id,
+            "articles": [article.to_dict() for article in self.articles],
+            "supplies": [supply.to_dict() for supply in self.supplies]
+        }
+        return json_data
+
     def __repr__(self):
         return f"{self.order_id} ({self.articles})"
 

@@ -30,6 +30,34 @@ class TestImports(unittest.TestCase):
         self.assertEqual(items[0].position, None,
                          "Failed to convert order to items list (wrong position)")
 
+    def test_to_json(self):
+        # Create an Order object for testing
+        articles = [Article("article1", width=10, length=1,
+                            height=20, amount=5, weight=100)]
+        supplies = []
+        order = Order("123", articles, supplies)
+
+        # Convert Order object to JSON dictionary
+        order_json = order.to_dict()
+
+        # Define the expected JSON dictionary
+        expected_json = {
+            "order_id": "123",
+            "articles": [{
+                "id": "article1",
+                "width": 10,
+                "length": 1,
+                "height": 20,
+                "amount": 5,
+                "weight": 100
+            }],
+            "supplies": []
+        }
+
+        # Compare the generated JSON with the expected JSON
+        self.assertEqual(order_json, expected_json)
+        self.assertEqual(order, Order.from_json(expected_json))
+
 
 if __name__ == '__main__':
     unittest.main()
