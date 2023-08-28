@@ -6,7 +6,7 @@ from typing import List
 
 from packutils.data.order import Order
 from packutils.data.article import Article
-from packutils.data.packed_order import PackedOrder
+from packutils.data.bin import Bin
 from packutils.solver.palletier_packer import PalletierPacker
 
 app = FastAPI()
@@ -47,7 +47,7 @@ async def get_packing(orderModel: OrderModel):
         ]
     )
 
-    solver = PalletierPacker()
+    solver = PalletierPacker(bins=[Bin(800, 1, 500)])
 
     variant = solver.pack_variant(order)
     print(variant)

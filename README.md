@@ -38,3 +38,11 @@ pip install -r requirements_greedy.txt
 # Module: Py3dbpPacker
 pip install py3dbp
 ```
+
+
+## Run the solver API
+### Docker
+```
+docker build -t packer .
+docker run -p 8000:8000 packer
+```
