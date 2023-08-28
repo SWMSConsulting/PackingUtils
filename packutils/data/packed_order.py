@@ -96,7 +96,7 @@ class PackedOrder:
     def __eq__(self, other: object) -> bool:
         return self.order_id == other.order_id and self.packing_variants == other.packing_variants
 
-    def to_json(self) -> str:
+    def to_json(self, as_string=True) -> str:
         """
         Convert the PackedOrder object to JSON format.
 
@@ -139,7 +139,9 @@ class PackedOrder:
 
             data["packing_variants"].append(variant_data)
 
-        return json.dumps(data, indent=4)
+        if as_string:
+            return json.dumps(data, indent=4)
+        return data
 
     def write_to_file(self, file_path: str):
         """
