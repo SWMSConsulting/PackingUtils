@@ -47,14 +47,15 @@ async def get_packing(orderModel: OrderModel):
         ]
     )
 
-    solver = PalletierPacker(bins=[Bin(800, 1, 500)])
+    bin = Bin(800, 1, 500)
+    solver = PalletierPacker(bins=[bin])
 
     variant = solver.pack_variant(order)
     print(variant)
 
     positions = [
         {
-            'id': pack.id,
+            'article_id': pack.id,
             'x': pack.position.x, 'y': pack.position.y, 'z': pack.position.z,
             'rotation': pack.position.rotation,
             'centerpoint_x': pack.centerpoint().x,
@@ -62,14 +63,19 @@ async def get_packing(orderModel: OrderModel):
             'centerpoint_z': pack.centerpoint().z
         }
         for pack in variant.bins[0].packed_items
-    ]
+    ] if len(variant.bins) > 0 else []
     colli = {'colli': 1, 'colli_total': 1,
-             'colli_dimension': {}, 'positions': positions}
+             'colli_dimension': {
+                 "width": bin.width,
+                 "length": bin.length,
+                 "height": bin.height
+             },
+             'positions': positions}
 
     packed = {
         "order_id": order.order_id,
-        "packing_variants": [colli],
-        "articles": order.articles,
+        "packing_variants": [[colli]],
+        "articles": orderModel.articles,
     }
 
     return packed
