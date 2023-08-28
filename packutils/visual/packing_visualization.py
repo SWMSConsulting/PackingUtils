@@ -19,13 +19,16 @@ class PackingVisualization():
         return color
 
     def visualize_bin(
-        self, bin: Bin, show: bool = True, output_dir: 'str | None' = None
+        self, bin: Bin,
+        show: bool = True,
+        output_dir: 'str | None' = None,
+        return_png: bool = False
     ):
         is_2d, _ = bin.is_packing_2d()
         if is_2d:
-            return self._visualize_bin_2d(bin, show, output_dir)
+            return self._visualize_bin_2d(bin, show, output_dir, return_png)
         else:
-            return self._visualize_bin_3d(bin, show, output_dir)
+            return self._visualize_bin_3d(bin, show, output_dir, return_png)
 
     def visualize_packing_variant(self, variant: PackingVariant, show: bool = True, output_dir: 'str | None' = None):
         for bin in variant.bins:
