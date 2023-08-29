@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import Dict, List
 from packutils.data.article import Article
 from packutils.data.bin import Bin
 from packutils.data.item import Item
@@ -96,7 +96,7 @@ class PackedOrder:
     def __eq__(self, other: object) -> bool:
         return self.order_id == other.order_id and self.packing_variants == other.packing_variants
 
-    def to_json(self, as_string=True) -> str:
+    def to_dict(self, as_string=True) -> str:
         """
         Convert the PackedOrder object to JSON format.
 
@@ -106,7 +106,7 @@ class PackedOrder:
         data = {
             "order_id": self.order_id,
             "packing_variants": [],
-            "articles": [article.to_json() for article in self.get_articles_list()]
+            "articles": [article.to_dict() for article in self.get_articles_list()]
         }
 
         for variant in self.packing_variants:
@@ -150,7 +150,7 @@ class PackedOrder:
         Args:
             file_path (str): The path of the file to write the JSON data to.
         """
-        json_data = self.to_json()
+        json_data = self.to_json(as_string=True)
         with open(file_path, "w") as file:
             file.write(json_data)
 
@@ -166,6 +166,19 @@ class PackedOrder:
             PackedOrder: The loaded PackedOrder object.
         """
         data = json.loads(json_str)
+        return PackedOrder.from_dict(data)
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'PackedOrder':
+        """
+        Load a PackedOrder object from a dict.
+
+        Args:
+            data (dict): The dict representing the PackedOrder object.
+
+        Returns:
+            PackedOrder: The loaded PackedOrder object.
+        """
         order_id = data.get("order_id", None)
         if order_id is None:
             raise ValueError("Invalid JSON format. Missing 'order_id' field.")
