@@ -83,7 +83,9 @@ class PackingVisualization():
         return fig
 
     def _visualize_bin_3d(
-        self, bin: Bin, show: bool = True, output_dir: 'str | None' = None
+        self, bin: Bin, show: bool = True,
+        output_dir: 'str | None' = None,
+        return_png: bool = False
     ):
         items = bin.packed_items
         fig = plt.figure()
@@ -145,9 +147,11 @@ class PackingVisualization():
         if show:
             plt.show()
 
-        img_buf = io.BytesIO()
-        plt.savefig(img_buf, format='png')
-        img = Image.open(img_buf)
-        img_buf.close()
+        if return_png:
+            img_buf = io.BytesIO()
+            plt.savefig(img_buf, format='png')
+            img = Image.open(img_buf)
+            img_buf.close()
+            return img
 
-        return img
+        return fig
