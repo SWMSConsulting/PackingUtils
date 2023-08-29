@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 from packutils.data.bin import Bin
 from packutils.data.order import Order
@@ -21,9 +21,17 @@ class ArticleModel(BaseModel):
     amount: int
 
 
+class ColliDetailsModel(BaseModel):
+    width: int
+    length: int
+    height: int
+    max_weight: Optional[int] = None
+
+
 class OrderModel(BaseModel):
     order_id: str
     articles: List[ArticleModel]
+    colli_details: Optional[ColliDetailsModel] = None
     # supplies: List[Supply] = []
 
 
@@ -48,12 +56,17 @@ async def get_packing(orderModel: OrderModel):
         ]
     )
 
-    bin = Bin(800, 1, 500)
+    if orderModel.colli_details is not None:
+        details = orderModel.colli_details
+        bin = Bin(details.width, details.length,
+                  details.height, details.max_weight)
+    else:
+        bin = Bin(800, 1, 500)
     solver = PalletierPacker(bins=[bin])
     variant = solver.pack_variant(order)
 
     packed_order = PackedOrder(order_id=order.order_id)
-    if variant != None:
-        packed_order.add_variant(variant)
+    if variant is not None:
+        packed_order.add_packing_variant(variant)
 
-    return packed_order.to_json()
+    return packed_order.to_dict(as_string=False)
