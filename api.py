@@ -31,7 +31,7 @@ async def status():
     return {"status": "Healthy"}
 
 
-@app.post("/predictions")
+@app.post("/palletier")
 async def get_packing(orderModel: OrderModel):
 
     order = Order(
