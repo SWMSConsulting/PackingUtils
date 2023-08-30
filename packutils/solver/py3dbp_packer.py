@@ -53,7 +53,10 @@ class Py3dbpPacker(AbstractPacker):
                         weight=int(article.weight)
                     )
                 )
-        packer.pack(larger_first=self.larger_first)
+        packer.pack(
+            bigger_first=self.larger_first,
+            check_stable=True,
+            support_surface_ratio=1.0)
 
         variant = PackingVariant()
         for b in packer.bins:

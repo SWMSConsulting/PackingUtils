@@ -9,6 +9,7 @@ from packutils.data.order import Order
 from packutils.data.article import Article
 from packutils.data.packed_order import PackedOrder
 from packutils.solver.palletier_packer import PalletierPacker
+from packutils.solver.py3dbp_packer import Py3dbpPacker
 
 app = FastAPI()
 
@@ -40,8 +41,16 @@ async def status():
     return {"status": "Healthy"}
 
 
-@app.post("/palletier")
-async def get_packing(orderModel: OrderModel):
+def get_packing(SolverClass, orderModel):
+
+    if orderModel.colli_details is not None:
+        details = orderModel.colli_details
+        bin = Bin(details.width, details.length,
+                  details.height, details.max_weight)
+    else:
+        bin = Bin(800, 1, 500)
+        
+    solver = SolverClass(bins=[bin])
 
     order = Order(
         order_id=orderModel.order_id,
@@ -55,14 +64,6 @@ async def get_packing(orderModel: OrderModel):
             ) for a in orderModel.articles
         ]
     )
-
-    if orderModel.colli_details is not None:
-        details = orderModel.colli_details
-        bin = Bin(details.width, details.length,
-                  details.height, details.max_weight)
-    else:
-        bin = Bin(800, 1, 500)
-    solver = PalletierPacker(bins=[bin])
     variant = solver.pack_variant(order)
 
     packed_order = PackedOrder(order_id=order.order_id)
@@ -70,3 +71,13 @@ async def get_packing(orderModel: OrderModel):
         packed_order.add_packing_variant(variant)
 
     return packed_order.to_dict(as_string=False)
+
+@app.post("/palletier")
+async def get_packing_palletier(orderModel: OrderModel):
+
+    return get_packing(SolverClass=PalletierPacker, orderModel=orderModel)
+
+@app.post("/py3dbp")
+async def get_packing_py3dbp(orderModel: OrderModel):
+
+    return get_packing(SolverClass=Py3dbpPacker, orderModel=orderModel)

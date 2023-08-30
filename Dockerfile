@@ -13,6 +13,7 @@ RUN pip install --no-cache-dir fastapi uvicorn
 
 RUN pip install -e git+https://github.com/ArnoSchiller/PackingUtils.git#egg=packutils --ignore-installed 
 RUN pip install git+https://github.com/ArnoSchiller/palletier.git#egg=palletier
+RUN pip install py3dbp
 
 # Make port 80 available to the world outside this container
 EXPOSE 8000
