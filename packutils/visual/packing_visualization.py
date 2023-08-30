@@ -20,6 +20,7 @@ class PackingVisualization():
 
     def visualize_bin(
         self, bin: Bin,
+        title: str = None,
         show: bool = True,
         output_dir: 'str | None' = None,
         return_png: bool = False
@@ -30,12 +31,30 @@ class PackingVisualization():
         else:
             return self._visualize_bin_3d(bin, show, output_dir, return_png)
 
-    def visualize_packing_variant(self, variant: PackingVariant, show: bool = True, output_dir: 'str | None' = None):
-        for bin in variant.bins:
-            self.visualize_bin(bin, show, output_dir)
+    def visualize_packing_variant(
+        self,
+        variant: PackingVariant,
+        show: bool = True,
+        output_dir: 'str | None' = None,
+        return_png=False
+    ):
+        images = []
+        for idx, bin in enumerate(variant.bins):
+            img = self.visualize_bin(
+                bin=bin,
+                title=f"Bin {idx+1}",
+                show=show,
+                output_dir=output_dir,
+                return_png=return_png
+            )
+            images.append(img)
+        return images
 
     def _visualize_bin_2d(
-        self, bin: Bin, show: bool = True,
+        self,
+        bin: Bin,
+        title: str = None,
+        show: bool = True,
         output_dir: 'str | None' = None,
         return_png: bool = False
     ):
@@ -55,6 +74,9 @@ class PackingVisualization():
         ax.axes.set_ylim(0, y_max)
         ax.set_xlabel(dimensions[0])
         ax.set_ylabel(dimensions[1])
+
+        if title is not None:
+            ax.set_title(title)
 
         for idx, (pos, dim) in enumerate(pos_dim_2d):
             ax.add_patch(
@@ -83,7 +105,10 @@ class PackingVisualization():
         return fig
 
     def _visualize_bin_3d(
-        self, bin: Bin, show: bool = True,
+        self,
+        bin: Bin,
+        title: str = None,
+        show: bool = True,
         output_dir: 'str | None' = None,
         return_png: bool = False
     ):
@@ -94,6 +119,9 @@ class PackingVisualization():
         ax.axes.set_xlim3d(0, bin.width)
         ax.axes.set_ylim3d(0, bin.length)
         ax.axes.set_zlim3d(0, bin.height)
+
+        if title is not None:
+            ax.set_title(title)
 
         # make the panes transparent
         ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
