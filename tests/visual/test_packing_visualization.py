@@ -47,7 +47,7 @@ class TestPackingVisualization(unittest.TestCase):
     def test_visualize_bin_3d(self):
         num_images_before = self._count_image_outputs()
         self.visualization.visualize_bin(
-            self.variant.bins[0], show=False, output_dir=self.output_dir)
+            self.variant.bins[0], title="Test", show=False, output_dir=self.output_dir)
         self.assertEqual(self._count_image_outputs(), num_images_before + 1)
 
     def test_visualize_packing_variant(self):

@@ -27,9 +27,17 @@ class PackingVisualization():
     ):
         is_2d, _ = bin.is_packing_2d()
         if is_2d:
-            return self._visualize_bin_2d(bin, show, output_dir, return_png)
+            plot_fn = self._visualize_bin_2d
         else:
-            return self._visualize_bin_3d(bin, show, output_dir, return_png)
+            plot_fn = self._visualize_bin_3d
+
+        return plot_fn(
+            bin=bin,
+            title=title,
+            show=show,
+            output_dir=output_dir,
+            return_png=return_png
+        )
 
     def visualize_packing_variant(
         self,
