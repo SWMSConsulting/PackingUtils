@@ -1,3 +1,4 @@
+import copy
 from packutils.data.item import Item
 from typing import List, Tuple
 import numpy as np
@@ -183,7 +184,7 @@ class Bin:
         height_map = np.max(height_matrix, axis=0)
         return height_map
 
-    def get_snappoints(self) -> List[Snappoint]:
+    def get_snappoints(self, min_z: 'int | None' = None) -> List[Snappoint]:
         """
         Calculate and return the list of snap points in the bin.
 
@@ -202,14 +203,21 @@ class Bin:
             raise NotImplementedError(
                 "get_snappoints not implemented for 3D case.")
 
-        heightmap = self.get_height_map().flatten()
+        heightmap = copy.copy(self.get_height_map()).flatten()
+        if min_z is not None:
+            heightmap -= min_z
+            heightmap[heightmap < 0] = 0
+        else:
+            min_z = 0
+
         snappoints = []
         snappoints.append(Snappoint(
-            x=0, y=0, z=heightmap[0], direction=SnappointDirection.RIGHT))
+            x=0, y=0, z=int(heightmap[0]) + min_z,
+            direction=SnappointDirection.RIGHT))
 
         for index in range(1, len(heightmap)):
-            last_z = int(heightmap[index - 1])
-            next_z = int(heightmap[index])
+            last_z = int(heightmap[index - 1]) + min_z
+            next_z = int(heightmap[index]) + min_z
             if last_z != next_z:
                 snappoints.append(Snappoint(
                     x=index, y=0, z=last_z, direction=SnappointDirection.LEFT))
@@ -218,7 +226,8 @@ class Bin:
                     x=index, y=0, z=next_z, direction=SnappointDirection.RIGHT))
 
         snappoints.append(Snappoint(
-            x=len(heightmap), y=0, z=heightmap[-1], direction=SnappointDirection.LEFT))
+            x=len(heightmap), y=0, z=int(heightmap[-1]) + min_z,
+            direction=SnappointDirection.LEFT))
 
         return snappoints
 
