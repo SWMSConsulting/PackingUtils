@@ -3,6 +3,7 @@ from typing import List, Tuple
 import numpy as np
 
 from packutils.data.position import Position
+from packutils.data.snappoint import Snappoint, SnappointDirection
 
 # describes the percentage of the bottom area required to lay on top of other item
 STABILITY_FACTOR = 0.75
@@ -181,6 +182,45 @@ class Bin:
 
         height_map = np.max(height_matrix, axis=0)
         return height_map
+
+    def get_snappoints(self) -> List[Snappoint]:
+        """
+        Calculate and return the list of snap points in the bin.
+
+        A snap point is a point in the bin where a new item could potentially be placed.
+        This method calculates these points based on the current state of the bin and the items already packed.
+
+        Note: This method is currently implemented only for 2D packing.
+
+        Returns:
+            List[Snappoint]: A list of Snappoint objects representing the snap points in the bin.
+
+        Raises:
+            NotImplementedError: If the method is called for a 3D packing scenario.
+        """
+        if not self.is_packing_2d():
+            raise NotImplementedError(
+                "get_snappoints not implemented for 3D case.")
+
+        heightmap = self.get_height_map().flatten()
+        snappoints = []
+        snappoints.append(Snappoint(
+            x=0, y=0, z=heightmap[0], direction=SnappointDirection.RIGHT))
+
+        for index in range(1, len(heightmap)):
+            last_z = int(heightmap[index - 1])
+            next_z = int(heightmap[index])
+            if last_z != next_z:
+                snappoints.append(Snappoint(
+                    x=index, y=0, z=last_z, direction=SnappointDirection.LEFT))
+
+                snappoints.append(Snappoint(
+                    x=index, y=0, z=next_z, direction=SnappointDirection.RIGHT))
+
+        snappoints.append(Snappoint(
+            x=len(heightmap), y=0, z=heightmap[-1], direction=SnappointDirection.LEFT))
+
+        return snappoints
 
     def get_center_of_gravity(self, use_volume=False) -> Position:
         """

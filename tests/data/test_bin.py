@@ -4,6 +4,7 @@ import numpy as np
 from packutils.data.bin import Bin
 from packutils.data.item import Item
 from packutils.data.position import Position
+from packutils.data.snappoint import Snappoint, SnappointDirection
 
 
 class TestBin(unittest.TestCase):
@@ -213,6 +214,41 @@ class TestBin(unittest.TestCase):
         self.assertEqual(cg_volume.x, 3)  # (2.5*9 + 6*4) / (9 + 4) = 3.5 => 3
         self.assertEqual(cg_volume.y, 0)  # 0.5*(9 + 4) / (9 + 4) = 0.5 => 0
         self.assertEqual(cg_volume.z, 2)  # (2.5*9 + 3*4) / (9 + 4) = 2.6 => 2
+
+    def test_get_snappoints(self):
+        bin = Bin(10, 1, 10)
+
+        # Pack some items into the bin
+        item1 = Item("item1", 2, 1, 2, position=Position(0, 0, 0))
+        item2 = Item("item2", 2, 1, 2, position=Position(4, 0, 0))
+        item3 = Item("item3", 2, 1, 2, position=Position(6, 0, 0))
+
+        bin.pack_item(item1)
+        bin.pack_item(item2)
+        bin.pack_item(item3)
+
+        # Get the snap points
+        snappoints = bin.get_snappoints()
+
+        self.assertEqual(len(snappoints), 8)
+
+        # Check if the snap points are as expected
+        expected_snappoints = [
+            Snappoint(x=0, y=0, z=2, direction=SnappointDirection.RIGHT),
+
+            Snappoint(x=2, y=0, z=2, direction=SnappointDirection.LEFT),
+            Snappoint(x=2, y=0, z=0, direction=SnappointDirection.RIGHT),
+
+            Snappoint(x=4, y=0, z=0, direction=SnappointDirection.LEFT),
+            Snappoint(x=4, y=0, z=2, direction=SnappointDirection.RIGHT),
+
+            Snappoint(x=8, y=0, z=2, direction=SnappointDirection.LEFT),
+            Snappoint(x=8, y=0, z=0, direction=SnappointDirection.RIGHT),
+
+            Snappoint(x=10, y=0, z=0, direction=SnappointDirection.LEFT),
+        ]
+
+        self.assertEqual(snappoints, expected_snappoints)
 
 
 if __name__ == '__main__':
