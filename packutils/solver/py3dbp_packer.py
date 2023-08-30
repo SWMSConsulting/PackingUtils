@@ -54,9 +54,7 @@ class Py3dbpPacker(AbstractPacker):
                     )
                 )
         packer.pack(
-            bigger_first=self.larger_first,
-            check_stable=True,
-            support_surface_ratio=1.0)
+            bigger_first=self.larger_first)
 
         variant = PackingVariant()
         for b in packer.bins:
