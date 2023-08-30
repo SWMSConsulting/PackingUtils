@@ -52,7 +52,11 @@ class PalletierPacker(AbstractPacker):
 
         packer = palletier.Solver(
             pallets=pallets, boxes=boxes, allow_rotation=self.allow_rotation)
-        packer.pack()
+        
+        try:
+            packer.pack()
+        except:
+            return PackingVariant()
 
         variant = PackingVariant()
         for p in packer.packed_pallets:
