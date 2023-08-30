@@ -81,6 +81,17 @@ class TestPackingVisualization(unittest.TestCase):
         self.assertEqual(self._count_image_outputs(), num_images_before + 1)
         bin.height = 10
 
+    def test_visualize_bin_2d_with_snappoints(self):
+        bin = Bin(10, 1, 10)
+        bin.pack_item(Item("", 2, 1, 2, position=Position(1, 0, 0)))
+
+        bin.length = 1
+        num_images_before = self._count_image_outputs()
+        self.visualization.visualize_bin(
+            bin, snappoint_min_z=0,
+            show=True, output_dir=self.output_dir)
+        self.assertEqual(self._count_image_outputs(), num_images_before + 1)
+
     def _count_image_outputs(self):
         import glob
         image_files = glob.glob(os.path.join(self.output_dir, "packing_*.png"))

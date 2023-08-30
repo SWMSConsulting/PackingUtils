@@ -20,6 +20,7 @@ class PackingVisualization():
 
     def visualize_bin(
         self, bin: Bin,
+        snappoint_min_z: 'int|None' = None,
         title: str = None,
         show: bool = True,
         output_dir: 'str | None' = None,
@@ -33,6 +34,7 @@ class PackingVisualization():
 
         return plot_fn(
             bin=bin,
+            snappoint_min_z=snappoint_min_z,
             title=title,
             show=show,
             output_dir=output_dir,
@@ -61,6 +63,7 @@ class PackingVisualization():
     def _visualize_bin_2d(
         self,
         bin: Bin,
+        snappoint_min_z: 'int|None' = None,
         title: str = None,
         show: bool = True,
         output_dir: 'str | None' = None,
@@ -93,6 +96,15 @@ class PackingVisualization():
                           facecolor=self.get_color(idx), edgecolor="black", linewidth=2)
             )
 
+        if snappoint_min_z is not None:
+            snappoints = bin.get_snappoints(snappoint_min_z)
+
+            radius = 0.2
+            for point in snappoints:
+                ax.add_patch(
+                    plt.Circle((point.x, point.z), radius, color='r')
+                )
+
         if not output_dir is None:
             os.makedirs(output_dir, exist_ok=True)
             name = "packing_%s.png"
@@ -116,6 +128,7 @@ class PackingVisualization():
     def _visualize_bin_3d(
         self,
         bin: Bin,
+        snappoint_min_z: 'int|None' = None,
         title: str = None,
         show: bool = True,
         output_dir: 'str | None' = None,
