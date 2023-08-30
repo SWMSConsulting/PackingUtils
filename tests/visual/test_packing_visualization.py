@@ -17,7 +17,7 @@ class TestPackingVisualization(unittest.TestCase):
         self.visualization = PackingVisualization()
 
         self.variant = PackingVariant()
-        bin = Bin(width=10, length=10, height=10)
+        bin = Bin(width=10, length=10, height=5)
         item1 = Item(id="item1", width=1, length=1, height=1,
                      position=Position(x=0, y=0, z=0))
         bin.pack_item(item1)

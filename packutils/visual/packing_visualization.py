@@ -85,6 +85,7 @@ class PackingVisualization():
 
         if title is not None:
             ax.set_title(title)
+        ax.set_aspect('equal')
 
         for idx, (pos, dim) in enumerate(pos_dim_2d):
             ax.add_patch(
