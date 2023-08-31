@@ -34,18 +34,7 @@ class Bin:
         self.matrix = np.zeros((height, length, width), dtype=int)
         self.packed_items: List[Item] = []
 
-    def pack_item(self, item: Item) -> Tuple[bool, 'str | None']:
-        """
-        Packs an item into the bin at a valid position.
-
-        Args:
-            item (Item): The item to be packed.
-
-        Returns:
-            Tuple[bool, str]: A tuple containing a boolean indicating if the packing was successful
-            and a string message explaining the result.
-
-        """
+    def can_item_be_packed(self, item: Item) -> Tuple[bool, 'str | None']:
         if not item.is_packed():
             return False, f"{item.id}: Position is None."
         x, y, z = item.position.x, item.position.y, item.position.z
@@ -65,11 +54,29 @@ class Bin:
         if not self._is_item_position_stable(item):
             return False, f"{item.id}: Position is not stable (stability condition)."
 
-        self.packed_items.append(item)
-        self.matrix[z: z + item.height,
-                    y: y + item.length,
-                    x: x + item.width] = len(self.packed_items)
         return True, None
+
+    def pack_item(self, item: Item) -> Tuple[bool, 'str | None']:
+        """
+        Packs an item into the bin at a valid position.
+
+        Args:
+            item (Item): The item to be packed.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating if the packing was successful
+            and a string message explaining the result.
+
+        """
+        can_be_packed, info = self.can_item_be_packed(item)
+
+        if can_be_packed:
+            self.packed_items.append(item)
+            x, y, z = item.position.x, item.position.y, item.position.z
+            self.matrix[z: z + item.height,
+                        y: y + item.length,
+                        x: x + item.width] = len(self.packed_items)
+        return can_be_packed, info
 
     def _is_item_position_stable(self, item: Item) -> bool:
         """

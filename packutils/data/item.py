@@ -170,6 +170,9 @@ class Item:
     def __eq__(self, other):
         return self.id == other.id and self.width == other.width and self.length == other.length and self.height == other.height and self.position == other.position
 
+    def __hash__(self):
+        return hash(repr(self))
+
     @classmethod
     def from_article(cls, article: Article) -> 'Item':
         """
