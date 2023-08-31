@@ -44,7 +44,6 @@ class TestPalletierWishPacker(unittest.TestCase):
         packing_variant = self.packer.pack_variant(order)
 
         self.assertIsNotNone(packing_variant, "pack_variant returned None")
-        print(packing_variant.bins[0].packed_items)
         expected_items = [
             Item("2", width=7, length=1, height=2, position=Position(0, 0, 0)),
             Item("1", width=4, length=1, height=4, position=Position(0, 0, 2)),

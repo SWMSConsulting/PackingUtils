@@ -52,7 +52,7 @@ class PalletierPacker(AbstractPacker):
 
         packer = palletier.Solver(
             pallets=pallets, boxes=boxes, allow_rotation=self.allow_rotation)
-        
+
         try:
             packer.pack()
         except:

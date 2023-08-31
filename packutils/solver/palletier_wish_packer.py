@@ -1,6 +1,7 @@
 import collections
 import copy
 from enum import Enum
+import logging
 from typing import List, Tuple
 
 from packutils.data.bin import Bin
@@ -61,36 +62,35 @@ class PalletierWishPacker(AbstractPacker):
 
         variant = PackingVariant()
         items_to_pack = copy.copy(items)
-        for bin in copy.copy(self.reference_bins):
+        for bin_index, bin in enumerate(copy.copy(self.reference_bins)):
+
             snappoint_direction = SnappointDirection.LEFT
             snappoints_to_ignore = []
             layer_z_min = 0
             layer_z_max = 0
 
             is_packing = True
-            test = 0
             while is_packing:
                 if len(items_to_pack) < 1:
                     is_packing = False
 
+                max_snappoint_z = layer_z_max if layer_z_max != layer_z_min else bin.height
                 snappoints = [point for point in bin.get_snappoints(min_z=layer_z_min)
-                              if not point in snappoints_to_ignore]
-                """
-                if len(snappoints) < 1:
-                    old_layer_z = layer_z
-                    layer_z += sorted(self.get_candidate_layers(items),
-                                      key=lambda x: x.cost)[0].width
-                    print(f"Starting next layer! ({layer_z})")
-                    print(bin.get_snappoints(min_z=old_layer_z),
-                          snappoints_to_ignore)
-                    snappoints = [point for point in bin.get_snappoints(
-                        min_z=old_layer_z) if not point in snappoints_to_ignore and point.z < layer_z]
-                """
+                              if not point in snappoints_to_ignore and point.z < max_snappoint_z]
 
                 sorted_points = sorted(snappoints, key=lambda p: (p.z, p.x))
                 # no snappoint available
                 if len(sorted_points) < 2:
-                    is_packing = False
+                    # reached top of the bin or no possible positions left
+                    if layer_z_max == bin.height or layer_z_min == layer_z_max:
+                        is_packing = False
+                        logging.info(
+                            "There are no possible positions left.")
+
+                    else:
+                        layer_z_min = layer_z_max
+                        logging.info(
+                            f"Starting next layer! ({layer_z_min, layer_z_max})")
                     continue
 
                 left_snappoint = [
@@ -104,24 +104,27 @@ class PalletierWishPacker(AbstractPacker):
                 max_len_z = bin.height - layer_z_min
                 gap_len_z = layer_z_max - \
                     layer_z_min if layer_z_max != layer_z_min else max_len_z
-
                 best, other_best = self.get_best_item_to_pack(
                     items=unique_items, max_len_x=max_len_x, max_len_z=max_len_z, gap_len_z=gap_len_z)
+
+                if best is None and other_best is None:
+                    snappoints_to_ignore += [left_snappoint, right_snappoint]
+                    continue
 
                 if snappoint_direction == SnappointDirection.LEFT:
                     snappoint = left_snappoint
                 if snappoint_direction == SnappointDirection.RIGHT:
                     snappoint = right_snappoint
 
-                if best is None and other_best is None:
-                    snappoints_to_ignore += [left_snappoint, right_snappoint]
-
                 if best is not None:
                     items_to_pack.remove(best)
-                    self.pack_item_on_snappoint(
+                    new_z = self.pack_item_on_snappoint(
                         bin=bin, item=best, snappoint=snappoint)
+                    if new_z is not None and new_z > layer_z_max:
+                        layer_z_max = new_z
 
-            variant.add_bin(bin)
+            if len(bin.packed_items) > 0:
+                variant.add_bin(bin)
 
         for item in items_to_pack:
             variant.add_unpacked_item(item, None)
@@ -137,7 +140,7 @@ class PalletierWishPacker(AbstractPacker):
         return 0
 
     def pack_item_on_snappoint(
-            self, bin: Bin, item: Item, snappoint: Snappoint) -> bool:
+            self, bin: Bin, item: Item, snappoint: Snappoint) -> int:
 
         if snappoint.direction == SnappointDirection.LEFT:
             position = Position(snappoint.x - item.width,
@@ -148,7 +151,12 @@ class PalletierWishPacker(AbstractPacker):
 
         item.position = position
         done, _ = bin.pack_item(item)
-        return bin, done
+
+        if done:
+            new_z_max = position.z + item.height
+            return new_z_max
+
+        return None
 
     def is_packer_available(self) -> bool:
         return PACKER_AVAILABLE
