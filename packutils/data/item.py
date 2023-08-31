@@ -157,6 +157,16 @@ class Item:
         """
         return int(self.width * self.length * self.height)
 
+    @property
+    def surface(self) -> int:
+        """
+        Calculate the surface of the Item.
+
+        Returns:
+        int: The surface of the Item.
+        """
+        return int(self.width * self.length)
+
     def __repr__(self) -> str:
         """
         Returns a string representation of the item.
@@ -168,10 +178,10 @@ class Item:
         return f"{self.id}: width={self.width}, length={self.length}, height={self.height}, position={self.position}"
 
     def __eq__(self, other):
-        return self.id == other.id and self.width == other.width and self.length == other.length and self.height == other.height and self.position == other.position
+        return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash(repr(self))
+        return hash((self.width, self.length, self.height, self.weight, self.position.__hash__()))
 
     @classmethod
     def from_article(cls, article: Article) -> 'Item':

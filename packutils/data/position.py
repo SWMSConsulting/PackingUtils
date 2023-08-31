@@ -34,4 +34,7 @@ class Position:
         return f"Postion: {self.x, self.y, self.z, self.rotation}"
 
     def __eq__(self, other):
-        return self.x == other.x and self.y == other.y and self.z == other.z and self.rotation == other.rotation
+        return self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash((self.x, self.y, self.z, self.rotation))
