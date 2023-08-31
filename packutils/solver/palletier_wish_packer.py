@@ -25,6 +25,8 @@ class LayerScoreStrategy(Enum):
 
 class PalletierWishPacker(AbstractPacker):
 
+    snappoint_direction = SnappointDirection.LEFT
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -32,6 +34,10 @@ class PalletierWishPacker(AbstractPacker):
 
         self.layer_score_strategy = kwargs.get(
             "layer_score_strategy", LayerScoreStrategy.MIN_HEIGHT_VARIANCE)
+
+        # lambda function taking a item and returning a boolean indicating whether the snappoint direction should change
+        self.direction_change_condition = kwargs.get(
+            "direction_change_condition", None)
 
     def get_params(self) -> dict:
         return {}
@@ -64,7 +70,6 @@ class PalletierWishPacker(AbstractPacker):
         items_to_pack = copy.copy(items)
         for bin_index, bin in enumerate(copy.copy(self.reference_bins)):
 
-            snappoint_direction = SnappointDirection.LEFT
             snappoints_to_ignore = []
             layer_z_min = 0
             layer_z_max = 0
@@ -111,9 +116,9 @@ class PalletierWishPacker(AbstractPacker):
                     snappoints_to_ignore += [left_snappoint, right_snappoint]
                     continue
 
-                if snappoint_direction == SnappointDirection.LEFT:
+                if self.snappoint_direction == SnappointDirection.LEFT:
                     snappoint = left_snappoint
-                if snappoint_direction == SnappointDirection.RIGHT:
+                if self.snappoint_direction == SnappointDirection.RIGHT:
                     snappoint = right_snappoint
 
                 if best is not None:
@@ -122,6 +127,8 @@ class PalletierWishPacker(AbstractPacker):
                         bin=bin, item=best, snappoint=snappoint)
                     if new_z is not None and new_z > layer_z_max:
                         layer_z_max = new_z
+
+                # add here the check of other_best
 
             if len(bin.packed_items) > 0:
                 variant.add_bin(bin)
@@ -153,6 +160,11 @@ class PalletierWishPacker(AbstractPacker):
         done, _ = bin.pack_item(item)
 
         if done:
+            if self.direction_change_condition is not None and self.direction_change_condition(item):
+                self.snappoint_direction = self.snappoint_direction.change()
+                logging.info(
+                    f"New snappoint direction: {self.snappoint_direction}")
+
             new_z_max = position.z + item.height
             return new_z_max
 

@@ -6,6 +6,11 @@ class SnappointDirection(Enum):
     LEFT = 1
     RIGHT = 2
 
+    def change(self):
+        if self == SnappointDirection.LEFT:
+            return SnappointDirection.RIGHT
+        return SnappointDirection.LEFT
+
 
 class Snappoint:
     """
