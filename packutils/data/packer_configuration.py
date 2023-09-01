@@ -45,6 +45,3 @@ class ItemSelectStrategy(ValidatedEnum):
     FITTING_BEST_Y_X_Z = (0, "FITTING_BEST_Y_X_Z")
     HIGHEST_VOLUME_FOR_EMPTY_LAYER = (1, "HIGHEST_VOLUME_FOR_EMPTY_LAYER")
     ALWAYS_HIGHEST_VOLUME = (2, "ALWAYS_HIGHEST_VOLUME")
-
-
-print(PackerConfiguration(bin_stability_factor=2.0))

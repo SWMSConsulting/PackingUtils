@@ -38,7 +38,8 @@ class TestCasesIteration(unittest.TestCase):
                 bins=bins,
                 configuration=PackerConfiguration(
                     item_select_strategy=0,
-                    direction_change_min_volume=0.01
+                    direction_change_min_volume=0.01,
+                    bin_stability_factor=0.0
                 )
             )
             variant = wishPalletier.pack_variant(order=order)

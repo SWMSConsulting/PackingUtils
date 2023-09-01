@@ -42,7 +42,7 @@ class PalletierWishPacker(AbstractPacker):
     def parse_configuration(self, config: 'PackerConfiguration | None'):
         if not isinstance(config, PackerConfiguration):
             config = PackerConfiguration()
-        logging.info(config)
+        logging.info("Used packer config:", config)
         self.config = config
         # not implemented yet
         self.allow_rotation = False  # kwargs.get("rotation", False)
@@ -86,6 +86,7 @@ class PalletierWishPacker(AbstractPacker):
         variant = PackingVariant()
         items_to_pack = copy.copy(items)
         for bin_index, bin in enumerate(copy.copy(self.reference_bins)):
+            bin.stability_factor = self.config.bin_stability_factor
             logging.info("-"*20, f"Bin {bin_index+1}")
             snappoints_to_ignore = []
             layer_z_min = 0
