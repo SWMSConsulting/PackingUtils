@@ -42,7 +42,7 @@ class PalletierWishPacker(AbstractPacker):
     def parse_configuration(self, config: 'PackerConfiguration | None'):
         if not isinstance(config, PackerConfiguration):
             config = PackerConfiguration()
-        print(config)
+        logging.info(config)
         self.config = config
         # not implemented yet
         self.allow_rotation = False  # kwargs.get("rotation", False)
@@ -86,7 +86,7 @@ class PalletierWishPacker(AbstractPacker):
         variant = PackingVariant()
         items_to_pack = copy.copy(items)
         for bin_index, bin in enumerate(copy.copy(self.reference_bins)):
-            print("-"*20)
+            logging.info("-"*20, f"Bin {bin_index+1}")
             snappoints_to_ignore = []
             layer_z_min = 0
             layer_z_max = 0
@@ -99,21 +99,18 @@ class PalletierWishPacker(AbstractPacker):
                 max_snappoint_z = layer_z_max if layer_z_max != layer_z_min else bin.height
                 snappoints = [point for point in bin.get_snappoints(min_z=layer_z_min)
                               if not point in snappoints_to_ignore and point.z <= max_snappoint_z]
-                print(len(bin.get_snappoints(min_z=layer_z_min)),
-                      len(snappoints_to_ignore), max_snappoint_z)
 
                 sorted_points = sorted(snappoints, key=lambda p: (p.z, p.x))
                 # no snappoint available
-                print(sorted_points)
                 if len(sorted_points) < 2:
                     # reached top of the bin or no possible positions left
                     if layer_z_max == bin.height or layer_z_min == layer_z_max:
                         is_packing = False
-                        print(
+                        logging.info(
                             "There are no possible positions left.")
 
                     else:
-                        print(
+                        logging.info(
                             f"Starting next layer! ({layer_z_min, layer_z_max})")
 
                         if self.fill_gaps:
@@ -140,15 +137,19 @@ class PalletierWishPacker(AbstractPacker):
                     snappoints_to_ignore += [left_snappoint, right_snappoint]
                     continue
 
+                if best is not None:
+                    item_to_pack = best
+                elif other_best is not None:
+                    item_to_pack = other_best
+
                 if self.snappoint_direction == SnappointDirection.LEFT:
                     snappoint = left_snappoint
                 if self.snappoint_direction == SnappointDirection.RIGHT:
                     snappoint = right_snappoint
 
-                if best is not None:
-                    item_to_pack = best
-                elif other_best is not None:
-                    item_to_pack = other_best
+                if not self.can_pack_on_snappoint(bin, item_to_pack, snappoint):
+                    print("This snappoint is unstable, checking other snappoint.")
+                    snappoint = right_snappoint if snappoint == left_snappoint else left_snappoint
 
                 done, new_z = self.pack_item_on_snappoint(
                     bin=bin, item=item_to_pack, snappoint=snappoint)
@@ -177,6 +178,22 @@ class PalletierWishPacker(AbstractPacker):
     def _get_variant_score(self, variant: PackingVariant):
         return 0
 
+    def can_pack_on_snappoint(
+            self, bin: Bin, item: Item, snappoint: Snappoint) -> int:
+
+        item = copy.copy(item)
+        if snappoint.direction == SnappointDirection.LEFT:
+            position = Position(snappoint.x - item.width,
+                                snappoint.y, snappoint.z)
+
+        if snappoint.direction == SnappointDirection.RIGHT:
+            position = Position(snappoint.x, snappoint.y, snappoint.z)
+
+        item.position = position
+        can_be_packed, info = bin.can_item_be_packed(item)
+
+        return can_be_packed
+
     def pack_item_on_snappoint(
             self, bin: Bin, item: Item, snappoint: Snappoint) -> int:
 
@@ -191,8 +208,7 @@ class PalletierWishPacker(AbstractPacker):
         item.position = position
         done, info = bin.pack_item(item)
         if info is not None:
-            print(position)
-            print(info)
+            logging.info(position, item, info)
         if done:
             if item.volume / bin.volume >= self.config.direction_change_min_volume:
                 self.snappoint_direction = self.snappoint_direction.change()
@@ -329,7 +345,6 @@ class PalletierWishPacker(AbstractPacker):
         heightmap = bin.get_height_map() - min_z
 
         total_gap_width = np.count_nonzero(heightmap == 0)
-        print(total_gap_width)
         if total_gap_width <= 0:
             return False
 
@@ -357,8 +372,7 @@ class PalletierWishPacker(AbstractPacker):
 
             item.position.x = current_x
             current_x += item.width
-            failed, info = bin.pack_item(item)
-            if not failed:
-                print(item.position)
-                print(info)
+            done, info = bin.pack_item(item)
+            if not done:
+                logging.info(info, item)
         return True

@@ -46,8 +46,8 @@ class TestCasesIteration(unittest.TestCase):
                 and len(variant.bins) > 0 and len(variant.bins) <= len(bins)
 
             if not packed or idx == len(self.test_cases) - 1:
-                print(variant)
-                print(len(variant.bins[0].packed_items))
+                # print(variant)
+                # print(len(variant.bins[0].packed_items))
                 vis.visualize_packing_variant(variant, show=show)
             self.assertTrue(packed)
 
