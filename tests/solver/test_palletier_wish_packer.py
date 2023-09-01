@@ -8,6 +8,7 @@ from packutils.data.packing_variant import PackingVariant
 from packutils.data.position import Position
 from packutils.data.snappoint import Snappoint, SnappointDirection
 from packutils.solver.palletier_wish_packer import Layer, LayerScoreStrategy, PalletierWishPacker
+from packutils.visual.packing_visualization import PackingVisualization
 
 
 class TestPalletierWishPacker(unittest.TestCase):
@@ -47,7 +48,7 @@ class TestPalletierWishPacker(unittest.TestCase):
         expected_items = [
             Item("2", width=7, length=1, height=2, position=Position(0, 0, 0)),
             Item("1", width=4, length=1, height=4, position=Position(0, 0, 2)),
-            Item("1", width=4, length=1, height=4, position=Position(0, 0, 6)),
+            Item("1", width=4, length=1, height=4, position=Position(4, 0, 2)),
         ]
         self.assertEqual(len(packing_variant.bins), 1)
         self.assertEqual(len(packing_variant.bins[0].packed_items), 3)
@@ -140,6 +141,61 @@ class TestPalletierWishPacker(unittest.TestCase):
             bin, copy.copy(item), snappoint_right)
         self.assertTrue(
             result_right, "Failed to pack item on the right snappoint")
+
+    def test_fill_gaps_no_gap(self):
+        return
+        bin = Bin(width=10, length=1, height=2)
+        bin.pack_item(Item("", width=5, length=1, height=1,
+                      position=Position(0, 0, 0)))
+        bin.pack_item(Item("", width=5, length=1, height=1,
+                      position=Position(5, 0, 0)))
+
+        packer = PalletierWishPacker(bins=[bin], fill_gaps=True)
+        changed = packer._fill_gaps(bin, min_z=0)
+        self.assertFalse(changed)
+
+    def test_fill_gaps_empty_bin(self):
+        return
+        bin = Bin(width=10, length=1, height=2)
+        packer = PalletierWishPacker(bins=[bin], fill_gaps=True)
+        changed = packer._fill_gaps(bin, min_z=0)
+        self.assertFalse(changed)
+
+    def test_fill_gaps_single_item(self):
+        return
+        bin = Bin(width=10, length=1, height=2)
+        bin.pack_item(Item("", width=5, length=1, height=1,
+                      position=Position(5, 0, 0)))
+
+        packer = PalletierWishPacker(bins=[bin], fill_gaps=True)
+        changed = packer._fill_gaps(bin, min_z=0)
+
+        self.assertTrue(changed)
+        self.assertEqual(bin.packed_items[0].position, Position(2, 0, 0))
+
+    def test_fill_gaps_single_item(self):
+        bin = Bin(width=10, length=1, height=8)
+        bin.pack_item(Item("", width=5, length=1, height=2,
+                      position=Position(0, 0, 0)))
+        bin.pack_item(Item("", width=3, length=1, height=2,
+                      position=Position(5, 0, 0)))
+        bin.pack_item(Item("", width=2, length=1, height=2,
+                      position=Position(0, 0, 2)))
+        bin.pack_item(Item("", width=2, length=1, height=2,
+                      position=Position(6, 0, 2)))
+
+        packer = PalletierWishPacker(bins=[bin], fill_gaps=True)
+        changed = packer._fill_gaps(bin, min_z=2)
+        vis = PackingVisualization()
+        vis.visualize_bin(bin)
+
+        self.assertTrue(changed)
+        # staying the same
+        self.assertEqual(bin.packed_items[0].position, Position(0, 0, 0))
+        self.assertEqual(bin.packed_items[1].position, Position(5, 0, 0))
+        # updated
+        self.assertEqual(bin.packed_items[-2].position, Position(2, 0, 0))
+        self.assertEqual(bin.packed_items[-1].position, Position(4, 0, 0))
 
 
 if __name__ == '__main__':

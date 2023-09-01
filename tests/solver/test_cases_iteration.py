@@ -18,7 +18,7 @@ class TestCasesIteration(unittest.TestCase):
         show = True
         vis = PackingVisualization()
 
-        for bins, order in self.test_cases:
+        for idx, (bins, order) in enumerate(self.test_cases):
             # run palletier packer
             palletier = PalletierPacker(bins=bins)
             variant1 = palletier.pack_variant(order=order)
@@ -34,13 +34,14 @@ class TestCasesIteration(unittest.TestCase):
             # run wish palletier packer
             wishPalletier = PalletierWishPacker(
                 bins=bins,
-                direction_change_condition=lambda x: x.volume > 10000
+                # direction_change_condition=lambda x: x.volume > 10000,
+                # fill_gaps=True
             )
             variant2 = wishPalletier.pack_variant(order=order)
             packed2 = len(variant2.unpacked_items) == 0 \
                 and len(variant2.bins) > 0 and len(variant2.bins) <= len(bins)
 
-            if packed2:
+            if not packed2 or idx == len(self.test_cases) - 1:
                 # print(variant2)
                 vis.visualize_packing_variant(variant2, show=show)
             self.assertTrue(packed2)
@@ -94,6 +95,78 @@ TEST_CASES = [
                     width=274, length=1, height=153, amount=8),
             Article("Aluminium Steckzaunpfosten, silber",
                     width=68, length=1, height=68, amount=9)
+        ]
+    )),
+
+    # Rhombus Zaun
+    ([Bin(800, 1, 500) for _ in range(2)], Order(
+        order_id="real_test_order2", articles=[
+            Article("Stockholm Alu Leistenset Silber ST105",
+                    width=72, length=1, height=25, amount=1),
+            Article("BPC Rhombus Zaunlamellen Stockholm (einzel??)",  # sieht eher aus wie 3-4
+                    width=146, length=1, height=72, amount=24),
+            Article("Aluminium Steckzaunpfosten, silber",
+                    width=68, length=1, height=68, amount=2)
+        ]
+    )),
+
+    # Rhombus Zaun (large)
+    ([Bin(800, 1, 500) for _ in range(2)], Order(
+        order_id="real_test_order3", articles=[
+            Article("Stockholm Alu Leistenset Silber ST105",
+                    width=72, length=1, height=25, amount=1),
+            Article("BPC Rhombus Zaunlamellen Stockholm (einzel)",
+                    width=146, length=1, height=72, amount=48),
+            Article("Aluminium Steckzaunpfosten, silber",
+                    width=68, length=1, height=68, amount=6)
+        ]
+    )),
+
+    # Fertigzaun (dieser überschreitet die Maximalbreite)
+    ([Bin(800, 1, 500) for _ in range(2)], Order(
+        order_id="real_test_order4", articles=[
+            Article("Rhombus Steckzaunelement Sib. Lärche (Halbelement)",
+                    width=800, length=1, height=19, amount=6),
+            Article("Aluminium Steckzaunpfosten, silber",
+                    width=68, length=1, height=68, amount=7)
+        ]
+    )),
+
+    # Norderney WPC Steckzaunsystem mit Tor
+    ([Bin(800, 1, 500) for _ in range(2)], Order(
+        order_id="real_test_order5", articles=[
+            Article("Universal Tor für Steckzaun 90x175 cm",
+                    width=280, length=1, height=75, amount=1),
+            Article("Norderney WPC Steckzaunsystem",
+                    width=257, length=1, height=162, amount=4),
+            Article("Aluminium Steckzaunpfosten, silber",
+                    width=68, length=1, height=68, amount=5),
+        ]
+    )),
+
+    # dieses sieht spannend aus
+    # SCHWEDENPROFIL WPC Steckzaunfüllung
+    ([Bin(800, 1, 500) for _ in range(2)], Order(
+        order_id="real_test_order6", articles=[
+            Article("SCHWEDENPROFIL WPC Steckzaunfüllung",
+                    width=170, length=1, height=175, amount=4),
+            Article("Aluminium Steckzaunpfosten, silber",
+                    width=68, length=1, height=68, amount=5),
+            # was bedeutet der Kommentar?
+            Article("SCHWEDENPROFIL schiefergrau Torfüllung",
+                    width=146, length=1, height=20, amount=6),
+        ]
+    )),
+
+    # Norderney WPC Steckzaunsystem mit Tor
+    ([Bin(800, 1, 500) for _ in range(2)], Order(
+        order_id="real_test_order7", articles=[
+            Article("Universal Tor für Steckzaun 90x175 cm",
+                    width=280, length=1, height=75, amount=1),
+            Article("Norderney WPC Steckzaunsystem",
+                    width=257, length=1, height=162, amount=4),
+            Article("Aluminium Steckzaunpfosten, silber",
+                    width=68, length=1, height=68, amount=5),
         ]
     )),
 

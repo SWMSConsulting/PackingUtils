@@ -4,6 +4,8 @@ from enum import Enum
 import logging
 from typing import List, Tuple
 
+import numpy as np
+
 from packutils.data.bin import Bin
 from packutils.data.item import Item
 from packutils.data.order import Order
@@ -23,6 +25,13 @@ class LayerScoreStrategy(Enum):
     MIN_HEIGHT_VARIANCE = 0
 
 
+class ItemSelectStrategy(Enum):
+    # for each layer candidate loop over the items and sum the absolute height differnce between item and layer
+    FITTING_BEST_Y_X_Z = 0
+    HIGHEST_VOLUME_FOR_EMPTY_LAYER = 1
+    ALWAYS_HIGHEST_VOLUME = 2
+
+
 class PalletierWishPacker(AbstractPacker):
 
     snappoint_direction = SnappointDirection.LEFT
@@ -30,14 +39,26 @@ class PalletierWishPacker(AbstractPacker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # not implemented yet
         self.allow_rotation = kwargs.get("rotation", False)
 
+        # not relevant, this was regarding to the vertical layers
         self.layer_score_strategy = kwargs.get(
             "layer_score_strategy", LayerScoreStrategy.MIN_HEIGHT_VARIANCE)
+
+        #
+        self.item_select_strategy = kwargs.get(
+            "item_select_strategy", ItemSelectStrategy.ALWAYS_HIGHEST_VOLUME)
 
         # lambda function taking a item and returning a boolean indicating whether the snappoint direction should change
         self.direction_change_condition = kwargs.get(
             "direction_change_condition", None)
+
+        # if a layer is closed, fill the gaps
+        self.fill_gaps = kwargs.get("fill_gaps", False)
+
+        # if a new layer is opened, allow snappoints where overhang can occurr
+        self.allow_overhang = kwargs.get("allow_overhang", True)
 
     def get_params(self) -> dict:
         return {}
@@ -93,9 +114,12 @@ class PalletierWishPacker(AbstractPacker):
                             "There are no possible positions left.")
 
                     else:
-                        layer_z_min = layer_z_max
-                        logging.info(
+                        print(
                             f"Starting next layer! ({layer_z_min, layer_z_max})")
+
+                        if self.fill_gaps:
+                            self._fill_gaps(bin, layer_z_min)
+                        layer_z_min = layer_z_max
                     continue
 
                 left_snappoint = [
@@ -110,7 +134,8 @@ class PalletierWishPacker(AbstractPacker):
                 gap_len_z = layer_z_max - \
                     layer_z_min if layer_z_max != layer_z_min else max_len_z
                 best, other_best = self.get_best_item_to_pack(
-                    items=unique_items, max_len_x=max_len_x, max_len_z=max_len_z, gap_len_z=gap_len_z)
+                    items=unique_items, bin_len_x=bin.width, max_len_x=max_len_x,
+                    max_len_z=max_len_z, gap_len_z=gap_len_z)
 
                 if best is None and other_best is None:
                     snappoints_to_ignore += [left_snappoint, right_snappoint]
@@ -122,13 +147,15 @@ class PalletierWishPacker(AbstractPacker):
                     snappoint = right_snappoint
 
                 if best is not None:
-                    items_to_pack.remove(best)
-                    new_z = self.pack_item_on_snappoint(
-                        bin=bin, item=best, snappoint=snappoint)
-                    if new_z is not None and new_z > layer_z_max:
-                        layer_z_max = new_z
+                    item_to_pack = best
+                elif other_best is not None:
+                    item_to_pack = other_best
 
-                # add here the check of other_best
+                items_to_pack.remove(item_to_pack)
+                new_z = self.pack_item_on_snappoint(
+                    bin=bin, item=item_to_pack, snappoint=snappoint)
+                if new_z is not None and new_z > layer_z_max:
+                    layer_z_max = new_z
 
             if len(bin.packed_items) > 0:
                 variant.add_bin(bin)
@@ -174,7 +201,8 @@ class PalletierWishPacker(AbstractPacker):
         return PACKER_AVAILABLE
 
     def get_best_item_to_pack(
-        self, items, max_len_x,
+        self, items,
+        bin_len_x, max_len_x,
         max_len_z, gap_len_z,
         max_len_y=1, gap_len_y=1  # not relevant for now
     ):
@@ -211,6 +239,11 @@ class PalletierWishPacker(AbstractPacker):
         other_y_diff = other_x_diff = other_z_diff = 99999
 
         for w, l, h in dims_that_fit:
+            if self.item_select_strategy == ItemSelectStrategy.HIGHEST_VOLUME_FOR_EMPTY_LAYER and max_len_x == bin_len_x or self.item_select_strategy == ItemSelectStrategy.ALWAYS_HIGHEST_VOLUME:
+                sorted_items = sorted(
+                    items, key=lambda x: x.volume, reverse=True)
+                if len(sorted_items) > 1:
+                    return sorted_items[0], None
 
             # item has smaller or same height
             if h <= gap_len_z:
@@ -283,3 +316,42 @@ class PalletierWishPacker(AbstractPacker):
 
         layers = sorted(layers, key=lambda x: x.score, reverse=True)
         return layers
+
+    def _fill_gaps(self, bin: Bin, min_z: int):
+        # detect the gap
+        heightmap = bin.get_height_map() - min_z
+
+        total_gap_width = np.count_nonzero(heightmap == 0)
+        print(total_gap_width)
+        if total_gap_width <= 0:
+            return False
+
+        left_space = int(total_gap_width / 2)
+
+        # get all items of the layer
+        items_to_move = [
+            item for item in bin.packed_items if item.position.z >= min_z]
+        if len(items_to_move) < 1:
+            return False
+
+        # this does not work for larger stacks to move (use prev approach with items left and right of gap)
+        for item in items_to_move:
+            bin.packed_items.remove(item)
+            bin.matrix[min_z:, :, :] = 0
+
+        items_to_move = sorted(
+            items_to_move, key=lambda x: (x.position.z, x.position.x))
+        current_x = left_space
+        current_z = min_z
+        for item in items_to_move:
+            if current_z != item.position.z:
+                current_z = item.position.z
+                current_x = left_space
+
+            item.position.x = current_x
+            current_x += item.width
+            failed, info = bin.pack_item(item)
+            if not failed:
+                print(item.position)
+                print(info)
+        return True
