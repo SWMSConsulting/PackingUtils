@@ -7,7 +7,7 @@ from packutils.data.position import Position
 from packutils.data.snappoint import Snappoint, SnappointDirection
 
 # describes the percentage of the bottom area required to lay on top of other item
-STABILITY_FACTOR = 0.75
+DEFAULT_STABILITY_FACTOR = 0.75
 
 
 class Bin:
@@ -15,7 +15,8 @@ class Bin:
     Represents a bin for packing items.
     """
 
-    def __init__(self, width: int, length: int, height: int, max_weight: 'float | None' = None):
+    def __init__(self, width: int, length: int, height: int, max_weight: 'float | None' = None,
+                 stability_factor: 'float | None' = None):
         """
         Initializes a Bin object with specified dimensions and optional maximum weight.
 
@@ -30,6 +31,8 @@ class Bin:
         self.length = length
         self.height = height
         self.max_weight = max_weight
+
+        self.stability_factor = stability_factor if stability_factor is not None else DEFAULT_STABILITY_FACTOR
 
         self.matrix = np.zeros((height, length, width), dtype=int)
         self.packed_items: List[Item] = []
@@ -100,7 +103,7 @@ class Bin:
                                       item.position.y: item.position.y + item.length,
                                       item.position.x: item.position.x + item.width]
 
-        if np.count_nonzero(positions_below) < item.width * item.length * STABILITY_FACTOR:
+        if np.count_nonzero(positions_below) < item.width * item.length * self.stability_factor:
             return False
 
         return True

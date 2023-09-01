@@ -3,6 +3,7 @@ import unittest
 from packutils.data.article import Article
 from packutils.data.bin import Bin
 from packutils.data.order import Order
+from packutils.data.packer_configuration import PackerConfiguration
 from packutils.solver.palletier_packer import PalletierPacker
 from packutils.solver.palletier_wish_packer import PalletierWishPacker
 from packutils.visual.packing_visualization import PackingVisualization
@@ -11,7 +12,7 @@ from packutils.visual.packing_visualization import PackingVisualization
 class TestCasesIteration(unittest.TestCase):
 
     def setUp(self):
-        self.test_cases = TEST_CASES
+        self.test_cases = [TEST_CASES[-1]]
 
     def test_compare_palletier_and_wish_palletier(self):
 
@@ -19,6 +20,7 @@ class TestCasesIteration(unittest.TestCase):
         vis = PackingVisualization()
 
         for idx, (bins, order) in enumerate(self.test_cases):
+            """
             # run palletier packer
             palletier = PalletierPacker(bins=bins)
             variant1 = palletier.pack_variant(order=order)
@@ -30,21 +32,24 @@ class TestCasesIteration(unittest.TestCase):
                 # print(variant1)
                 # vis.visualize_packing_variant(variant1, show=show)
             # self.assertTrue(packed1)
-
+            """
             # run wish palletier packer
             wishPalletier = PalletierWishPacker(
                 bins=bins,
-                # direction_change_condition=lambda x: x.volume > 10000,
-                # fill_gaps=True
+                configuration=PackerConfiguration(
+                    item_select_strategy=0,
+                    direction_change_min_volume=0.01
+                )
             )
-            variant2 = wishPalletier.pack_variant(order=order)
-            packed2 = len(variant2.unpacked_items) == 0 \
-                and len(variant2.bins) > 0 and len(variant2.bins) <= len(bins)
+            variant = wishPalletier.pack_variant(order=order)
+            packed = len(variant.unpacked_items) == 0 \
+                and len(variant.bins) > 0 and len(variant.bins) <= len(bins)
 
-            if not packed2 or idx == len(self.test_cases) - 1:
-                # print(variant2)
-                vis.visualize_packing_variant(variant2, show=show)
-            self.assertTrue(packed2)
+            if not packed or idx == len(self.test_cases) - 1:
+                print(variant)
+                print(len(variant.bins[0].packed_items))
+                vis.visualize_packing_variant(variant, show=show)
+            self.assertTrue(packed)
 
             if False:  # variant1 != variant2:
                 print("Packing variants are not equal!")

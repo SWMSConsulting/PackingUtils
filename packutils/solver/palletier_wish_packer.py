@@ -1,14 +1,18 @@
-import collections
 import copy
-from enum import Enum
 import logging
-from typing import List, Tuple
-
 import numpy as np
+import collections
+from enum import Enum
+from pydantic import BaseModel
+from pyparsing import Optional
+from typing import Any, List, Tuple
+from typing_extensions import Annotated
+from pydantic.functional_validators import WrapValidator
 
 from packutils.data.bin import Bin
 from packutils.data.item import Item
 from packutils.data.order import Order
+from packutils.data.packer_configuration import ItemSelectStrategy, PackerConfiguration
 from packutils.data.packing_variant import PackingVariant
 from packutils.data.position import Position
 from packutils.data.snappoint import Snappoint, SnappointDirection
@@ -25,13 +29,6 @@ class LayerScoreStrategy(Enum):
     MIN_HEIGHT_VARIANCE = 0
 
 
-class ItemSelectStrategy(Enum):
-    # for each layer candidate loop over the items and sum the absolute height differnce between item and layer
-    FITTING_BEST_Y_X_Z = 0
-    HIGHEST_VOLUME_FOR_EMPTY_LAYER = 1
-    ALWAYS_HIGHEST_VOLUME = 2
-
-
 class PalletierWishPacker(AbstractPacker):
 
     snappoint_direction = SnappointDirection.LEFT
@@ -39,26 +36,25 @@ class PalletierWishPacker(AbstractPacker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        config = kwargs.get("configuration", None)
+        self.parse_configuration(config)
+
+    def parse_configuration(self, config: 'PackerConfiguration | None'):
+        if not isinstance(config, PackerConfiguration):
+            config = PackerConfiguration()
+        print(config)
+        self.config = config
         # not implemented yet
-        self.allow_rotation = kwargs.get("rotation", False)
+        self.allow_rotation = False  # kwargs.get("rotation", False)
 
         # not relevant, this was regarding to the vertical layers
-        self.layer_score_strategy = kwargs.get(
-            "layer_score_strategy", LayerScoreStrategy.MIN_HEIGHT_VARIANCE)
-
-        #
-        self.item_select_strategy = kwargs.get(
-            "item_select_strategy", ItemSelectStrategy.FITTING_BEST_Y_X_Z)
-
-        # lambda function taking a item and returning a boolean indicating whether the snappoint direction should change
-        self.direction_change_condition = kwargs.get(
-            "direction_change_condition", None)
+        self.layer_score_strategy = LayerScoreStrategy.MIN_HEIGHT_VARIANCE
 
         # if a layer is closed, fill the gaps
-        self.fill_gaps = kwargs.get("fill_gaps", False)
+        self.fill_gaps = False  # kwargs.get("fill_gaps", False)
 
         # if a new layer is opened, allow snappoints where overhang can occurr
-        self.allow_overhang = kwargs.get("allow_overhang", True)
+        self.allow_overhang = True  # kwargs.get("allow_overhang", True)
 
     def get_params(self) -> dict:
         return {}
@@ -84,13 +80,13 @@ class PalletierWishPacker(AbstractPacker):
         best_variant = variants[0].variant
         return best_variant
 
-    def _pack_variants(self, items: List[Item]) -> List[ScoredVariant]:
+    def _pack_variants(self,  items: List[Item]) -> List[ScoredVariant]:
         all_variants = []
 
         variant = PackingVariant()
         items_to_pack = copy.copy(items)
         for bin_index, bin in enumerate(copy.copy(self.reference_bins)):
-
+            print("-"*20)
             snappoints_to_ignore = []
             layer_z_min = 0
             layer_z_max = 0
@@ -102,15 +98,18 @@ class PalletierWishPacker(AbstractPacker):
 
                 max_snappoint_z = layer_z_max if layer_z_max != layer_z_min else bin.height
                 snappoints = [point for point in bin.get_snappoints(min_z=layer_z_min)
-                              if not point in snappoints_to_ignore and point.z < max_snappoint_z]
+                              if not point in snappoints_to_ignore and point.z <= max_snappoint_z]
+                print(len(bin.get_snappoints(min_z=layer_z_min)),
+                      len(snappoints_to_ignore), max_snappoint_z)
 
                 sorted_points = sorted(snappoints, key=lambda p: (p.z, p.x))
                 # no snappoint available
+                print(sorted_points)
                 if len(sorted_points) < 2:
                     # reached top of the bin or no possible positions left
                     if layer_z_max == bin.height or layer_z_min == layer_z_max:
                         is_packing = False
-                        logging.info(
+                        print(
                             "There are no possible positions left.")
 
                     else:
@@ -151,11 +150,16 @@ class PalletierWishPacker(AbstractPacker):
                 elif other_best is not None:
                     item_to_pack = other_best
 
-                items_to_pack.remove(item_to_pack)
-                new_z = self.pack_item_on_snappoint(
+                done, new_z = self.pack_item_on_snappoint(
                     bin=bin, item=item_to_pack, snappoint=snappoint)
                 if new_z is not None and new_z > layer_z_max:
                     layer_z_max = new_z
+
+                if done:
+                    items_to_pack.remove(item_to_pack)
+                    snappoints_to_ignore = []
+                else:
+                    snappoints_to_ignore += [left_snappoint, right_snappoint]
 
             if len(bin.packed_items) > 0:
                 variant.add_bin(bin)
@@ -176,6 +180,7 @@ class PalletierWishPacker(AbstractPacker):
     def pack_item_on_snappoint(
             self, bin: Bin, item: Item, snappoint: Snappoint) -> int:
 
+        item = copy.copy(item)
         if snappoint.direction == SnappointDirection.LEFT:
             position = Position(snappoint.x - item.width,
                                 snappoint.y, snappoint.z)
@@ -184,18 +189,20 @@ class PalletierWishPacker(AbstractPacker):
             position = Position(snappoint.x, snappoint.y, snappoint.z)
 
         item.position = position
-        done, _ = bin.pack_item(item)
-
+        done, info = bin.pack_item(item)
+        if info is not None:
+            print(position)
+            print(info)
         if done:
-            if self.direction_change_condition is not None and self.direction_change_condition(item):
+            if item.volume / bin.volume >= self.config.direction_change_min_volume:
                 self.snappoint_direction = self.snappoint_direction.change()
                 logging.info(
                     f"New snappoint direction: {self.snappoint_direction}")
 
             new_z_max = position.z + item.height
-            return new_z_max
+            return done, new_z_max
 
-        return None
+        return done, None
 
     def is_packer_available(self) -> bool:
         return PACKER_AVAILABLE
@@ -239,7 +246,7 @@ class PalletierWishPacker(AbstractPacker):
         other_y_diff = other_x_diff = other_z_diff = 99999
 
         for w, l, h in dims_that_fit:
-            if self.item_select_strategy == ItemSelectStrategy.HIGHEST_VOLUME_FOR_EMPTY_LAYER and max_len_x == bin_len_x or self.item_select_strategy == ItemSelectStrategy.ALWAYS_HIGHEST_VOLUME:
+            if self.config.item_select_strategy == ItemSelectStrategy.HIGHEST_VOLUME_FOR_EMPTY_LAYER and max_len_x == bin_len_x or self.config.item_select_strategy == ItemSelectStrategy.ALWAYS_HIGHEST_VOLUME:
                 sorted_items = sorted(
                     items, key=lambda x: x.volume, reverse=True)
                 if len(sorted_items) > 1:
