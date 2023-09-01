@@ -1,7 +1,7 @@
 from enum import Enum
 import logging
 
-from pydantic import Field, BaseModel, field_validator
+from pydantic import Field, BaseModel
 
 
 class PackerConfiguration(BaseModel):
@@ -12,15 +12,6 @@ class PackerConfiguration(BaseModel):
 
     bin_stability_factor: float = Field(default=0.75)
 
-    @field_validator("direction_change_min_volume", "bin_stability_factor")
-    def check_in_range(cls, v):
-        if v < 0:
-            v = 0.0
-            logging.info("Value must be greater than or equal 0")
-        if v > 1:
-            v = 1.0
-            logging.info("Value must be smaller than or equal 1")
-        return v
 
 
 class ValidatedEnum(Enum):
