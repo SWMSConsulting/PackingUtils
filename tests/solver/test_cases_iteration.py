@@ -54,7 +54,8 @@ class TestCasesIteration(unittest.TestCase):
                 vis.visualize_packing_variant(variant2, show=show)
                 self.assertTrue(False)
 
-    """
+
+TEST_CASES = [
     # this should return 2 pallets completely filled
     ([Bin(10, 1, 10) for _ in range(2)], Order(
         order_id="test_order1", articles=[
@@ -84,10 +85,7 @@ class TestCasesIteration(unittest.TestCase):
                     width=68, length=1, height=68, amount=3)
         ]
     )),
-    """
 
-
-TEST_CASES = [
     # AMELAND Zaun mit 8 Elementen
     ([Bin(800, 1, 500) for _ in range(2)], Order(
         order_id="real_test_order1", articles=[
