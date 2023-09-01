@@ -3,11 +3,7 @@ import logging
 import numpy as np
 import collections
 from enum import Enum
-from pydantic import BaseModel
-from pyparsing import Optional
-from typing import Any, List, Tuple
-from typing_extensions import Annotated
-from pydantic.functional_validators import WrapValidator
+from typing import List, Tuple
 
 from packutils.data.bin import Bin
 from packutils.data.item import Item
