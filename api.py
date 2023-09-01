@@ -81,7 +81,7 @@ def _generate_random_configurations(
 ):
     configs = [config]
     failed_counter = 0
-    while len(configs) < num_variants or failed_counter > 5:
+    while len(configs) < num_variants and failed_counter < 5:
         new_config = copy.copy(config)
 
         bin_volume = order.colli_details.width * \
@@ -94,7 +94,7 @@ def _generate_random_configurations(
 
         possibilities = ItemSelectStrategy.all_entities()
         new_value = random.choice(possibilities)
-        new_config.item_select_strategy = possibilities
+        new_config.item_select_strategy = new_value
 
         if configs.count(new_config) > 0:
             failed_counter += 1
