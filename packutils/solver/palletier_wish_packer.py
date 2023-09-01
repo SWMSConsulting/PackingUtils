@@ -48,7 +48,7 @@ class PalletierWishPacker(AbstractPacker):
 
         #
         self.item_select_strategy = kwargs.get(
-            "item_select_strategy", ItemSelectStrategy.ALWAYS_HIGHEST_VOLUME)
+            "item_select_strategy", ItemSelectStrategy.FITTING_BEST_Y_X_Z)
 
         # lambda function taking a item and returning a boolean indicating whether the snappoint direction should change
         self.direction_change_condition = kwargs.get(

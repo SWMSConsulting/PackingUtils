@@ -143,7 +143,7 @@ class TestPalletierWishPacker(unittest.TestCase):
             result_right, "Failed to pack item on the right snappoint")
 
     def test_fill_gaps_no_gap(self):
-        return
+
         bin = Bin(width=10, length=1, height=2)
         bin.pack_item(Item("", width=5, length=1, height=1,
                       position=Position(0, 0, 0)))
@@ -155,14 +155,14 @@ class TestPalletierWishPacker(unittest.TestCase):
         self.assertFalse(changed)
 
     def test_fill_gaps_empty_bin(self):
-        return
+
         bin = Bin(width=10, length=1, height=2)
         packer = PalletierWishPacker(bins=[bin], fill_gaps=True)
         changed = packer._fill_gaps(bin, min_z=0)
         self.assertFalse(changed)
 
     def test_fill_gaps_single_item(self):
-        return
+
         bin = Bin(width=10, length=1, height=2)
         bin.pack_item(Item("", width=5, length=1, height=1,
                       position=Position(5, 0, 0)))
