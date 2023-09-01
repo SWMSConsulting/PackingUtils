@@ -6,7 +6,7 @@ from pydantic import Field, BaseModel, field_validator
 
 class PackerConfiguration(BaseModel):
 
-    item_select_strategy: int = Field(default=None)
+    item_select_strategy: int = Field(default=0)
 
     direction_change_min_volume: float = Field(default=1.0)
 
@@ -24,6 +24,10 @@ class PackerConfiguration(BaseModel):
 
 
 class ValidatedEnum(Enum):
+    @classmethod
+    def all_entities(cls):
+        return [entity for entity in cls]
+
     @classmethod
     def indicies_list(cls):
         return [entity.value[0] for entity in cls]
