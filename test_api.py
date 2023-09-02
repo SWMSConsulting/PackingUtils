@@ -73,10 +73,11 @@ num_variants = 2
 result = get_packing_variants(test_order,
                               baseConfig=PackerConfiguration(),
                               num_variants=num_variants)
-packed = PackedOrder.from_dict(result)
+packed = PackedOrder.from_dict(result.get("packed_order", {}))
 print(len(packed.packing_variants))
 assert num_variants == len(packed.packing_variants)
 
 vis = PackingVisualization()
-for variant in packed.packing_variants:
+for variant, cfg in zip(packed.packing_variants, result.get("configs")):
+    print(cfg)
     vis.visualize_packing_variant(variant)

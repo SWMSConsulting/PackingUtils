@@ -99,7 +99,10 @@ async def get_packing_variants(
     for v in variants:
         packed.add_packing_variant(v)
 
-    return packed.to_dict(as_string=False)
+    return {
+        "packed_order": packed.to_dict(as_string=False),
+        "configs": configs
+    }
 
 """
 @app.post("/palletier")
