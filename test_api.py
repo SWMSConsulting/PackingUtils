@@ -13,8 +13,8 @@ from packutils.data.packed_order import PackedOrder
 
 from packutils.visual.packing_visualization import PackingVisualization
 
-HOST = "localhost"
-# HOST = "192.168.178.93"
+# HOST = "localhost"
+HOST = "192.168.178.93"
 PORT = 8000
 
 PACKING_ENDPOINT = "variants"
@@ -67,13 +67,13 @@ articles = [
     Article("test1", width=26, length=1, height=16, amount=30),
     Article("test2", width=6, length=1, height=6, amount=11)
 ]
-
 test_order = Order(order_id="test", articles=articles)
 
 num_variants = 2
 results = get_packing_variants(test_order,
                                baseConfig=PackerConfiguration(),
                                num_variants=num_variants)
+print(len(results))
 assert num_variants == len(results)
 for result in results:
     packed = PackedOrder.from_dict(result)

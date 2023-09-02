@@ -58,53 +58,44 @@ async def get_packing_palletier(
     params: VariantsRequestModel
 ):
     print(params)
-    order_model = params.order
+    order = params.order
     num_variants = params.num_variants
     config = None
-    # generate configurations
-    if config is None:
-        config = PackerConfiguration()
-    configs = _generate_random_configurations(
-        order_model, config, num_variants)
-    print(configs)
-    variants = []
-    for cfg in configs:
-        variants.append(_get_packing(PalletierWishPacker, order_model, cfg))
+
+    bin_volume = order.colli_details.width * \
+        order.colli_details.length * order.colli_details.height
+    item_volumes = [a.width * a.length * a.height /
+                    bin_volume for a in order.articles]
+
+    config = PackerConfiguration() if config is None else config
+    configs = [config]
+
+    random_configs = PackerConfiguration.generate_random_configurations(
+        n=num_variants,
+        bin_stability_factor=config.bin_stability_factor,
+        item_volumes=item_volumes,
+    )
+
+    for cfg in random_configs:
+        if cfg not in configs:
+            configs.append(cfg)
+        if len(configs) >= num_variants:
+            break
+
+    if order.colli_details is not None:
+        details = order.colli_details
+        bins = [
+            Bin(details.width, details.length,
+                details.height, details.max_weight)
+            for _ in range(details.max_collis)
+        ]
+    else:
+        bins = [Bin(800, 1, 500)]
+
+    packer = PalletierWishPacker(bins=bins)
+    variants = packer.pack_variants(order, configs)
 
     return variants
-
-
-def _generate_random_configurations(
-        order: OrderModel,
-        config: PackerConfiguration,
-        num_variants: int
-):
-    configs = [config]
-    failed_counter = 0
-    while len(configs) < num_variants and failed_counter < 5:
-        new_config = copy.copy(config)
-
-        bin_volume = order.colli_details.width * \
-            order.colli_details.length * order.colli_details.height
-        possibilities = [a.width * a.length *
-                         a.height / bin_volume for a in order.articles]
-        possibilities += [0.0, 1.0]
-        new_value = random.choice(possibilities)
-        new_config.direction_change_min_volume = new_value
-
-        possibilities = ItemSelectStrategy.all_entities()
-        new_value = random.choice(possibilities)
-        new_config.item_select_strategy = new_value
-
-        if configs.count(new_config) > 0:
-            failed_counter += 1
-        else:
-            failed_counter = 0
-            configs.append(new_config)
-
-    print(configs)
-    return configs
-
 
 """
 @app.post("/palletier")
@@ -116,7 +107,6 @@ async def get_packing_palletier(orderModel: OrderModel):
 async def get_packing_py3dbp(orderModel: OrderModel):
 
     return _get_packing(PackerClass=Py3dbpPacker, orderModel=orderModel)
-"""
 
 
 def _get_packing(
@@ -156,3 +146,5 @@ def _get_packing(
         packed_order.add_packing_variant(variant)
 
     return packed_order.to_dict(as_string=False)
+
+"""

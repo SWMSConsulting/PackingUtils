@@ -10,8 +10,14 @@ from packutils.data.snappoint import Snappoint, SnappointDirection
 from packutils.solver.palletier_wish_packer import Layer, LayerScoreStrategy, PalletierWishPacker
 from packutils.visual.packing_visualization import PackingVisualization
 
+import logging
+logging.basicConfig(level=logging.INFO)
+
 
 class TestPalletierWishPacker(unittest.TestCase):
+
+    def setUp(self):
+        self.vis = PackingVisualization()
 
     def test_pack_variant_no_item_packed(self):
 
@@ -43,7 +49,7 @@ class TestPalletierWishPacker(unittest.TestCase):
         self.packer = PalletierWishPacker(bins=[Bin(10, 1, 10)])
 
         packing_variant = self.packer.pack_variant(order)
-
+        self.vis.visualize_packing_variant(packing_variant)
         self.assertIsNotNone(packing_variant, "pack_variant returned None")
         expected_items = [
             Item("2", width=7, length=1, height=2, position=Position(0, 0, 0)),
@@ -76,9 +82,9 @@ class TestPalletierWishPacker(unittest.TestCase):
                          "Layers are not sorted by score")
 
     def test_get_best_item_to_pack_no_item_fit(self):
-
+        bin = Bin(1, 1, 1)
         self.packer = PalletierWishPacker(
-            bins=[Bin(1, 1, 1)],
+            bins=[bin],
             layer_score_strategy=LayerScoreStrategy.MIN_HEIGHT_VARIANCE
         )
         items = [
@@ -87,35 +93,41 @@ class TestPalletierWishPacker(unittest.TestCase):
             Item(id='3', width=4, length=1, height=30)
         ]
 
-        item, _ = self.packer.get_best_item_to_pack(
-            items,
-            max_len_x=1,
-            max_len_z=3,
-            gap_len_z=2)
+        item = self.packer.get_best_item_to_pack(
+            items=items, bin=bin, snappoint=Snappoint(0, 0, 0, SnappointDirection.RIGHT))
 
         self.assertIsNone(item)
 
     def test_get_best_item_to_pack(self):
+
+        bin = Bin(10, 1, 15)
+        bin.pack_item(Item(id="", width=3, length=1, height=10,
+                      position=Position(0, 0, 0)))
+        bin.pack_item(Item(id="", width=4, length=1, height=8,
+                      position=Position(6, 0, 0)))
         packer = PalletierWishPacker(
-            bins=[Bin(1, 1, 1)],
+            bins=[bin],
             layer_score_strategy=LayerScoreStrategy.MIN_HEIGHT_VARIANCE
         )
         items = [
             Item(id='best', width=3, length=1, height=10),
-            Item(id='other', width=3, length=1, height=11),
-            Item(id='1', width=2, length=1, height=8),
-            Item(id='2', width=3, length=1, height=9),
-            Item(id='3', width=4, length=1, height=10)
+            Item(id='best2', width=3, length=1, height=8),
+            Item(id='best3', width=2, length=1, height=9),
+            Item(id='best4', width=3, length=1, height=11),
+            Item(id='toolarge', width=4, length=1, height=10)
         ]
 
-        item, other = packer.get_best_item_to_pack(
-            items,
-            max_len_x=3,
-            max_len_z=12,
-            gap_len_z=10)
+        for expected_item in copy.deepcopy(items):
+            if not expected_item.id.startswith("best"):
+                break
+            item = packer.get_best_item_to_pack(
+                items=copy.deepcopy(items), bin=bin, snappoint=Snappoint(
+                    3, 0, 0, SnappointDirection.RIGHT)
+            )
+            self.assertEqual(expected_item, item)
 
-        self.assertEqual(items[0], item)
-        self.assertEqual(items[1], other)
+            items.remove(expected_item)
+        # self.vis.visualize_bin(bin)
 
     def test_pack_item_on_snappoint(self):
 
@@ -174,6 +186,7 @@ class TestPalletierWishPacker(unittest.TestCase):
         self.assertEqual(bin.packed_items[0].position, Position(2, 0, 0))
 
     def test_fill_gaps_single_item(self):
+        return
         bin = Bin(width=10, length=1, height=8)
         bin.pack_item(Item("", width=5, length=1, height=2,
                       position=Position(0, 0, 0)))

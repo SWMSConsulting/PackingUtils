@@ -27,18 +27,16 @@ class LayerScoreStrategy(Enum):
 
 class PalletierWishPacker(AbstractPacker):
 
-    snappoint_direction = SnappointDirection.LEFT
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        config = kwargs.get("configuration", None)
-        self.parse_configuration(config)
+        self.reset(None)
 
-    def parse_configuration(self, config: 'PackerConfiguration | None'):
-        if not isinstance(config, PackerConfiguration):
+    def reset(self, config: 'PackerConfiguration | None'):
+        if config is None or not isinstance(config, PackerConfiguration):
             config = PackerConfiguration()
-        logging.info("Used packer config:", config)
+
+        logging.info("Used packer config: " + str(config))
         self.config = config
         # not implemented yet
         self.allow_rotation = False  # kwargs.get("rotation", False)
@@ -52,11 +50,19 @@ class PalletierWishPacker(AbstractPacker):
         # if a new layer is opened, allow snappoints where overhang can occurr
         self.allow_overhang = True  # kwargs.get("allow_overhang", True)
 
+        self.snappoint_direction = SnappointDirection.LEFT
+
     def get_params(self) -> dict:
         return {}
 
-    def pack_variant(self, order: Order) -> 'PackingVariant | None':
-        variant = PackingVariant()
+    def pack_variants(self, order: Order, configs: List[PackerConfiguration]) -> List[PackingVariant]:
+        variants = []
+        for config in configs:
+            variants.append(self.pack_variant(order, config))
+        return variants
+
+    def pack_variant(self, order: Order, config: PackerConfiguration = None) -> 'PackingVariant | None':
+        self.reset(config)
 
         items_to_pack = [
             Item(id=a.article_id, width=a.width,
@@ -64,26 +70,16 @@ class PalletierWishPacker(AbstractPacker):
             for a in order.articles for _ in range(a.amount)
         ]
 
-        variants = self._pack_variants(items_to_pack)
-        # failed to pack any variant
-        if len(variants) < 1:
-            variant = PackingVariant()
-            for item in items_to_pack:
-                variant.add_unpacked_item(item, None)
-            return variant
+        variant = self._pack_variant(items_to_pack)
+        return variant
 
-        variants = sorted(variants, key=lambda x: x.score, reverse=True)
-        best_variant = variants[0].variant
-        return best_variant
-
-    def _pack_variants(self,  items: List[Item]) -> List[ScoredVariant]:
-        all_variants = []
+    def _pack_variant(self,  items: List[Item]) -> PackingVariant:
 
         variant = PackingVariant()
         items_to_pack = copy.copy(items)
         for bin_index, bin in enumerate(copy.copy(self.reference_bins)):
             bin.stability_factor = self.config.bin_stability_factor
-            logging.info("-"*20, f"Bin {bin_index+1}")
+            logging.info("-"*20 + f" Bin {bin_index+1}")
             snappoints_to_ignore = []
             layer_z_min = 0
             layer_z_max = 0
@@ -120,43 +116,44 @@ class PalletierWishPacker(AbstractPacker):
                 right_snappoint = [
                     p for p in sorted_points if p.direction == SnappointDirection.LEFT][0]
 
-                unique_items = set(items_to_pack)
-
-                max_len_x = right_snappoint.x-left_snappoint.x
-                max_len_z = bin.height - layer_z_min
-                gap_len_z = layer_z_max - \
-                    layer_z_min if layer_z_max != layer_z_min else max_len_z
-                best, other_best = self.get_best_item_to_pack(
-                    items=unique_items, bin_len_x=bin.width, max_len_x=max_len_x,
-                    max_len_z=max_len_z, gap_len_z=gap_len_z)
-
-                if best is None and other_best is None:
-                    snappoints_to_ignore += [left_snappoint, right_snappoint]
-                    continue
-
-                if best is not None:
-                    item_to_pack = best
-                elif other_best is not None:
-                    item_to_pack = other_best
+                logging.info("")
+                logging.info("Selected snappoints: " +
+                             str(left_snappoint) + ", " + str(right_snappoint))
 
                 if self.snappoint_direction == SnappointDirection.LEFT:
                     snappoint = left_snappoint
                 if self.snappoint_direction == SnappointDirection.RIGHT:
                     snappoint = right_snappoint
+                logging.info(f"Selected snappoint: {snappoint}")
 
-                if not self.can_pack_on_snappoint(bin, item_to_pack, snappoint):
-                    print("This snappoint is unstable, checking other snappoint.")
+                unique_items = set(items_to_pack)
+                best = self.get_best_item_to_pack(unique_items, bin, snappoint)
+                logging.info(f"Item to pack: {best}")
+
+                if best is None:
+                    logging.info(
+                        "This snappoint is unstable, checking other snappoint.")
                     snappoint = right_snappoint if snappoint == left_snappoint else left_snappoint
+                    best = self.get_best_item_to_pack(
+                        unique_items, bin, snappoint)
+
+                if best is None:
+                    logging.info(
+                        "No item to pack on snappoints - ignoring them.")
+                    snappoints_to_ignore += [left_snappoint, right_snappoint]
+                    continue
 
                 done, new_z = self.pack_item_on_snappoint(
-                    bin=bin, item=item_to_pack, snappoint=snappoint)
+                    bin=bin, item=best, snappoint=snappoint)
                 if new_z is not None and new_z > layer_z_max:
                     layer_z_max = new_z
 
                 if done:
-                    items_to_pack.remove(item_to_pack)
+                    items_to_pack.remove(best)
                     snappoints_to_ignore = []
                 else:
+                    logging.info(
+                        "Failed to pack item - ignoring snappoints.")
                     snappoints_to_ignore += [left_snappoint, right_snappoint]
 
             if len(bin.packed_items) > 0:
@@ -164,13 +161,8 @@ class PalletierWishPacker(AbstractPacker):
 
         for item in items_to_pack:
             variant.add_unpacked_item(item, None)
-        all_variants.append(variant)
 
-        scored_variants = [
-            ScoredVariant(variant, self._get_variant_score(variant)) for variant in all_variants
-        ]
-
-        return scored_variants
+        return variant
 
     def _get_variant_score(self, variant: PackingVariant):
         return 0
@@ -205,8 +197,9 @@ class PalletierWishPacker(AbstractPacker):
         item.position = position
         done, info = bin.pack_item(item)
         if info is not None:
-            logging.info(position, item, info)
+            logging.info(f"{info} - {item}")
         if done:
+            logging.info(f"Packed item {item}")
             if item.volume / bin.volume >= self.config.direction_change_min_volume:
                 self.snappoint_direction = self.snappoint_direction.change()
                 logging.info(
@@ -221,76 +214,40 @@ class PalletierWishPacker(AbstractPacker):
         return PACKER_AVAILABLE
 
     def get_best_item_to_pack(
-        self, items,
-        bin_len_x, max_len_x,
-        max_len_z, gap_len_z,
-        max_len_y=1, gap_len_y=1  # not relevant for now
-    ):
+        self, items: List[Item], bin: Bin, snappoint: Snappoint
+    ) -> 'Item | None':
         """
         Get the best item to pack based on the given constraints.
 
         Args:
-            items (List[Item]): List of items to be considered for packing.
-            max_len_x (float): Maximum length available along the x-axis.
-            max_len_z (float): Maximum length available along the z-axis.
-            gap_len_z (float): Gap length along the z-axis.
-            max_len_y (float, optional): Maximum length available along the y-axis. Defaults to 1.
-            gap_len_y (float, optional): Gap length along the y-axis. Defaults to 1.
 
-        Returns:
-            Tuple[Item, Item]: A tuple containing the best fit item with a lower height and the best fit item with a larger height than the gap.
         """
-        unique_dims = set((item.width, item.length, item.height)
-                          for item in items)
+        items = [copy.deepcopy(item) for item in set(items) if self.can_pack_on_snappoint(
+            bin, item, snappoint)]
 
-        dims_that_fit = []
-        for dims in unique_dims:
-            # you can include rotation here
-            for w, l, h in [dims]:
-                if w <= max_len_x and l <= max_len_y and h <= max_len_z:
-                    dims_that_fit.append(dims)
+        if len(items) < 1:
+            return None
 
-        if len(dims_that_fit) < 1:
-            return None, None
+        is_new_layer = not np.any(bin.get_height_map() > snappoint.z)
+        if self.config.item_select_strategy == ItemSelectStrategy.HIGHEST_VOLUME_FOR_EMPTY_LAYER and is_new_layer or self.config.item_select_strategy == ItemSelectStrategy.ALWAYS_HIGHEST_VOLUME:
+            sorted_items = sorted(items, key=lambda x: x.volume, reverse=True)
+            return sorted_items[0]
 
-        best_fit = None
-        other_best_fit = None
-        min_y_diff = min_x_diff = min_z_diff = 99999
-        other_y_diff = other_x_diff = other_z_diff = 99999
+        layer_height = np.max(bin.get_height_map())
+        layer_height = bin.height - snappoint.z if layer_height <= snappoint.z else layer_height
+        items_fit_layer_height = [
+            item for item in items if item.height <= layer_height - snappoint.z]
 
-        for w, l, h in dims_that_fit:
-            if self.config.item_select_strategy == ItemSelectStrategy.HIGHEST_VOLUME_FOR_EMPTY_LAYER and max_len_x == bin_len_x or self.config.item_select_strategy == ItemSelectStrategy.ALWAYS_HIGHEST_VOLUME:
-                sorted_items = sorted(
-                    items, key=lambda x: x.volume, reverse=True)
-                if len(sorted_items) > 1:
-                    return sorted_items[0], None
+        if len(items_fit_layer_height) > 0:
+            # take the largest item fitting the gap
+            sorted_items = sorted(items_fit_layer_height, key=lambda x: (
+                x.length, x.width, x.height - layer_height), reverse=True)
+            return sorted_items[0]
 
-            # item has smaller or same height
-            if h <= gap_len_z:
-                x_diff = max_len_x - w
-                y_diff = 1  # gap_len_y - l
-                z_diff = gap_len_z - h
-
-                if (y_diff, x_diff, z_diff) < (min_y_diff, min_x_diff, min_z_diff):
-                    min_x_diff = x_diff
-                    min_y_diff = y_diff
-                    min_z_diff = z_diff
-                    best_fit = (w, l, h)
-
-            # item doesn't quite fit the layer height
-            else:
-                x_diff = max_len_x - w
-                y_diff = 1  # abs(gap_len_y - l)
-                z_diff = h - gap_len_z
-                if (y_diff, x_diff, z_diff) < (other_y_diff, other_x_diff, other_z_diff):
-                    other_y_diff = y_diff
-                    other_x_diff = x_diff
-                    other_z_diff = z_diff
-                    other_best_fit = (w, l, h)
-
-        best_fit = self._get_item_with_dimension(items, best_fit)
-        other_best_fit = self._get_item_with_dimension(items, other_best_fit)
-        return best_fit, other_best_fit
+        # take the item with minimal layer height change but the largest possible
+        sorted_items = sorted(items, key=lambda x: (
+            x.height - layer_height, x.length, x.width), reverse=True)
+        return sorted_items[0]
 
     def _get_item_with_dimension(self, items: List[Item], dims: Tuple[int]):
         items_same_dim = [item for item in items
