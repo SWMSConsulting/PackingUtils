@@ -54,20 +54,26 @@ class PackerConfiguration(BaseModel):
             # add here other possible parameter
         ]
         combinations = list(itertools.product(*params))
-
         if len(combinations) > n:
             combinations = random.sample(combinations, n)
 
         configs = []
         for combination in combinations:
-            configs.append(
-                PackerConfiguration(
-                    item_select_stategie=combination[0],
-                    direction_change_min_volume=combination[1],
-                    bin_stability_factor=bin_stability_factor
-                )
+            cfg = PackerConfiguration(
+                item_select_strategy_index=combination[0],
+                direction_change_min_volume=combination[1],
+                bin_stability_factor=bin_stability_factor
             )
+            logging.info("random config:", combination, cfg)
+            configs.append(cfg)
         return configs
+
+    def __hash__(self):
+        return hash((
+            self.item_select_strategy_index,
+            self.direction_change_min_volume,
+            self.bin_stability_factor
+        ))
 
 
 class ValidatedEnum(Enum):

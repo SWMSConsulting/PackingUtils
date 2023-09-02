@@ -1,3 +1,4 @@
+import random
 import unittest
 
 from packutils.data.packer_configuration import ItemSelectStrategy, PackerConfiguration
@@ -16,7 +17,7 @@ class TestGenerateRandomConfigurations(unittest.TestCase):
                          len(ItemSelectStrategy.indicies_list()))
         for config in configs:
             self.assertIsInstance(config, PackerConfiguration)
-            self.assertIn(config.item_select_strategy,
+            self.assertIn(config.item_select_strategy.index,
                           ItemSelectStrategy.indicies_list())
             self.assertIn(config.direction_change_min_volume, [0.0, 1.0])
             self.assertEqual(config.bin_stability_factor, bin_stability_factor)
@@ -28,11 +29,12 @@ class TestGenerateRandomConfigurations(unittest.TestCase):
 
         configs = PackerConfiguration.generate_random_configurations(
             n, bin_stability_factor, item_volumes)
+        configs = list(set(configs))
 
         self.assertEqual(len(configs), n)
         for config in configs:
             self.assertIsInstance(config, PackerConfiguration)
-            self.assertIn(config.item_select_strategy,
+            self.assertIn(config.item_select_strategy.index,
                           ItemSelectStrategy.indicies_list())
             self.assertIn(config.direction_change_min_volume,
                           [0.0, 1.0] + item_volumes)
