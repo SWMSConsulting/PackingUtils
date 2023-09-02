@@ -11,10 +11,7 @@ from packutils.data.order import Order
 from packutils.data.article import Article
 from packutils.data.packed_order import PackedOrder
 from packutils.data.packer_configuration import ItemSelectStrategy, PackerConfiguration
-from packutils.solver.palletier_packer import PalletierPacker
 from packutils.solver.palletier_wish_packer import PalletierWishPacker
-from packutils.solver.py3dbp_packer import Py3dbpPacker
-from packutils.solver.abstract_packer import AbstractPacker
 
 app = FastAPI()
 
