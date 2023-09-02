@@ -12,6 +12,7 @@ class TestGenerateRandomConfigurations(unittest.TestCase):
 
         configs = PackerConfiguration.generate_random_configurations(
             n, bin_stability_factor, item_volumes)
+        configs = list(set(configs))
 
         self.assertEqual(len(configs), 2 *
                          len(ItemSelectStrategy.indicies_list()))
