@@ -1,7 +1,7 @@
 from enum import Enum
 import logging
 import random
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field, BaseModel
 import itertools
@@ -9,11 +9,17 @@ import itertools
 
 class PackerConfiguration(BaseModel):
 
-    item_select_strategy: int = Field(default=0)
+    item_select_strategy_index: Optional[int] = 0
 
-    direction_change_min_volume: float = Field(default=1.0)
+    direction_change_min_volume: Optional[float] = 1.0
 
-    bin_stability_factor: float = Field(default=0.7)
+    bin_stability_factor: Optional[float] = 0.7
+
+    @property
+    def item_select_strategy(self):
+        strategy = ItemSelectStrategy.get_validated_entity(
+            self.item_select_strategy_index)
+        return strategy
 
     @classmethod
     def generate_random_configurations(
@@ -80,9 +86,17 @@ class ValidatedEnum(Enum):
     @classmethod
     def get_validated_entity(cls, index: int):
         if not isinstance(index, int) or not index in cls.indicies_list():
-            print("Index is not valid, using default.")
+            logging.info("Index is not valid, using default.")
             index = 0
-        return [e for e in cls if e.value[0] == index][0]
+        return [e for e in cls if e.index == index][0]
+
+    @property
+    def index(self):
+        return self.value[0]
+
+    @property
+    def name(self):
+        return self.value[1]
 
 
 class ItemSelectStrategy(ValidatedEnum):

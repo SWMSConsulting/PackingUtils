@@ -33,10 +33,11 @@ class PalletierWishPacker(AbstractPacker):
         self.reset(None)
 
     def reset(self, config: 'PackerConfiguration | None'):
+
         if config is None or not isinstance(config, PackerConfiguration):
             config = PackerConfiguration()
 
-        logging.info("Used packer config: " + str(config))
+        # logging.info("Used packer config: " + str(config))
         self.config = config
         # not implemented yet
         self.allow_rotation = False  # kwargs.get("rotation", False)
@@ -76,8 +77,8 @@ class PalletierWishPacker(AbstractPacker):
     def _pack_variant(self,  items: List[Item]) -> PackingVariant:
 
         variant = PackingVariant()
-        items_to_pack = copy.copy(items)
-        for bin_index, bin in enumerate(copy.copy(self.reference_bins)):
+        items_to_pack = copy.deepcopy(items)
+        for bin_index, bin in enumerate(copy.deepcopy(self.reference_bins)):
             bin.stability_factor = self.config.bin_stability_factor
             logging.info("-"*20 + f" Bin {bin_index+1}")
             snappoints_to_ignore = []
@@ -170,7 +171,7 @@ class PalletierWishPacker(AbstractPacker):
     def can_pack_on_snappoint(
             self, bin: Bin, item: Item, snappoint: Snappoint) -> int:
 
-        item = copy.copy(item)
+        item = copy.deepcopy(item)
         if snappoint.direction == SnappointDirection.LEFT:
             position = Position(snappoint.x - item.width,
                                 snappoint.y, snappoint.z)
@@ -186,7 +187,7 @@ class PalletierWishPacker(AbstractPacker):
     def pack_item_on_snappoint(
             self, bin: Bin, item: Item, snappoint: Snappoint) -> int:
 
-        item = copy.copy(item)
+        item = copy.deepcopy(item)
         if snappoint.direction == SnappointDirection.LEFT:
             position = Position(snappoint.x - item.width,
                                 snappoint.y, snappoint.z)
@@ -229,7 +230,8 @@ class PalletierWishPacker(AbstractPacker):
             return None
 
         is_new_layer = not np.any(bin.get_height_map() > snappoint.z)
-        if self.config.item_select_strategy == ItemSelectStrategy.HIGHEST_VOLUME_FOR_EMPTY_LAYER and is_new_layer or self.config.item_select_strategy == ItemSelectStrategy.ALWAYS_HIGHEST_VOLUME:
+        if self.config.item_select_strategy == ItemSelectStrategy.ALWAYS_HIGHEST_VOLUME or (
+                self.config.item_select_strategy == ItemSelectStrategy.HIGHEST_VOLUME_FOR_EMPTY_LAYER and is_new_layer):
             sorted_items = sorted(items, key=lambda x: x.volume, reverse=True)
             return sorted_items[0]
 
@@ -255,7 +257,7 @@ class PalletierWishPacker(AbstractPacker):
         if len(items_same_dim) < 1:
             return None
 
-        return copy.copy(items_same_dim[0])
+        return copy.deepcopy(items_same_dim[0])
 
     def get_candidate_layers(self, items, dimension: str = "height") -> List[Layer]:
         """

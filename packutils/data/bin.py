@@ -213,7 +213,7 @@ class Bin:
             raise NotImplementedError(
                 "get_snappoints not implemented for 3D case.")
 
-        heightmap = copy.copy(self.get_height_map()).flatten()
+        heightmap = copy.deepcopy(self.get_height_map()).flatten()
         if min_z is not None:
             heightmap -= min_z
             heightmap[heightmap < 0] = 0
