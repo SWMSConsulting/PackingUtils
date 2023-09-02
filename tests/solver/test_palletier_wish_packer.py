@@ -12,7 +12,7 @@ from packutils.solver.palletier_wish_packer import Layer, LayerScoreStrategy, Pa
 from packutils.visual.packing_visualization import PackingVisualization
 
 import logging
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 
 
 class TestPalletierWishPacker(unittest.TestCase):
@@ -76,7 +76,7 @@ class TestPalletierWishPacker(unittest.TestCase):
         packing_variant = packer.pack_variant(order, config=config)
         packing_variant = packer.pack_variant(order, config=config)
 
-        self.vis.visualize_packing_variant(packing_variant)
+        # self.vis.visualize_packing_variant(packing_variant)
 
         self.assertIsNotNone(packing_variant, "pack_variant returned None")
         expected_items = [
