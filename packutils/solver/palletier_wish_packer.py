@@ -59,6 +59,7 @@ class PalletierWishPacker(AbstractPacker):
     def pack_variants(self, order: Order, configs: List[PackerConfiguration]) -> List[PackingVariant]:
         variants = []
         for config in configs:
+            logging.info(f"Using config: {config}")
             variants.append(self.pack_variant(order, config))
         return variants
 
@@ -66,7 +67,7 @@ class PalletierWishPacker(AbstractPacker):
         self.reset(config)
 
         items_to_pack = [
-            Item(id=a.article_id, width=a.width,
+            Item(id=a.id, width=a.width,
                  length=a.length, height=a.height)
             for a in order.articles for _ in range(a.amount)
         ]

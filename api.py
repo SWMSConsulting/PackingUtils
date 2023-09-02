@@ -54,12 +54,12 @@ async def status():
 
 
 @app.post("/variants")
-async def get_packing_palletier(
-    params: VariantsRequestModel
+async def get_packing_variants(
+    body: VariantsRequestModel
 ):
-    print(params)
-    order = params.order
-    num_variants = params.num_variants
+    print("PARAMS", body)
+    order = body.order
+    num_variants = body.num_variants
     config = None
 
     bin_volume = order.colli_details.width * \
@@ -95,7 +95,11 @@ async def get_packing_palletier(
     packer = PalletierWishPacker(bins=bins)
     variants = packer.pack_variants(order, configs)
 
-    return variants
+    packed = PackedOrder(order.order_id)
+    for v in variants:
+        packed.add_packing_variant(v)
+
+    return packed.to_dict(as_string=False)
 
 """
 @app.post("/palletier")
