@@ -276,10 +276,18 @@ class Bin:
     def __eq__(self, other):
         return self.width == other.width and self.length == other.length and self.height == other.height and self.packed_items == other.packed_items
 
+    def __hash__(self):
+        return hash((self.width, self.length, self.height, tuple(self.packed_items)))
 
 if __name__ == '__main__':
     bin = Bin(2, 2, 2)
     item = Item("", 1, 1, 2, position=Position(0, 0, 0))
     bin.pack_item(item)
+    
+    
+    bin2 = Bin(2, 2, 2)
+    item = Item("", 1, 1, 2, position=Position(0, 0, 0))
+    bin2.pack_item(item)
 
-    print(bin.get_height_map())
+    print(hash(bin) == hash(bin2))
+    print(hash(bin), hash(bin2))

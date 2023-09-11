@@ -16,19 +16,27 @@ from packutils.solver.py3dbp_packer import Py3dbpPacker
 class DataGenerator2d:
     def __init__(
         self,
-        num_data: int,
+        num_data: 'int | None',
         output_path: str,
         reference_bins: List[Bin],
         articles: List[Article],
         max_articles_per_order: int = None,
         packing_solver: str = "greedy",
         equally_dist_seq_len=False,
+        one_item_per_packing=False,
         **kwargs
     ):
         self.allow_rotation = False
         is_2D, self.dimensions = reference_bins[0].is_packing_2d()
         self.dimensionality = "2D"
+        
+        if num_data is None:
+            if one_item_per_packing:
+                num_data = len(articles)
+            else:
+                raise NotImplementedError()
         self.num_data = num_data
+        self.one_item_per_packing = one_item_per_packing
 
         assert is_2D == True, "DataGenerator2d can only handle 2D data"
 
@@ -84,39 +92,44 @@ class DataGenerator2d:
 
         while len(packed_orders) < self.num_data:
             # generate random order
-            if self.equally_dist_seq_len:
-                num_articles = random.randint(1, self.max_articles_per_order)
-                articles = []
-                for _ in range(num_articles):
-                    random_article = random.choice(self.articles)
-                    filtered = list(filter(
-                        lambda indexed: indexed[1].article_id == random_article.article_id, enumerate(articles)))
-                    if len(filtered) < 1:
-                        random_article.amount = 1
-                        articles.append(random_article)
-                    else:
-                        articles[filtered[0][0]].amount += 1
-
+            if self.one_item_per_packing:
+                articles = [self.articles[len(packed_orders)]]
+            
             else:
-                articles = [
-                    Article(
-                        article_id=a.article_id,
-                        width=a.width,
-                        length=a.length,
-                        height=a.height,
-                        weight=a.weight,
-                        amount=random.randint(0, a.amount)
-                    )
-                    for a in self.articles
-                ]
-                num_articles = 0
-                for idx, a in enumerate(articles):
-                    num_articles += a.amount
-                    if self.max_articles_per_order is not None and num_articles > self.max_articles_per_order:
-                        articles[idx].amount = self.max_articles_per_order - \
-                            (num_articles - a.amount)
-                        articles = articles[0:idx+1]
-                        break
+            
+                if self.equally_dist_seq_len:
+                    num_articles = random.randint(1, self.max_articles_per_order)
+                    articles = []
+                    for _ in range(num_articles):
+                        random_article = random.choice(self.articles)
+                        filtered = list(filter(
+                            lambda indexed: indexed[1].article_id == random_article.article_id, enumerate(articles)))
+                        if len(filtered) < 1:
+                            random_article.amount = 1
+                            articles.append(random_article)
+                        else:
+                            articles[filtered[0][0]].amount += 1
+
+                else:
+                    articles = [
+                        Article(
+                            article_id=a.article_id,
+                            width=a.width,
+                            length=a.length,
+                            height=a.height,
+                            weight=a.weight,
+                            amount=random.randint(0, a.amount)
+                        )
+                        for a in self.articles
+                    ]
+                    num_articles = 0
+                    for idx, a in enumerate(articles):
+                        num_articles += a.amount
+                        if self.max_articles_per_order is not None and num_articles > self.max_articles_per_order:
+                            articles[idx].amount = self.max_articles_per_order - \
+                                (num_articles - a.amount)
+                            articles = articles[0:idx+1]
+                            break
 
             order = Order(f"order", articles=articles)
             if orders.count(order) > 0:
