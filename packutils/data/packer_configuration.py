@@ -15,6 +15,8 @@ class PackerConfiguration(BaseModel):
 
     bin_stability_factor: Optional[float] = 0.7
 
+    allow_item_exceeds_layer: Optional[bool] = True
+
     @property
     def item_select_strategy(self):
         strategy = ItemSelectStrategy.get_validated_entity(
@@ -110,3 +112,4 @@ class ItemSelectStrategy(ValidatedEnum):
     FITTING_BEST_Y_X_Z = (0, "FITTING_BEST_Y_X_Z")
     HIGHEST_VOLUME_FOR_EMPTY_LAYER = (1, "HIGHEST_VOLUME_FOR_EMPTY_LAYER")
     ALWAYS_HIGHEST_VOLUME = (2, "ALWAYS_HIGHEST_VOLUME")
+    MAX_AREA_FOR_EMPTY_LAYER = (3, "MAX_AREA_FOR_EMPTY_LAYER")

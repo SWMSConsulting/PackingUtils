@@ -127,7 +127,7 @@ class TestPalletierWishPacker(unittest.TestCase):
         self.assertIsNone(item)
 
     def test_get_best_item_to_pack(self):
-        return
+
         bin = Bin(10, 1, 15)
         bin.pack_item(Item(id="", width=3, length=1, height=10,
                       position=Position(0, 0, 0)))
@@ -180,6 +180,31 @@ class TestPalletierWishPacker(unittest.TestCase):
             item = packer.get_best_item_to_pack(
                 items=copy.deepcopy(items), bin=bin, snappoint=Snappoint(
                     3, 0, 0, SnappointDirection.RIGHT)
+            )
+            self.assertEqual(expected_item, item)
+
+            items.remove(expected_item)
+        # self.vis.visualize_bin(bin)
+
+    def test_get_best_item_to_pack_max_area_new_layer(self):
+        bin = Bin(10, 1, 15)
+        packer = PalletierWishPacker(bins=[bin])
+        config = PackerConfiguration(
+            item_select_strategy_index=ItemSelectStrategy.MAX_AREA_FOR_EMPTY_LAYER.index)
+        packer.reset(config)
+
+        items = [
+            Item(id='item1', width=9, length=1, height=5),
+            Item(id='item2', width=3, length=1, height=3),
+            Item(id='item3', width=3, length=1, height=3),
+            Item(id='item4', width=5, length=1, height=1),
+            Item(id='item5', width=2, length=1, height=3),
+        ]
+
+        for expected_item in copy.deepcopy(items):
+            item = packer.get_best_item_to_pack(
+                items=copy.deepcopy(items), bin=bin, snappoint=Snappoint(
+                    0, 0, 0, SnappointDirection.RIGHT)
             )
             self.assertEqual(expected_item, item)
 

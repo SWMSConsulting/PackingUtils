@@ -12,7 +12,7 @@ from packutils.visual.packing_visualization import PackingVisualization
 class TestCasesIteration(unittest.TestCase):
 
     def setUp(self):
-        self.test_cases = [TEST_CASES[-1]]
+        self.test_cases = TEST_CASES[4:]
 
     def test_compare_palletier_and_wish_palletier(self):
 
@@ -34,19 +34,19 @@ class TestCasesIteration(unittest.TestCase):
             # self.assertTrue(packed1)
             """
             # run wish palletier packer
-            wishPalletier = PalletierWishPacker(
-                bins=bins,
-                configuration=PackerConfiguration(
-                    item_select_strategy=0,
-                    direction_change_min_volume=0.01,
-                    bin_stability_factor=0.0
-                )
+            wishPalletier = PalletierWishPacker(bins=bins)
+            configuration = PackerConfiguration(
+                item_select_strategy_index=3,
+                direction_change_min_volume=1.0,
+                bin_stability_factor=1.0
             )
-            variant = wishPalletier.pack_variant(order=order)
+
+            variant = wishPalletier.pack_variant(
+                order=order, config=configuration)
             packed = len(variant.unpacked_items) == 0 \
                 and len(variant.bins) > 0 and len(variant.bins) <= len(bins)
 
-            if not packed or idx == len(self.test_cases) - 1:
+            if True:  # not packed or idx == len(self.test_cases) - 1:
                 # print(variant)
                 # print(len(variant.bins[0].packed_items))
                 vis.visualize_packing_variant(variant, show=show)

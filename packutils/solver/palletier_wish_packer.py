@@ -36,7 +36,6 @@ class PalletierWishPacker(AbstractPacker):
 
         if config is None or not isinstance(config, PackerConfiguration):
             config = PackerConfiguration()
-
         # logging.info("Used packer config: " + str(config))
         self.config = config
         # not implemented yet
@@ -67,7 +66,7 @@ class PalletierWishPacker(AbstractPacker):
         self.reset(config)
 
         items_to_pack = [
-            Item(id=a.id, width=a.width,
+            Item(id=a.article_id, width=a.width,
                  length=a.length, height=a.height)
             for a in order.articles for _ in range(a.amount)
         ]
@@ -128,8 +127,8 @@ class PalletierWishPacker(AbstractPacker):
                     snappoint = right_snappoint
                 logging.info(f"Selected snappoint: {snappoint}")
 
-                unique_items = set(items_to_pack)
-                best = self.get_best_item_to_pack(unique_items, bin, snappoint)
+                best = self.get_best_item_to_pack(
+                    items_to_pack, bin, snappoint)
                 logging.info(f"Item to pack: {best}")
 
                 if best is None:
@@ -137,7 +136,7 @@ class PalletierWishPacker(AbstractPacker):
                         "This snappoint is unstable, checking other snappoint.")
                     snappoint = right_snappoint if snappoint == left_snappoint else left_snappoint
                     best = self.get_best_item_to_pack(
-                        unique_items, bin, snappoint)
+                        items_to_pack, bin, snappoint)
 
                 if best is None:
                     logging.info(
@@ -224,7 +223,8 @@ class PalletierWishPacker(AbstractPacker):
         Args:
 
         """
-        items = [copy.deepcopy(item) for item in set(items) if self.can_pack_on_snappoint(
+
+        items = [copy.deepcopy(item) for item in items if self.can_pack_on_snappoint(
             bin, item, snappoint)]
 
         if len(items) < 1:
@@ -237,16 +237,39 @@ class PalletierWishPacker(AbstractPacker):
             return sorted_items[0]
 
         layer_height = np.max(bin.get_height_map())
+        if is_new_layer and self.config.item_select_strategy == ItemSelectStrategy.MAX_AREA_FOR_EMPTY_LAYER:
+            # find best layer height
+            possible_heights = {}
+            for item in items:
+                if item.height in possible_heights:
+                    possible_heights[item.height] += item.width*item.length
+                else:
+                    possible_heights[item.height] = item.width*item.length
+            v = list(possible_heights.values())
+            k = list(possible_heights.keys())
+            height = k[v.index(max(v))]
+            layer_height += height
+            # return largest item with defined height
+            possible_items = [item for item in items if item.height == height]
+            return sorted(possible_items, key=lambda x: x.width*x.length, reverse=True)[0]
+
         layer_height = bin.height - snappoint.z if layer_height <= snappoint.z else layer_height
         items_fit_layer_height = [
             item for item in items if item.height <= layer_height - snappoint.z]
 
         if len(items_fit_layer_height) > 0:
+            if self.config.item_select_strategy == ItemSelectStrategy.MAX_AREA_FOR_EMPTY_LAYER:
+                items_same_height = [
+                    item for item in items if item.height == layer_height - snappoint.z]
+                if len(items_same_height) > 0:
+                    items_fit_layer_height = items_same_height
             # take the largest item fitting the gap
             sorted_items = sorted(items_fit_layer_height, key=lambda x: (
                 x.length, x.width, x.height - layer_height), reverse=True)
             return sorted_items[0]
 
+        if not self.config.allow_item_exceeds_layer:
+            return None
         # take the item with minimal layer height change but the largest possible
         sorted_items = sorted(items, key=lambda x: (
             x.height - layer_height, x.length, x.width), reverse=True)
