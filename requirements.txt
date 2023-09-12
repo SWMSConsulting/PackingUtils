@@ -4,3 +4,4 @@ matplotlib
 pydantic
 fastapi 
 uvicorn
+httpx

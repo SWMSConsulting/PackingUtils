@@ -55,12 +55,18 @@ async def get_packing_variants(
     body: VariantsRequestModel
 ):
     print("PARAMS", body)
-    order = body.order
+    order = Order(
+        order_id=body.order.order_id,
+        articles=[
+            Article(article_id=a.id, width=a.width, length=a.length,
+                    height=a.height, amount=a.amount)
+            for a in body.order.articles
+        ])
     num_variants = body.num_variants
     config = None
 
-    bin_volume = order.colli_details.width * \
-        order.colli_details.length * order.colli_details.height
+    bin_volume = body.order.colli_details.width * \
+        body.order.colli_details.length * body.order.colli_details.height
     item_volumes = [a.width * a.length * a.height /
                     bin_volume for a in order.articles]
 
@@ -79,8 +85,8 @@ async def get_packing_variants(
         if len(configs) >= num_variants:
             break
 
-    if order.colli_details is not None:
-        details = order.colli_details
+    if body.order.colli_details is not None:
+        details = body.order.colli_details
         bins = [
             Bin(details.width, details.length,
                 details.height, details.max_weight)

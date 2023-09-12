@@ -54,6 +54,7 @@ def get_packing_variants(
     }
     print(f"Data:       {data}")
     response = requests.post(request, json=data)
+
     body = json.loads(response.text)
     if not response.status_code == 200:
         raise RuntimeError(f"Failed to get prediction. Reason: {body}")
