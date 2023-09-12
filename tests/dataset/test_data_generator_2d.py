@@ -1,3 +1,4 @@
+import glob
 import shutil
 import os
 import unittest
@@ -70,6 +71,7 @@ class TestDataGenerator2d(unittest.TestCase):
             output_path=self.temp_dir,
             reference_bins=reference_bins,
             articles=articles,
+            max_articles_per_order=5,
             packing_solver="palletier"
         )
         # Generate data
@@ -79,16 +81,15 @@ class TestDataGenerator2d(unittest.TestCase):
         self.assertTrue(os.path.exists(generator.dataset_dir))
 
         # Check if the orders are correctly generated
-        order_files = [f for f in os.listdir(
-            generator.dataset_dir) if f.startswith("order")]
+        order_files = glob.glob(os.path.join(
+            generator.dataset_dir, "**", "order*.json"))
         self.assertEqual(len(order_files), self.num_data)
 
         # Check if the generated orders can be loaded and have packing variants
         for order_file in order_files:
-            order_file_path = os.path.join(generator.dataset_dir, order_file)
-            packed_order = PackedOrder.load_from_file(order_file_path)
-            PackingVisualization().visualize_packing_variant(
-                packed_order.packing_variants[0])
+            packed_order = PackedOrder.load_from_file(order_file)
+            # PackingVisualization().visualize_packing_variant(
+            #    packed_order.packing_variants[0])
             self.assertIsInstance(packed_order, PackedOrder)
             self.assertTrue(len(packed_order.packing_variants) > 0)
             self.assertLessEqual(
@@ -111,15 +112,13 @@ class TestDataGenerator2d(unittest.TestCase):
         self.assertTrue(os.path.exists(generator.dataset_dir))
 
         # Check if the orders are correctly generated
-        order_files = [f for f in os.listdir(
-            generator.dataset_dir) if f.startswith("order")]
+        order_files = glob.glob(os.path.join(
+            generator.dataset_dir, "**", "order*.json"))
         self.assertEqual(len(order_files), self.num_data)
 
         # Check if the generated orders can be loaded and have packing variants
         for order_file in order_files:
-            order_file_path = os.path.join(
-                generator.dataset_dir, order_file)
-            packed_order = PackedOrder.load_from_file(order_file_path)
+            packed_order = PackedOrder.load_from_file(order_file)
             self.assertIsInstance(packed_order, PackedOrder)
             self.assertTrue(len(packed_order.packing_variants) > 0)
             self.assertLessEqual(

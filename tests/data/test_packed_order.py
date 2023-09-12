@@ -45,7 +45,7 @@ class TestPackedOrder(unittest.TestCase):
             weight=1.0, position=Position(x=0, y=0, z=0))
         item2 = Item(
             id="item2", width=1, length=1, height=1,
-            weight=1.0, position=Position(x=2, y=2, z=2))
+            weight=1.0, position=Position(x=2, y=0, z=0))
         item3 = Item(
             id="item1", width=1, length=1, height=1,
             weight=1.0, position=Position(x=0, y=0, z=0))
@@ -75,7 +75,6 @@ class TestPackedOrder(unittest.TestCase):
         ]
 
         articles = packed_order.get_articles_list()
-
         self.assertEqual(len(articles), len(expected_articles))
         for article, expected_article in zip(articles, expected_articles):
             self.assertEqual(article.article_id, expected_article.article_id)

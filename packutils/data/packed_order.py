@@ -61,8 +61,6 @@ class PackedOrder:
                 Article(article_id="item2", width=20, length=20, height=20, amount=1, weight=2.0)
             ]
         """
-        articles = []
-
         items = []
         for variant in self.packing_variants:
             for bin in variant.bins:
@@ -71,6 +69,7 @@ class PackedOrder:
             for item in variant.unpacked_items:
                 items.append(item)
 
+        articles = []
         for item in items:
             filtered = list(
                 filter(lambda x: x.article_id == item.id, articles))
@@ -150,7 +149,7 @@ class PackedOrder:
         Args:
             file_path (str): The path of the file to write the JSON data to.
         """
-        json_data = self.to_json(as_string=True)
+        json_data = self.to_dict(as_string=True)
         with open(file_path, "w") as file:
             file.write(json_data)
 

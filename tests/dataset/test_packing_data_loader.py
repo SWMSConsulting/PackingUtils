@@ -11,7 +11,11 @@ from packutils.dataset.packing_data_loader import PackingDataLoader
 
 class DataLoaderTestCase(unittest.TestCase):
     def setUp(self):
+
         self.temp_dir = create_temporary_directory()
+        if not os.path.exists(self.temp_dir):
+            shutil.rmtree(self.temp_dir)
+            self.temp_dir = create_temporary_directory()
 
         self.num_data = 1
         reference_bins = [Bin(10, 10, 1)]

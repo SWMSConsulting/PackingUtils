@@ -39,7 +39,6 @@ class PackingDataLoader:
         self.orders_path = path
         if os.path.isdir(os.path.join(self.orders_path, "orders")):
             self.orders_path = os.path.join(self.orders_path, "orders")
-        print(self.orders_path)
 
         self._load_info()
 

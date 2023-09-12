@@ -9,7 +9,7 @@ from packutils.data.bin import Bin
 
 from packutils.data.order import Order
 from packutils.solver.greedy_packer import GreedyPacker
-from packutils.solver.palletier_packer import PalletierPacker
+from packutils.solver.palletier_wish_packer import PalletierWishPacker
 from packutils.solver.py3dbp_packer import Py3dbpPacker
 
 
@@ -29,7 +29,7 @@ class DataGenerator2d:
         self.allow_rotation = False
         is_2D, self.dimensions = reference_bins[0].is_packing_2d()
         self.dimensionality = "2D"
-        
+
         if num_data is None:
             if one_item_per_packing:
                 num_data = len(articles)
@@ -62,7 +62,7 @@ class DataGenerator2d:
             self.solver = GreedyPacker(
                 bins=reference_bins, rotation=self.allow_rotation, **kwargs)
         elif packing_solver == "palletier":
-            self.solver = PalletierPacker(
+            self.solver = PalletierWishPacker(
                 bins=reference_bins, rotation=self.allow_rotation, **kwargs)
         elif packing_solver == "py3dbp":
             self.solver = Py3dbpPacker(
@@ -94,11 +94,11 @@ class DataGenerator2d:
             # generate random order
             if self.one_item_per_packing:
                 articles = [self.articles[len(packed_orders)]]
-            
+
             else:
-            
                 if self.equally_dist_seq_len:
-                    num_articles = random.randint(1, self.max_articles_per_order)
+                    num_articles = random.randint(
+                        1, self.max_articles_per_order)
                     articles = []
                     for _ in range(num_articles):
                         random_article = random.choice(self.articles)
@@ -136,12 +136,11 @@ class DataGenerator2d:
                 continue
             try:
                 packed = self.solver.pack_order(order)
-                if len(packed.packing_variants[0].bins[0].packed_items) < 1:
+                if len(packed.packing_variants) < 1 or len(packed.packing_variants[0].bins) < 1 or len(packed.packing_variants[0].bins[0].packed_items) < 1:
                     continue
                 f_path = os.path.join(
                     self.orders_dir, f"order{len(packed_orders)+1}.json")
                 packed.write_to_file(f_path)
-
                 orders.append(order)
                 packed_orders.append(packed)
             except Exception as e:

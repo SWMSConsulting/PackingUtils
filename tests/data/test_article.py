@@ -30,7 +30,7 @@ class ArticleTests(unittest.TestCase):
             "amount": self.amount,
         }
 
-        json_data = self.article.to_json()
+        json_data = self.article.to_dict()
         self.assertEqual(json_data, expected_json)
 
     def test_from_json(self):
