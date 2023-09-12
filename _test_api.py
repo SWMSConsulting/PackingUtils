@@ -13,9 +13,12 @@ from packutils.data.packed_order import PackedOrder
 
 from packutils.visual.packing_visualization import PackingVisualization
 
-HOST = "localhost"
+HOST = "65.108.147.211"
+# HOST = "localhost"
 # HOST = "192.168.178.93"
-PORT = 8000
+
+PORT = 32795
+# PORT = 8000
 
 PACKING_ENDPOINT = "variants"
 # PACKING_ENDPOINT = "palletier"

@@ -58,7 +58,7 @@ async def get_packing_variants(
     order = Order(
         order_id=body.order.order_id,
         articles=[
-            Article(article_id=a.id, width=a.width, length=a.length,
+            Article(article_id=a.id, width=a.width, length=1,  # a.length,
                     height=a.height, amount=a.amount)
             for a in body.order.articles
         ])
@@ -88,7 +88,7 @@ async def get_packing_variants(
     if body.order.colli_details is not None:
         details = body.order.colli_details
         bins = [
-            Bin(details.width, details.length,
+            Bin(details.width, 1,  # details.length,
                 details.height, details.max_weight)
             for _ in range(details.max_collis)
         ]
