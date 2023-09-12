@@ -1,0 +1,8 @@
+pydantic
+fastapi 
+uvicorn
+httpx
+-e git+https://github.com/ArnoSchiller/PackingUtils.git#egg=packutils
+matplotlib
+pillow
+numpy
