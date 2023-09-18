@@ -5,4 +5,3 @@ pydantic
 fastapi 
 uvicorn
 httpx
-streamlit

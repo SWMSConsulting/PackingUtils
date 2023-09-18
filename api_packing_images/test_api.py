@@ -2,7 +2,7 @@ import json
 from PIL import Image
 from io import BytesIO
 from fastapi.testclient import TestClient
-from api import app
+from api_packing.api import app
 import unittest
 
 
