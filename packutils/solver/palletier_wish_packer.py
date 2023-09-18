@@ -268,7 +268,7 @@ class PalletierWishPacker(AbstractPacker):
                 x.length, x.width, x.height - layer_height), reverse=True)
             return sorted_items[0]
 
-        if not self.config.allow_item_exceeds_layer:
+        if not self.config.allow_item_exceeds_layer and not is_new_layer:
             return None
         # take the item with minimal layer height change but the largest possible
         sorted_items = sorted(items, key=lambda x: (

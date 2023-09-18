@@ -50,9 +50,11 @@ class PackerConfiguration(BaseModel):
             isinstance(x, float) for x in item_volumes)
         direction_change_min_volumes = [0.0, 1.0] + item_volumes
 
+        allow_item_exceeds_layers = [True, False]
         params = [
             item_select_stategies,
             direction_change_min_volumes,
+            allow_item_exceeds_layers,
             # add here other possible parameter
         ]
         combinations = list(itertools.product(*params))
@@ -64,6 +66,7 @@ class PackerConfiguration(BaseModel):
             cfg = PackerConfiguration(
                 item_select_strategy_index=combination[0],
                 direction_change_min_volume=combination[1],
+                allow_item_exceeds_layer=combination[2],
                 bin_stability_factor=bin_stability_factor
             )
             logging.info("random config:", combination, cfg)

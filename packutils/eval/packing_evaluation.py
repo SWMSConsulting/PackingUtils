@@ -22,25 +22,34 @@ class PackingEvaluation():
         self.weights = weights
 
     def evaluate_packing_variant(self, variant: PackingVariant):
-        score = np.mean([self.evaluate_bin(bin) for bin in variant.bins])
-        return score
+        scores = [self.evaluate_bin(bin) for bin in variant.bins]
+        score = np.mean([s[0] for s in scores]) - 10 * (len(scores) - 1)
+
+        score_details = {}
+        for idx, (_, s) in enumerate(scores):
+            score_details[f"Bin {idx+1}"] = s
+        return score, score_details
 
     def evaluate_bin(self, bin: Bin):
         score = 0
+        details = {}
 
-        if self.weights.item_distribution != 0:
-            score += self.weights.item_distribution * \
-                self._evaluate_item_distribution(bin)
+        item_distribution_score = self.weights.item_distribution * \
+            self._evaluate_item_distribution(bin)
+        details["item_distribution"] = item_distribution_score
+        score += item_distribution_score
 
-        if self.weights.item_stacking != 0:
-            score += self.weights.item_stacking * \
-                self._evaluate_item_stacking(bin)
+        item_stacking_score = self.weights.item_stacking * \
+            self._evaluate_item_stacking(bin)
+        details["item_stacking"] = item_stacking_score
+        score += item_stacking_score
 
-        if self.weights.item_grouping != 0:
-            score += self.weights.item_grouping * \
-                self._evaluate_item_grouping(bin)
+        item_grouping_score = self.weights.item_grouping * \
+            self._evaluate_item_grouping(bin)
+        details["item_grouping"] = item_grouping_score
+        score += item_grouping_score
 
-        return score
+        return score, details
 
     def _evaluate_item_distribution(self, bin: Bin):
         """
