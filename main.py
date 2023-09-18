@@ -8,6 +8,7 @@ from packutils.solver.palletier_wish_packer import PalletierWishPacker, PackerCo
 from packutils.eval.packing_evaluation import PackingEvaluation, PackingEvaluationWeights
 from packutils.visual.packing_visualization import PackingVisualization
 
+from matplotlib import pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
 
@@ -93,4 +94,6 @@ else:
 
         for bin_idx, bin in enumerate(variant.bins):
             cols = st.columns(max_bins)
-            cols[bin_idx].pyplot(vis.visualize_bin(bin, show=False))
+            fig = vis.visualize_bin(bin, show=False)
+            cols[bin_idx].pyplot(fig)
+            plt.close(fig)
