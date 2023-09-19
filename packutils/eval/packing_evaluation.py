@@ -1,7 +1,9 @@
+from typing import List
 import numpy as np
 
 from packutils.data.bin import Bin
 from packutils.data.item import Item
+from packutils.data.packer_configuration import PackerConfiguration
 from packutils.data.packing_variant import PackingVariant
 
 
@@ -20,6 +22,22 @@ class PackingEvaluationWeights():
 class PackingEvaluation():
     def __init__(self, weights: PackingEvaluationWeights):
         self.weights = weights
+
+    def evaluate_packing_variants(
+            self,
+            variants: List[PackingVariant],
+            configs: List[PackerConfiguration]):
+        unique_variants = list(set(variants))
+        grouped_configs = [[] for _ in range(len(unique_variants))]
+        for variant, config in zip(variants, configs):
+            grouped_configs[unique_variants.index(variant)].append(config)
+
+        combined_scores = [self.evaluate_packing_variant(
+            v) for v in unique_variants]
+
+        scored_variants = zip(combined_scores, zip(
+            unique_variants, grouped_configs))
+        return scored_variants
 
     def evaluate_packing_variant(self, variant: PackingVariant):
         scores = [self.evaluate_bin(bin) for bin in variant.bins]

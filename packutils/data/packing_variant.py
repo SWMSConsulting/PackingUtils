@@ -44,3 +44,6 @@ class PackingVariant:
 
     def __eq__(self, other):
         return self.bins == other.bins and self.unpacked_items == other.unpacked_items
+
+    def __hash__(self):
+        return hash(tuple([hash(bin) for bin in self.bins] + [hash(item) for item in self.unpacked_items]))

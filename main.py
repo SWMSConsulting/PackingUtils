@@ -50,18 +50,6 @@ with st.expander("Order", expanded=True):
         30, bin_stability_factor=0.7,
         item_volumes=[a.width*a.length*a.height / bins[0].volume for a in order.articles])
 
-    configurations = [
-        PackerConfiguration(item_select_strategy_index=2,
-                            direction_change_min_volume=0,
-                            bin_stability_factor=0.7,
-                            allow_item_exceeds_layer=True),
-        PackerConfiguration(item_select_strategy_index=3,
-                            direction_change_min_volume=1,
-                            bin_stability_factor=0.7,
-                            allow_item_exceeds_layer=True),
-
-    ]
-
     variants = packer.pack_variants(order=order, configs=configurations)
 
     print("Variants calculated")
@@ -90,17 +78,16 @@ else:
         st.write(weights.__dict__)
 
     eval = PackingEvaluation(weights)
-
-    scored_variants = [(eval.evaluate_packing_variant(vc[0]), vc)
-                       for vc in zip(variants, configurations)]
+    scored_variants = eval.evaluate_packing_variants(
+        variants=variants, configs=configurations)
     scored_variants = sorted(
         scored_variants, key=lambda x: x[0][0], reverse=True)
-    for idx, (scores, (variant, config)) in enumerate(scored_variants):
+    for idx, (scores, (variant, configs)) in enumerate(scored_variants):
         st.write(f"### Variant {idx+1} - Score:", scores[0])
 
         _c1, _c2 = st.columns(2)
         with _c1.expander("Configuration", expanded=False):
-            st.write(config.__dict__)
+            st.write([c.__dict__ for c in configs])
         with _c2.expander("Score details", expanded=False):
             st.write(scores[1])
 
