@@ -25,8 +25,8 @@ with st.expander("Order", expanded=True):
     order = Order(
         "Test",
         articles=[
-            Article(f"Article {idx+1}", width=20,
-                    length=1, height=20, amount=1)
+            Article(f"Article {idx+1}", width=62,
+                    length=1, height=62, amount=0)
             for idx in range(num_articles)
         ])
     _c1, _c2, _c3, _c4 = st.columns(4)
@@ -36,12 +36,15 @@ with st.expander("Order", expanded=True):
             label="Name", value=article.article_id, disabled=True)
         article.width = _c2.number_input(
             key=f"{article.article_id}_width",
+            value=article.width,
             label="Width", min_value=10, max_value=500, step=1)
         article.height = _c3.number_input(
             key=f"{article.article_id}_height",
+            value=article.height,
             label="Height", min_value=10, max_value=500, step=1)
         article.amount = _c4.number_input(
             key=f"{article.article_id}_amount",
+            value=article.amount,
             label="Amount", step=1, min_value=0)
 
     st.write(order)
@@ -60,7 +63,7 @@ if sum([a.amount for a in order.articles]) < 1:
     st.warning("No articles to pack.")
 else:
     with st.expander("Scoring weights", expanded=False):
-        _c1, _c2, _c3 = st.columns(3)
+        _c1, _c2, _c3, _c4 = st.columns(4)
         item_distribution_weight = _c1.number_input(
             label="item_distribution", value=1.0
         )
@@ -70,16 +73,20 @@ else:
         item_grouping_weight = _c3.number_input(
             label="item_grouping", value=1.0
         )
+        utilized_space_weight = _c4.number_input(
+            label="utilized_space", value=1.0
+        )
         weights = PackingEvaluationWeights(
             item_distribution=item_distribution_weight,
             item_stacking=item_stacking_weight,
-            item_grouping=item_grouping_weight
+            item_grouping=item_grouping_weight,
+            utilized_space=utilized_space_weight
         )
         st.write(weights.__dict__)
 
     eval = PackingEvaluation(weights)
     scored_variants = eval.evaluate_packing_variants(
-        variants=variants, configs=configurations)
+        variants=variants, configs=configurations, return_scores_dict=True)
     scored_variants = sorted(
         scored_variants, key=lambda x: x[0][0], reverse=True)
     for idx, (scores, (variant, configs)) in enumerate(scored_variants):

@@ -12,11 +12,17 @@ class PackingEvaluationWeights():
         self,
         item_distribution: float = 0.0,
         item_stacking: float = 0.0,
-        item_grouping: float = 0.0
+        item_grouping: float = 0.0,
+        utilized_space: float = 3.0
     ):
         self.item_distribution = item_distribution
         self.item_stacking = item_stacking
         self.item_grouping = item_grouping
+        self.utilized_space = utilized_space
+
+    @property
+    def total(self):
+        return self.item_distribution + self.item_stacking + self.item_grouping + self.utilized_space
 
 
 class PackingEvaluation():
@@ -26,23 +32,27 @@ class PackingEvaluation():
     def evaluate_packing_variants(
             self,
             variants: List[PackingVariant],
-            configs: List[PackerConfiguration]):
+            configs: List[PackerConfiguration],
+            return_scores_dict=False):
         unique_variants = list(set(variants))
         grouped_configs = [[] for _ in range(len(unique_variants))]
         for variant, config in zip(variants, configs):
             grouped_configs[unique_variants.index(variant)].append(config)
 
-        combined_scores = [self.evaluate_packing_variant(
-            v) for v in unique_variants]
+        if return_scores_dict:
+            scores = [self.evaluate_packing_variant(
+                v) for v in unique_variants]
+        else:
+            scores = [self.evaluate_packing_variant(
+                v)[0] for v in unique_variants]
 
-        scored_variants = zip(combined_scores, zip(
+        scored_variants = zip(scores, zip(
             unique_variants, grouped_configs))
         return scored_variants
 
     def evaluate_packing_variant(self, variant: PackingVariant):
         scores = [self.evaluate_bin(bin) for bin in variant.bins]
-        score = np.mean([s[0] for s in scores]) - 10 * (len(scores) - 1)
-
+        score = np.mean([s[0] for s in scores])
         score_details = {}
         for idx, (_, s) in enumerate(scores):
             score_details[f"Bin {idx+1}"] = s
@@ -67,6 +77,14 @@ class PackingEvaluation():
         details["item_grouping"] = item_grouping_score
         score += item_grouping_score
 
+        print(bin.get_used_volume() / bin.volume)
+        utilized_space_score = self.weights.utilized_space * \
+            bin.get_used_volume() / bin.volume
+
+        details["utilized_space"] = utilized_space_score
+        score += utilized_space_score
+
+        score /= self.weights.total
         return score, details
 
     def _evaluate_item_distribution(self, bin: Bin):
@@ -74,16 +92,13 @@ class PackingEvaluation():
         The goal is to put larger items on the sides of the pallet and to center the smaller items.
         This metric calculates the distance of the items to the center and scores it depending on the item volume.
         """
-
-        scores = []
-
-        for item in bin.packed_items:
-            rel_distance_center = abs(
-                item.centerpoint().x - bin.width / 2) / (bin.width / 2)
-            rel_volume = item.volume / \
-                bin.get_used_volume(use_percentage=False)
-            scores.append(rel_distance_center * rel_volume)
-
+        scores = [
+            1 - (
+                min(item.position.x, bin.width -
+                    item.position.x - item.width) / (bin.width / 2)
+            ) * item.volume / bin.get_used_volume()
+            for item in bin.packed_items
+        ]
         return np.mean(scores)
 
     def _evaluate_item_stacking(self, bin: Bin):
@@ -91,12 +106,29 @@ class PackingEvaluation():
         The goal is to put smaller items on top of larger items. Therefore the distance 
         """
 
+        seen_items = []
         scores = []
+
         for item in bin.packed_items:
-            rel_distance_bottom = item.position.z / bin.height
-            rel_volume = item.volume / \
-                bin.get_used_volume(use_percentage=False)
-            scores.append(rel_distance_bottom / rel_volume)
+            items_below = [
+                other for other in seen_items
+                if (abs(other.centerpoint().x -
+                        item.centerpoint().x) <= max(item.width, other.width)/2
+                    and abs(other.centerpoint().y -
+                            item.centerpoint().y) <= max(item.length, other.length)/2
+                    )
+            ]
+            seen_items.append(item)
+
+            if len(items_below) < 1:
+                scores.append(1)
+                continue
+
+            smaller_items_below = [
+                other for other in items_below
+                if (other.volume < item.volume)
+            ]
+            scores.append(1 - len(smaller_items_below) / len(items_below))
 
         return np.mean(scores)
 
@@ -142,6 +174,6 @@ class PackingEvaluation():
                 ]
                 group_scores.append(len(touching_items) /
                                     min(max(len(group_items)-1, 1), 4))
-            print(group, np.mean(group_scores), group_scores)
+
             scores.append(np.mean(group_scores))
-        return np.mean(scores)
+        return np.mean(scores) if len(scores) > 0 else 1
