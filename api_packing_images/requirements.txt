@@ -2,7 +2,7 @@ pydantic
 fastapi 
 uvicorn
 httpx
--e git+https://github.com/ArnoSchiller/PackingUtils.git#egg=packutils
 matplotlib
 pillow
 numpy
+-e git+https://github.com/SWMSConsulting/PackingUtils.git#egg=packutils

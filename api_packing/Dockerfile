@@ -4,8 +4,6 @@ FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 # Set the working directory in the container to /app
 WORKDIR /app
 
-RUN pip install -e git+https://github.com/ArnoSchiller/PackingUtils.git#egg=packutils --ignore-installed 
-
 COPY requirements.txt /app/requirements.txt
 RUN pip install -r  /app/requirements.txt
 
