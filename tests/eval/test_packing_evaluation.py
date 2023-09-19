@@ -75,44 +75,39 @@ class TestPackingEvaluation(unittest.TestCase):
         ]
 
     def test_evaluate_item_distribution(self):
+
         eval = PackingEvaluation(PackingEvaluationWeights(
             item_distribution=1.0
         ))
-        score1 = eval.evaluate_bin(self.bin1)
-        score2 = eval.evaluate_bin(self.bin2)
-        score3 = eval.evaluate_bin(self.bin3)
-        score4 = eval.evaluate_bin(self.bin4)
+        score1 = eval.evaluate_bin(self.bin1)[0]
+        score2 = eval.evaluate_bin(self.bin2)[0]
+        score3 = eval.evaluate_bin(self.bin3)[0]
+        score4 = eval.evaluate_bin(self.bin4)[0]
 
         self.assertTrue(score3 > score1 > score2 > score4)
 
     def test_evaluate_item_stacking(self):
 
         eval = PackingEvaluation(PackingEvaluationWeights(
-            item_stacking=1.0
+            item_stacking=1.0,
+            utilized_space=0.0
         ))
-        score1 = eval.evaluate_bin(self.bin1)
-        score2 = eval.evaluate_bin(self.bin2)
-        score3 = eval.evaluate_bin(self.bin3)
-        score4 = eval.evaluate_bin(self.bin4)
-
-        self.assertTrue(score1 == score2 > score3 == score4)
+        score1 = eval.evaluate_bin(self.bin1)[0]
+        score2 = eval.evaluate_bin(self.bin2)[0]
+        score3 = eval.evaluate_bin(self.bin3)[0]
+        score4 = eval.evaluate_bin(self.bin4)[0]
+        self.assertTrue(score1 == score2 == score3 == score4)
 
     def test_evaluate_item_grouping(self):
 
         eval = PackingEvaluation(PackingEvaluationWeights(
-            item_grouping=1.0
+            item_grouping=1.0,
+            utilized_space=0.0
         ))
-        score1 = eval.evaluate_bin(self.bin1)
-        score2 = eval.evaluate_bin(self.bin2)
-        score3 = eval.evaluate_bin(self.bin3)
-        score4 = eval.evaluate_bin(self.bin4)
-
-        print(score1, score2, score3, score4)
-
-        PackingVisualization().visualize_bin(self.bin1)
-        PackingVisualization().visualize_bin(self.bin2)
-        PackingVisualization().visualize_bin(self.bin3)
-        PackingVisualization().visualize_bin(self.bin4)
+        score1 = eval.evaluate_bin(self.bin1)[0]
+        score2 = eval.evaluate_bin(self.bin2)[0]
+        score3 = eval.evaluate_bin(self.bin3)[0]
+        score4 = eval.evaluate_bin(self.bin4)[0]
 
         self.assertTrue(score4 > score1 == score2 > score3)
 

@@ -77,7 +77,6 @@ class PackingEvaluation():
         details["item_grouping"] = item_grouping_score
         score += item_grouping_score
 
-        print(bin.get_used_volume() / bin.volume)
         utilized_space_score = self.weights.utilized_space * \
             bin.get_used_volume() / bin.volume
 
@@ -113,9 +112,9 @@ class PackingEvaluation():
             items_below = [
                 other for other in seen_items
                 if (abs(other.centerpoint().x -
-                        item.centerpoint().x) <= max(item.width, other.width)/2
+                        item.centerpoint().x) < max(item.width, other.width)/2
                     and abs(other.centerpoint().y -
-                            item.centerpoint().y) <= max(item.length, other.length)/2
+                            item.centerpoint().y) < max(item.length, other.length)/2
                     )
             ]
             seen_items.append(item)
@@ -164,8 +163,8 @@ class PackingEvaluation():
                     other for other in group_items
                     if (
                         abs(item.position.x - other.position.x),
-                        abs(item.position.z - other.position.y),
-                        abs(item.position.y - other.position.z)
+                        abs(item.position.y - other.position.y),
+                        abs(item.position.z - other.position.z)
                     ) in [
                         (item.width, 0, 0),
                         (0, item.length, 0),
