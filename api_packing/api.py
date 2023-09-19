@@ -95,7 +95,14 @@ async def get_packing_variants(
     packer = PalletierWishPacker(bins=bins)
     variants = packer.pack_variants(order, configs)
 
-    eval = PackingEvaluation(PackingEvaluationWeights(item_stacking=1))
+    eval = PackingEvaluation(
+        PackingEvaluationWeights(
+            item_distribution=1.0,
+            item_stacking=1.0,
+            item_grouping=1.0,
+            utilized_space=3.0
+        )
+    )
     scored_variants = eval.evaluate_packing_variants(variants, configs)
 
     sorted_variants = sorted(
