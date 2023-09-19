@@ -1,7 +1,3 @@
-# filename: main.py
-
-import copy
-import random
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -10,6 +6,7 @@ from packutils.data.bin import Bin
 from packutils.data.order import Order
 from packutils.data.article import Article
 from packutils.data.packed_order import PackedOrder
+from packutils.eval.packing_evaluation import PackingEvaluation, PackingEvaluationWeights
 from packutils.data.packer_configuration import ItemSelectStrategy, PackerConfiguration
 from packutils.solver.palletier_wish_packer import PalletierWishPacker
 
@@ -98,6 +95,16 @@ async def get_packing_variants(
     packer = PalletierWishPacker(bins=bins)
     variants = packer.pack_variants(order, configs)
 
+    eval = PackingEvaluation(PackingEvaluationWeights(item_stacking=1))
+    scored_variants = eval.evaluate_packing_variants(variants, configs)
+
+    sorted_variants = sorted(
+        scored_variants, key=lambda x: x[0], reverse=True)
+
+    variants = [variant for _, (variant, _) in sorted_variants]
+    # multiple configurations may lead to same variant
+    configs = [config[0] for _, (_, config) in sorted_variants]
+
     packed = PackedOrder(order.order_id)
     for v in variants:
         packed.add_packing_variant(v)
@@ -106,55 +113,3 @@ async def get_packing_variants(
         "packed_order": packed.to_dict(as_string=False),
         "configs": configs
     }
-
-"""
-@app.post("/palletier")
-async def get_packing_palletier(orderModel: OrderModel):
-
-    return _get_packing(PackerClass=PalletierPacker, orderModel=orderModel)
-
-@app.post("/py3dbp")
-async def get_packing_py3dbp(orderModel: OrderModel):
-
-    return _get_packing(PackerClass=Py3dbpPacker, orderModel=orderModel)
-
-
-def _get_packing(
-    PackerClass: AbstractPacker,
-    orderModel: OrderModel,
-    configution: PackerConfiguration = None
-):
-
-    if orderModel.colli_details is not None:
-        details = orderModel.colli_details
-        bins = [
-            Bin(details.width, details.length,
-                details.height, details.max_weight)
-            for _ in range(details.max_collis)
-        ]
-    else:
-        bins = [Bin(800, 1, 500)]
-
-    solver = PackerClass(bins=bins, configution=configution)
-
-    order = Order(
-        order_id=orderModel.order_id,
-        articles=[
-            Article(
-                article_id=a.id,
-                width=a.width,
-                length=a.length,
-                height=a.height,
-                amount=a.amount
-            ) for a in orderModel.articles
-        ]
-    )
-    variant = solver.pack_variant(order)
-    # print(variant)
-    packed_order = PackedOrder(order_id=order.order_id)
-    if variant is not None:
-        packed_order.add_packing_variant(variant)
-
-    return packed_order.to_dict(as_string=False)
-
-"""
