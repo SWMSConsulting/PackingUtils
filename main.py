@@ -46,6 +46,27 @@ with st.expander("Order", expanded=True):
 
     st.write(order)
 
+    configurations = PackerConfiguration.generate_random_configurations(
+        30, bin_stability_factor=0.7,
+        item_volumes=[a.width*a.length*a.height / bins[0].volume for a in order.articles])
+
+    configurations = [
+        PackerConfiguration(item_select_strategy_index=2,
+                            direction_change_min_volume=0,
+                            bin_stability_factor=0.7,
+                            allow_item_exceeds_layer=True),
+        PackerConfiguration(item_select_strategy_index=3,
+                            direction_change_min_volume=1,
+                            bin_stability_factor=0.7,
+                            allow_item_exceeds_layer=True),
+
+    ]
+
+    variants = packer.pack_variants(order=order, configs=configurations)
+
+    print("Variants calculated")
+
+vis = PackingVisualization()
 
 if sum([a.amount for a in order.articles]) < 1:
     st.warning("No articles to pack.")
@@ -68,16 +89,7 @@ else:
         )
         st.write(weights.__dict__)
 
-    vis = PackingVisualization()
     eval = PackingEvaluation(weights)
-    variant = packer.pack_variant(order)
-    variants = [variant]
-
-    configurations = PackerConfiguration.generate_random_configurations(
-        30, bin_stability_factor=0.7,
-        item_volumes=[a.width*a.length*a.height / bins[0].volume for a in order.articles])
-
-    variants = packer.pack_variants(order=order, configs=configurations)
 
     scored_variants = [(eval.evaluate_packing_variant(vc[0]), vc)
                        for vc in zip(variants, configurations)]

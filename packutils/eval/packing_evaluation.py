@@ -107,15 +107,23 @@ class PackingEvaluation():
                 item.width, item.length, item.height) == group]
 
             group_scores = []
-
+            if len(group_items) < 2:
+                continue
             for item in group_items:
-                touching_items = [other for other in group_items if (
-                    abs(item.position.x - other.position.x) == item.width or
-                    abs(item.position.y - other.position.y) == item.length or
-                    abs(item.position.z - other.position.z) == item.height
-                )]
+                touching_items = [
+                    other for other in group_items
+                    if (
+                        abs(item.position.x - other.position.x),
+                        abs(item.position.z - other.position.y),
+                        abs(item.position.y - other.position.z)
+                    ) in [
+                        (item.width, 0, 0),
+                        (0, item.length, 0),
+                        (0, 0, item.height),
+                    ]
+                ]
                 group_scores.append(len(touching_items) /
                                     min(max(len(group_items)-1, 1), 4))
-
+            print(group, np.mean(group_scores), group_scores)
             scores.append(np.mean(group_scores))
         return np.mean(scores)
