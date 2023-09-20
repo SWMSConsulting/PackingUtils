@@ -110,7 +110,7 @@ async def get_packing_variants(
 
     variants = [variant for _, (variant, _) in sorted_variants]
     # multiple configurations may lead to same variant
-    configs = [config[0] for _, (_, config) in sorted_variants]
+    configs = [config for _, (_, config) in sorted_variants]
 
     packed = PackedOrder(order.order_id)
     for v in variants:
