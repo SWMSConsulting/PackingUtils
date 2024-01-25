@@ -3,13 +3,27 @@ import logging
 import random
 from typing import List, Optional
 
-from pydantic import Field, BaseModel
+from pydantic import BaseModel
 import itertools
 
 
-class PackerConfiguration(BaseModel):
+class ExtendedEnum(Enum):
+    @classmethod
+    def list(cls):
+        return list(map(lambda c: c.value, cls))
 
-    item_select_strategy_index: Optional[int] = 0
+
+class ItemSelectStrategy(str, ExtendedEnum):
+    LARGEST_H_W_L = "largest_h_w_l"
+    LARGEST_VOLUME = "largest_volume"
+
+
+class PackerConfiguration(BaseModel):
+    default_select_strategy: Optional[
+        ItemSelectStrategy
+    ] = ItemSelectStrategy.LARGEST_VOLUME
+
+    new_layer_select_strategy: Optional[ItemSelectStrategy] = default_select_strategy
 
     direction_change_min_volume: Optional[float] = 1.0
 
@@ -17,19 +31,12 @@ class PackerConfiguration(BaseModel):
 
     allow_item_exceeds_layer: Optional[bool] = True
 
-    @property
-    def item_select_strategy(self):
-        strategy = ItemSelectStrategy.get_validated_entity(
-            self.item_select_strategy_index)
-        return strategy
+    mirror_walls: Optional[bool] = False
 
     @classmethod
     def generate_random_configurations(
-        cls,
-        n: int,
-        bin_stability_factor: float,
-        item_volumes: List[float] = []
-    ) -> List['PackerConfiguration']:
+        cls, n: int, bin_stability_factor: float, item_volumes: List[float] = []
+    ) -> List["PackerConfiguration"]:
         """
         Generate a list of random PackerConfiguration objects based on the given parameters.
 
@@ -44,15 +51,18 @@ class PackerConfiguration(BaseModel):
         Raises:
             AssertionError: If item_volumes is not a list of floats.
         """
-        item_select_stategies = ItemSelectStrategy.indicies_list()
+        default_select_stategies = ItemSelectStrategy.list()
+        new_layer_select_stategies = ItemSelectStrategy.list()
 
         assert isinstance(item_volumes, List) and all(
-            isinstance(x, float) for x in item_volumes)
+            isinstance(x, float) for x in item_volumes
+        )
         direction_change_min_volumes = [0.0, 1.0] + item_volumes
 
         allow_item_exceeds_layers = [True, False]
         params = [
-            item_select_stategies,
+            default_select_stategies,
+            new_layer_select_stategies,
             direction_change_min_volumes,
             allow_item_exceeds_layers,
             # add here other possible parameter
@@ -64,55 +74,22 @@ class PackerConfiguration(BaseModel):
         configs = []
         for combination in combinations:
             cfg = PackerConfiguration(
-                item_select_strategy_index=combination[0],
-                direction_change_min_volume=combination[1],
-                allow_item_exceeds_layer=combination[2],
-                bin_stability_factor=bin_stability_factor
+                default_select_strategy=combination[0],
+                new_layer_select_strategy=combination[1],
+                direction_change_min_volume=combination[2],
+                allow_item_exceeds_layer=combination[3],
+                bin_stability_factor=bin_stability_factor,
+                mirror_walls=True,
             )
             logging.info("random config:", combination, cfg)
             configs.append(cfg)
         return configs
 
     def __hash__(self):
-        return hash((
-            self.item_select_strategy_index,
-            self.direction_change_min_volume,
-            self.bin_stability_factor
-        ))
-
-
-class ValidatedEnum(Enum):
-    @classmethod
-    def all_entities(cls):
-        return [entity for entity in cls]
-
-    @classmethod
-    def indicies_list(cls):
-        return [entity.value[0] for entity in cls]
-
-    @classmethod
-    def names_list(cls):
-        return [entity.value[1] for entity in cls]
-
-    @classmethod
-    def get_validated_entity(cls, index: int):
-        if not isinstance(index, int) or not index in cls.indicies_list():
-            logging.info("Index is not valid, using default.")
-            index = 0
-        return [e for e in cls if e.index == index][0]
-
-    @property
-    def index(self):
-        return self.value[0]
-
-    @property
-    def name(self):
-        return self.value[1]
-
-
-class ItemSelectStrategy(ValidatedEnum):
-    # for each layer candidate loop over the items and sum the absolute height differnce between item and layer
-    FITTING_BEST_Y_X_Z = (0, "FITTING_BEST_Y_X_Z")
-    HIGHEST_VOLUME_FOR_EMPTY_LAYER = (1, "HIGHEST_VOLUME_FOR_EMPTY_LAYER")
-    ALWAYS_HIGHEST_VOLUME = (2, "ALWAYS_HIGHEST_VOLUME")
-    MAX_AREA_FOR_EMPTY_LAYER = (3, "MAX_AREA_FOR_EMPTY_LAYER")
+        return hash(
+            (
+                self.item_select_strategy_index,
+                self.direction_change_min_volume,
+                self.bin_stability_factor,
+            )
+        )

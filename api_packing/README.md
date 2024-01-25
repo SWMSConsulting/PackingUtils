@@ -11,8 +11,8 @@ cd api_packing
 docker build -t packingsolver .
 
 # (optional)
-docker tag packingsolver harbor.swms-cloud.com/binpacking/packingsolver:1.0
-docker push harbor.swms-cloud.com/binpacking/packingsolver:1.0
+docker tag packingsolver harbor.swms-cloud.com/binpacking/packingsolver:3.0
+docker push harbor.swms-cloud.com/binpacking/packingsolver:3.0
 ```
 
 - Run the docker container 
