@@ -6,7 +6,10 @@ from packutils.data.bin import Bin
 from packutils.data.order import Order
 from packutils.data.article import Article
 from packutils.data.packed_order import PackedOrder
-from packutils.eval.packing_evaluation import PackingEvaluation, PackingEvaluationWeights
+from packutils.eval.packing_evaluation import (
+    PackingEvaluation,
+    PackingEvaluationWeights,
+)
 from packutils.data.packer_configuration import ItemSelectStrategy, PackerConfiguration
 from packutils.solver.palletier_wish_packer import PalletierWishPacker
 
@@ -48,24 +51,30 @@ async def status():
 
 
 @app.post("/variants")
-async def get_packing_variants(
-    body: VariantsRequestModel
-):
+async def get_packing_variants(body: VariantsRequestModel):
     print("PARAMS", body)
     order = Order(
         order_id=body.order.order_id,
         articles=[
-            Article(article_id=a.id, width=a.width, length=1,  # a.length,
-                    height=a.height, amount=a.amount)
+            Article(
+                article_id=a.id,
+                width=a.width,
+                length=1,  # a.length,
+                height=a.height,
+                amount=a.amount,
+            )
             for a in body.order.articles
-        ])
+        ],
+    )
     num_variants = body.num_variants
     config = None
 
-    bin_volume = body.order.colli_details.width * \
-        body.order.colli_details.length * body.order.colli_details.height
-    item_volumes = [a.width * a.length * a.height /
-                    bin_volume for a in order.articles]
+    bin_volume = (
+        body.order.colli_details.width
+        * body.order.colli_details.length
+        * body.order.colli_details.height
+    )
+    item_volumes = [a.width * a.length * a.height / bin_volume for a in order.articles]
 
     config = PackerConfiguration() if config is None else config
     configs = [config]
@@ -85,8 +94,7 @@ async def get_packing_variants(
     if body.order.colli_details is not None:
         details = body.order.colli_details
         bins = [
-            Bin(details.width, 1,  # details.length,
-                details.height, details.max_weight)
+            Bin(details.width, 1, details.height, details.max_weight)  # details.length,
             for _ in range(details.max_collis)
         ]
     else:
@@ -100,13 +108,12 @@ async def get_packing_variants(
             item_distribution=1.0,
             item_stacking=1.0,
             item_grouping=1.0,
-            utilized_space=3.0
+            utilized_space=3.0,
         )
     )
     scored_variants = eval.evaluate_packing_variants(variants, configs)
 
-    sorted_variants = sorted(
-        scored_variants, key=lambda x: x[0], reverse=True)
+    sorted_variants = sorted(scored_variants, key=lambda x: x[0], reverse=True)
 
     variants = [variant for _, (variant, _) in sorted_variants]
     # multiple configurations may lead to same variant
@@ -116,7 +123,4 @@ async def get_packing_variants(
     for v in variants:
         packed.add_packing_variant(v)
 
-    return {
-        "packed_order": packed.to_dict(as_string=False),
-        "configs": configs
-    }
+    return {"packed_order": packed.to_dict(as_string=False), "configs": configs}
