@@ -20,7 +20,7 @@ HOST = "65.108.147.211"
 PORT = 32795
 # PORT = 8000
 
-PACKING_ENDPOINT = "variants"
+PACKING_ENDPOINT = "api/v1/variants"
 # PACKING_ENDPOINT = "palletier"
 
 
@@ -36,24 +36,26 @@ def ping_api():
 
     else:
         raise RuntimeError(
-            "Cannot connect to server. Please check all parameters and the connection.")
+            "Cannot connect to server. Please check all parameters and the connection."
+        )
 
 
 def get_packing_variants(
-    order: Order,
-    baseConfig: PackerConfiguration,
-    num_variants: int
+    order: Order, baseConfig: PackerConfiguration, num_variants: int
 ):
     request = f"http://{HOST}:{PORT}/{PACKING_ENDPOINT}"
     print(f"Request:    {request}")
     orderDict = order.to_dict()
     orderDict["colli_details"] = {
-        "width": 80, "length": 1, "height": 100, "max_collis": 10
+        "width": 80,
+        "length": 1,
+        "height": 100,
+        "max_collis": 10,
     }
     data = {
         "order": orderDict,
         "num_variants": num_variants,
-        "config": baseConfig.__dict__
+        "config": baseConfig.__dict__,
     }
     print(f"Data:       {data}")
     response = requests.post(request, json=data)
@@ -69,14 +71,14 @@ ping_api()
 
 articles = [
     Article("test1", width=26, length=1, height=16, amount=30),
-    Article("test2", width=6, length=1, height=6, amount=11)
+    Article("test2", width=6, length=1, height=6, amount=11),
 ]
 test_order = Order(order_id="test", articles=articles)
 
 num_variants = 2
-result = get_packing_variants(test_order,
-                              baseConfig=PackerConfiguration(),
-                              num_variants=num_variants)
+result = get_packing_variants(
+    test_order, baseConfig=PackerConfiguration(), num_variants=num_variants
+)
 packed = PackedOrder.from_dict(result.get("packed_order", {}))
 print(len(packed.packing_variants))
 assert num_variants == len(packed.packing_variants)
@@ -84,4 +86,4 @@ assert num_variants == len(packed.packing_variants)
 vis = PackingVisualization()
 for variant, cfg in zip(packed.packing_variants, result.get("configs")):
     print(cfg)
-    vis.visualize_packing_variant(variant)
+    # vis.visualize_packing_variant(variant)

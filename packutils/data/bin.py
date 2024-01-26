@@ -153,6 +153,16 @@ class Bin:
         return dim
 
     @property
+    def max_z(self) -> int:
+        """
+        Calculate the maximum z value of the Bin.
+
+        Returns:
+        int: The maximum z value of the Bin.
+        """
+        return int(np.max(self.get_height_map()))
+
+    @property
     def volume(self) -> int:
         """
         Calculate the volume of the Bin.

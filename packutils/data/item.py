@@ -31,7 +31,15 @@ class Item:
 
     """
 
-    def __init__(self, id: str, width: int, length: int, height: int, weight: float = 0.0, position: Position = None):
+    def __init__(
+        self,
+        id: str,
+        width: int,
+        length: int,
+        height: int,
+        weight: float = 0.0,
+        position: Position = None,
+    ):
         """
         Initializes an Item object with the specified attributes.
 
@@ -63,7 +71,7 @@ class Item:
             x=self.position.x + self.width / 2,
             y=self.position.y + self.length / 2,
             z=self.position.z + self.height / 2,
-            rotation=self.position.rotation
+            rotation=self.position.rotation,
         )
 
     def pack(self, position: Position):
@@ -75,7 +83,8 @@ class Item:
 
         """
         assert isinstance(
-            position, Position), "This method requires a Position object as input."
+            position, Position
+        ), "This method requires a Position object as input."
 
         self.position = position
 
@@ -126,9 +135,15 @@ class Item:
         if not self.is_packed():
             return None, None
 
-        if dimensions.count("width") + dimensions.count("length") + dimensions.count("height") != 2:
+        if (
+            dimensions.count("width")
+            + dimensions.count("length")
+            + dimensions.count("height")
+            != 2
+        ):
             raise ValueError(
-                "dimensions should contain two strings out of [width, length, height].")
+                "dimensions should contain two strings out of [width, length, height]."
+            )
 
         pos = []
         dim = []
@@ -167,6 +182,17 @@ class Item:
         """
         return int(self.width * self.length)
 
+    @property
+    def dimensions(self) -> "Tuple[int, int, int]":
+        """
+        Returns the dimensions of the item.
+
+        Returns:
+            Tuple[int, int, int]: The dimensions of the item.
+
+        """
+        return (self.width, self.length, self.height)
+
     def __repr__(self) -> str:
         """
         Returns a string representation of the item.
@@ -181,10 +207,18 @@ class Item:
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash((self.width, self.length, self.height, self.weight, self.position.__hash__()))
+        return hash(
+            (
+                self.width,
+                self.length,
+                self.height,
+                self.weight,
+                self.position.__hash__(),
+            )
+        )
 
     @classmethod
-    def from_article(cls, article: Article) -> 'Item':
+    def from_article(cls, article: Article) -> "Item":
         """
         Create an Item object from an Article object.
 
@@ -207,5 +241,5 @@ class Item:
             length=article.length,
             height=article.height,
             weight=article.weight,
-            position=None
+            position=None,
         )
