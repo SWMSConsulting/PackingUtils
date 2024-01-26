@@ -72,8 +72,10 @@ with st.expander("Order", expanded=True):
 
     st.write(order)
 
+    n_configs = st.number_input("Amount of configurations", value=1, step=1, min_value=1)
+
     configurations = PackerConfiguration.generate_random_configurations(
-        10,
+        n_configs,
         bin_stability_factor=1.0,
         item_volumes=[
             a.width * a.length * a.height / bins[0].volume for a in order.articles

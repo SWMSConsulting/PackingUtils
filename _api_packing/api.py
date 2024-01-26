@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -41,8 +42,8 @@ class OrderModel(BaseModel):
 
 class VariantsRequestModel(BaseModel):
     order: OrderModel
-    num_variants: int
-    config: PackerConfiguration
+    num_variants: Optional[int]
+    config: Optional[PackerConfiguration]
 
 
 @app.get("/")
@@ -67,6 +68,8 @@ async def get_packing_variants(body: VariantsRequestModel):
         ],
     )
     num_variants = body.num_variants
+    if num_variants is None:
+        num_variants = os.environ.get("NUM_VARIANTS", 5)
     config = None
 
     bin_volume = (
@@ -84,6 +87,7 @@ async def get_packing_variants(body: VariantsRequestModel):
         bin_stability_factor=config.bin_stability_factor,
         item_volumes=item_volumes,
     )
+    print("RANDOM CONFIGS", random_configs)
 
     for cfg in random_configs:
         if cfg not in configs:
