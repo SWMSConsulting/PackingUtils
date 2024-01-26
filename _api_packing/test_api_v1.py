@@ -10,9 +10,10 @@ from packutils.data.order import Order
 class TestPackerAPI(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
+        self.base_endpoint = "/api/v1"
 
     def test_ping(self):
-        response = self.client.get("/")
+        response = self.client.get(self.base_endpoint)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "Healthy"})
 
@@ -32,7 +33,7 @@ class TestPackerAPI(unittest.TestCase):
             "max_collis": 10,
         }
         data = {"order": orderDict, "num_variants": num_variants, "config": {}}
-        response = self.client.post("variants", json=data)
+        response = self.client.post(f"{self.base_endpoint}/variants", json=data)
         body = json.loads(response.text)
         self.assertEqual(response.status_code, 200)
         print(f"Response:   {body}")

@@ -20,7 +20,7 @@ HOST = "65.108.147.211"
 PORT = 32795
 # PORT = 8000
 
-PACKING_ENDPOINT = "variants"
+PACKING_ENDPOINT = "api/v1/variants"
 # PACKING_ENDPOINT = "palletier"
 
 
