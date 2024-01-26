@@ -16,13 +16,3 @@ tags_metadata = [
 app = FastAPI(root_path="/api", openapi_tags=tags_metadata)
 
 app.mount("/v1", api_v1)
-
-api_v2 = FastAPI()
-
-
-@api_v2.get("/users")
-def get_users():
-    return {"user": "you-know-who"}
-
-
-app.mount("/v2", api_v2)
