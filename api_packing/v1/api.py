@@ -23,7 +23,8 @@ async def status():
 
 @api_v1.post("/variants")
 async def get_packing_variants(body: VariantsRequestModel):
-    print("PARAMS", body)
+    """Get packing variants for an order."""
+
     order = Order(
         order_id=body.order.order_id,
         articles=[
@@ -57,7 +58,6 @@ async def get_packing_variants(body: VariantsRequestModel):
         bin_stability_factor=config.bin_stability_factor,
         item_volumes=item_volumes,
     )
-    print("RANDOM CONFIGS", random_configs)
 
     for cfg in random_configs:
         if cfg not in configs:
