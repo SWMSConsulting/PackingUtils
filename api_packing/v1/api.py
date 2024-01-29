@@ -5,6 +5,7 @@ import random
 from typing import List, Tuple
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from v1.models.variants_request_model import VariantsRequestModel
 
@@ -184,12 +185,18 @@ async def get_packing_variants(body: VariantsRequestModel):
         ],
     )
     # check if articles are valid
-    for article in order.articles:
+    for i, article in enumerate(order.articles):
         if article.width > bin_w or article.length > bin_l or article.height > bin_h:
             print("Article too large for bin")
             return JSONResponse(
                 content={
-                    "detail": f"Article {article.article_id} is too large for the bin ({article.width}x{article.length}x{article.height} > {bin_w}x{bin_l}x{bin_h})"
+                    "detail": [
+                        {
+                            "loc": ["body", "order", i, "articles"],
+                            "msg": f"Article ({article}) too large for bin {bin_w, bin_l, bin_h}",
+                            "type": "custom_error",
+                        }
+                    ]
                 },
                 status_code=422,
             )
