@@ -11,6 +11,7 @@ class ExtendedEnum(Enum):
 
 class ItemSelectStrategy(str, ExtendedEnum):
     LARGEST_H_W_L = "largest_h_w_l"
+    LARGEST_W_H_L = "largest_w_h_l"
     LARGEST_VOLUME = "largest_volume"
 
 
