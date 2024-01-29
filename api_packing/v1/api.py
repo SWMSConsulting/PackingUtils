@@ -5,8 +5,6 @@ import random
 from typing import List, Tuple
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError
-
 from v1.models.variants_request_model import VariantsRequestModel
 
 from packutils.data.bin import Bin
