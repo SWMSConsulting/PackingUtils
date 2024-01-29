@@ -32,11 +32,11 @@ class TestPackerAPI(unittest.TestCase):
             "height": 100,
             "max_collis": 10,
         }
-        data = {"order": orderDict, "num_variants": num_variants, "config": {}}
+        data = {"order": orderDict, "num_variants": num_variants, "config": None}
         response = self.client.post(f"{self.base_endpoint}/variants", json=data)
         body = json.loads(response.text)
-        self.assertEqual(response.status_code, 200)
         print(f"Response:   {body}")
+        self.assertEqual(response.status_code, 200)
 
 
 if __name__ == "__main__":
