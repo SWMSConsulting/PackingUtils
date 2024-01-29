@@ -98,7 +98,7 @@ class PalletierWishPacker(AbstractPacker):
                 snappoints = [
                     point
                     for point in bin.get_snappoints()
-                    if not point in snappoints_to_ignore and point.z <= layer_z_max
+                    if not point in snappoints_to_ignore and point.z < layer_z_max
                 ]
 
                 if is_new_layer:
@@ -132,10 +132,7 @@ class PalletierWishPacker(AbstractPacker):
 
                 logging.info("")
                 logging.info(
-                    "Selected snappoints: "
-                    + str(left_snappoint)
-                    + ", "
-                    + str(right_snappoint)
+                    f"Selected snappoints: {left_snappoint}, {right_snappoint}"
                 )
 
                 snappoint = (
@@ -486,11 +483,16 @@ def select_item_from_list(
         sorted_items = sorted(items, key=lambda x: x.volume, reverse=True)
         return sorted_items[0]
 
-    elif strategy == ItemSelectStrategy.LARGEST_H_W_L:
+    if strategy == ItemSelectStrategy.LARGEST_H_W_L:
         sorted_items = sorted(
             items, key=lambda x: (x.height, x.width, x.length), reverse=True
         )
         return sorted_items[0]
 
-    else:
-        raise NotImplementedError(f"ItemSelectStrategy not implemented: {strategy}")
+    if strategy == ItemSelectStrategy.LARGEST_W_H_L:
+        sorted_items = sorted(
+            items, key=lambda x: (x.width, x.height, x.length), reverse=True
+        )
+        return sorted_items[0]
+
+    raise NotImplementedError(f"ItemSelectStrategy not implemented: {strategy}")

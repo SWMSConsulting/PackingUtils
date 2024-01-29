@@ -11,6 +11,7 @@ class ArticleModel(BaseModel):
     width: int = Field(description="Article width", gt=0)
     length: int = Field(description="Article length", gt=0)
     height: int = Field(description="Article height", gt=0)
+    weight: Optional[int] = Field(description="Article weight", ge=0, default=0)
     amount: int = Field(description="Amount of articles", gt=0)
 
 
@@ -22,7 +23,7 @@ class ColliDetailsModel(BaseModel):
     height: int = Field(description="Height of the bins to be packed", gt=0)
     max_collis: int = Field(description="Maximum number of bins to be packed", gt=0)
     max_weight: Optional[int] = Field(
-        description="Maximum weight of the bins to be packed", gt=0, default=None
+        description="Maximum weight of the bins to be packed", ge=0, default=None
     )
 
 
