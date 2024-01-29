@@ -13,6 +13,6 @@ tags_metadata = [
     },
 ]
 
-app = FastAPI(root_path="/api", openapi_tags=tags_metadata)
+app = FastAPI(openapi_tags=tags_metadata)
 
 app.mount("/v1", api_v1)
