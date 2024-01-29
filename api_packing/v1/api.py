@@ -4,6 +4,8 @@ import os
 import random
 from typing import List, Tuple
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+
 from v1.models.variants_request_model import VariantsRequestModel
 
 from packutils.data.bin import Bin
@@ -154,28 +156,47 @@ async def status():
 async def get_packing_variants(body: VariantsRequestModel):
     """Get packing variants for an order."""
 
+    if body.order.colli_details is not None:
+        details = body.order.colli_details
+        bins = [
+            Bin(details.width, 1, details.height, details.max_weight)  # details.length,
+            for _ in range(details.max_collis)
+        ]
+    else:
+        bins = [Bin(800, 1, 500)]
+
+    bin_w = bins[0].width
+    bin_h = bins[0].height
+    bin_l = bins[0].length
+    bin_volume = bins[0].volume
+
     order = Order(
         order_id=body.order.order_id,
         articles=[
             Article(
                 article_id=a.id,
                 width=a.width,
-                length=1,  # a.length,
+                length=a.length if a.length <= bin_l else bin_l,
                 height=a.height,
                 amount=a.amount,
             )
             for a in body.order.articles
         ],
     )
+    # check if articles are valid
+    for article in order.articles:
+        if article.width > bin_w or article.length > bin_l or article.height > bin_h:
+            print("Article too large for bin")
+            return JSONResponse(
+                content={
+                    "detail": f"Article {article.article_id} is too large for the bin ({article.width}x{article.length}x{article.height} > {bin_w}x{bin_l}x{bin_h})"
+                },
+                status_code=422,
+            )
 
     num_variants = ENV_NUM_VARIANTS if body.num_variants is None else body.num_variants
 
     if body.config is not None and body.config.direction_change_min_volume is None:
-        bin_volume = (
-            body.order.colli_details.width
-            * body.order.colli_details.length
-            * body.order.colli_details.height
-        )
         change_volumes = [
             a.width * a.length * a.height / bin_volume for a in order.articles
         ]
@@ -188,15 +209,6 @@ async def get_packing_variants(body: VariantsRequestModel):
     else:
         configs = [body.config] if body.config is not None else []
         configs += random.sample(possible_configs, num_variants - len(configs))
-
-    if body.order.colli_details is not None:
-        details = body.order.colli_details
-        bins = [
-            Bin(details.width, 1, details.height, details.max_weight)  # details.length,
-            for _ in range(details.max_collis)
-        ]
-    else:
-        bins = [Bin(800, 1, 500)]
 
     packer = PalletierWishPacker(bins=bins)
     variants = packer.pack_variants(order, configs)
