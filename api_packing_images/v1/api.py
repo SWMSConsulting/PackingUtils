@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from io import BytesIO
-from fastapi import FastAPI, responses
+from fastapi import FastAPI, responses, Request
+from fastapi.openapi.docs import get_swagger_ui_html
 from v1.models.bin_image_request_model import BinImageRequestModel
 
 from packutils.visual.packing_visualization import PackingVisualization
@@ -68,3 +69,13 @@ def get_bin_image(request: BinImageRequestModel):
     plt.close()
     buffer.seek(0)
     return responses.StreamingResponse(buffer, media_type="image/png")
+
+
+@api_v1.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html(req: Request):
+    root_path = req.scope.get("root_path", "").rstrip("/")
+    openapi_url = root_path + api_v1.openapi_url
+    return get_swagger_ui_html(
+        openapi_url=openapi_url,
+        title="API",
+    )
