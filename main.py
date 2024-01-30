@@ -1,3 +1,8 @@
+import itertools
+import json
+import os
+import random
+from typing import List, Tuple
 import streamlit as st
 
 from packutils.data.bin import Bin
@@ -19,23 +24,80 @@ import matplotlib
 
 matplotlib.use("Agg")
 
+
+@st.cache_data
+def get_possible_config_params() -> Tuple[List[PackerConfiguration], int]:
+    possible_default_select_strategy = [ItemSelectStrategy.LARGEST_VOLUME]
+    possible_new_layer_select_strategy = [ItemSelectStrategy.LARGEST_H_W_L]
+
+    possible_bin_stability_factor = [1.0]
+
+    possible_allow_item_exceeds_layer = [False]
+    possible_mirror_walls = [True]
+
+    possible_direction_change_volume = [0]  # None
+
+    params = [
+        possible_default_select_strategy,
+        possible_new_layer_select_strategy,
+        possible_direction_change_volume,
+        possible_bin_stability_factor,
+        possible_allow_item_exceeds_layer,
+        possible_mirror_walls
+        # add here other possible parameter
+    ]
+    combinations = list(itertools.product(*params))
+
+    possible_params = {
+        "default_select_strategy": possible_default_select_strategy,
+        "new_layer_select_strategy": possible_new_layer_select_strategy,
+        "direction_change_volume": possible_direction_change_volume,
+        "bin_stability_factor": possible_bin_stability_factor,
+        "allow_item_exceeds_layer": possible_allow_item_exceeds_layer,
+        "mirror_walls": possible_mirror_walls,
+        "num_combinations": len(combinations),
+    }
+    print("Possible variables:")
+    for k, v in possible_params.items():
+        print(f"{k :<50}: {v}")
+    print("")
+
+    return [
+        PackerConfiguration(
+            default_select_strategy=combination[0],
+            new_layer_select_strategy=combination[1],
+            direction_change_min_volume=combination[2],
+            bin_stability_factor=combination[3],
+            allow_item_exceeds_layer=combination[4],
+            mirror_walls=combination[5],
+        )
+        for combination in combinations
+    ]
+
+
+POSSIBLE_CONFIGS = get_possible_config_params()
+
+
 st.write("""# Packing Visualisation""")
 
 # logging.basicConfig(level=logging.INFO)
 
-max_bins = 2
-bins = [Bin(800, 1, 500) for _ in range(max_bins)]
+max_bins = 3
+bins = [Bin(800, 1, 600) for _ in range(max_bins)]
 packer = PalletierWishPacker(bins=bins)
 
 with st.expander("Order", expanded=True):
     num_articles = st.number_input(
-        "Number of article types", value=1, step=1, min_value=1
+        "Number of article types", value=4, step=1, min_value=1
     )
     order = Order(
         "Test",
         articles=[
-            Article(f"Article {idx+1}", width=62, length=1, height=62, amount=0)
-            for idx in range(num_articles)
+            Article(f"Article {1}", width=68, length=1, height=68, amount=21),
+            Article(f"Article {2}", width=170, length=1, height=175, amount=19),
+            Article(f"Article {3}", width=82, length=1, height=20, amount=19),
+            Article(f"Article {4}", width=185, length=1, height=80, amount=8),
+            # for idx in range(num_articles)
         ],
     )
     _c1, _c2, _c3, _c4 = st.columns(4)
@@ -72,22 +134,21 @@ with st.expander("Order", expanded=True):
 
     st.write(order)
 
-    n_configs = st.number_input("Amount of configurations", value=1, step=1, min_value=1)
-
-    configurations = PackerConfiguration.generate_random_configurations(
-        n_configs,
-        bin_stability_factor=1.0,
-        item_volumes=[
-            a.width * a.length * a.height / bins[0].volume for a in order.articles
-        ],
+    n_configs = st.number_input(
+        "Amount of configurations", value=1, step=1, min_value=0
     )
+    if n_configs > 0 and n_configs < len(POSSIBLE_CONFIGS):
+        configurations = random.sample(POSSIBLE_CONFIGS, n_configs)
+    else:
+        configurations = POSSIBLE_CONFIGS
     """
     configurations = [
         PackerConfiguration(
             bin_stability_factor=1,
             default_select_strategy=ItemSelectStrategy.LARGEST_VOLUME,
+            new_layer_select_strategy=ItemSelectStrategy.LARGEST_VOLUME,
             direction_change_min_volume=0,
-            allow_item_exceeds_layer=True,
+            allow_item_exceeds_layer=False,
             mirror_walls=True,
         ),
     ]

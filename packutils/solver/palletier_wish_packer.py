@@ -38,19 +38,13 @@ class PalletierWishPacker(AbstractPacker):
             config = PackerConfiguration()
         # logging.info("Used packer config: " + str(config))
         self.config = config
+
         # not implemented yet
         self.allow_rotation = False  # kwargs.get("rotation", False)
 
-        # not relevant, this was regarding to the vertical layers
-        self.layer_score_strategy = LayerScoreStrategy.MIN_HEIGHT_VARIANCE
-
-        # if a layer is closed, fill the gaps
-        self.fill_gaps = False  # kwargs.get("fill_gaps", False)
-
-        # if a new layer is opened, allow snappoints where overhang can occurr
-        self.allow_overhang = True  # kwargs.get("allow_overhang", True)
-
         self.snappoint_direction = SnappointDirection.RIGHT
+
+        self.prev_item = None
 
     def get_params(self) -> dict:
         return {}
@@ -142,8 +136,11 @@ class PalletierWishPacker(AbstractPacker):
                 )
                 logging.info(f"Selected snappoint: {snappoint}")
 
+                allowed_max_z = (
+                    bin.height if self.config.allow_item_exceeds_layer else layer_z_max
+                )
                 best = self.get_best_item_to_pack(
-                    items_to_pack, bin, snappoint, layer_z_max
+                    items_to_pack, bin, snappoint, allowed_max_z
                 )
                 logging.info(f"Item to pack: {best}")
 
@@ -158,7 +155,7 @@ class PalletierWishPacker(AbstractPacker):
                         else left_snappoint
                     )
                     best = self.get_best_item_to_pack(
-                        items_to_pack, bin, snappoint, layer_z_max
+                        items_to_pack, bin, snappoint, allowed_max_z
                     )
 
                 if best is None:
@@ -237,6 +234,7 @@ class PalletierWishPacker(AbstractPacker):
             logging.info(f"{info} - {item}")
         if done:
             logging.info(f"Packed item {item}")
+            self.prev_item = item
             if item.volume / bin.volume >= self.config.direction_change_min_volume:
                 self.snappoint_direction = self.snappoint_direction.change()
                 logging.info(f"New snappoint direction: {self.snappoint_direction}")
@@ -275,7 +273,7 @@ class PalletierWishPacker(AbstractPacker):
             return None
 
         new_layer_item = select_item_from_list(
-            possible_items, self.config.new_layer_select_strategy
+            possible_items, self.config.new_layer_select_strategy, None
         )
 
         is_new_layer = not np.any(bin.get_height_map() > snappoint.z)
@@ -285,56 +283,23 @@ class PalletierWishPacker(AbstractPacker):
         # save two items for the next layer
         only_two_left = count_same_dimensions(possible_items, new_layer_item) == 2
         if self.config.mirror_walls and only_two_left:
-            doubled_item = copy.deepcopy(new_layer_item)
-            doubled_item.width *= 2
-            can_both_fit = can_fit_in_layer(bin, doubled_item, snappoint.z, max_z)
+            doubled_item_w = copy.deepcopy(new_layer_item)
+            doubled_item_w.width *= 2
+
+            doubled_item_h = copy.deepcopy(new_layer_item)
+            doubled_item_h.height *= 2
+            can_both_fit = can_fit_in_layer(
+                bin, doubled_item_w, snappoint.z, max_z
+            ) or can_fit_in_layer(bin, doubled_item_w, snappoint.z, max_z)
 
             if not can_both_fit:
                 possible_items.remove(new_layer_item)
                 possible_items.remove(new_layer_item)
 
         next_item = select_item_from_list(
-            possible_items, self.config.default_select_strategy
+            possible_items, self.config.default_select_strategy, self.prev_item
         )
         return next_item
-
-    def get_candidate_layers(self, items, dimension: str = "height") -> List[Layer]:
-        """
-        Generate candidate layers based on the heights of the items.
-
-        Args:
-            items (List[Item]): List of items to be packed.
-
-        Returns:
-            List[Layer]: Sorted list of candidate layers based on score.
-        """
-        candidates = []
-        for item in items:
-            # add the rotation here
-            if dimension == "height":
-                dim = item.height
-            candidates.append(dim)
-
-        layers = []
-        for candidate in set(candidates):
-            if self.layer_score_strategy == LayerScoreStrategy.MIN_HEIGHT_VARIANCE:
-                # negative sum of the height differences (larger sum -> heigher score)
-                score = -sum(abs(candidate - item.height) for item in items)
-
-            elif self.layer_score_strategy == LayerScoreStrategy.MIN_HEIGHT_VARIANCE:
-                # sum of all item surfaces with the same height
-                score = sum(
-                    [item.surface for item in items if item.height == candidate]
-                )
-
-            else:
-                raise NotImplementedError(
-                    f"LayerScoreStrategy not implemented: {self.layer_score_strategy}"
-                )
-            layers.append(Layer(candidate, score))
-
-        layers = sorted(layers, key=lambda x: x.score, reverse=True)
-        return layers
 
     def _fill_gaps(self, bin: Bin, min_z: int):
         # detect the gap
@@ -464,7 +429,9 @@ def count_same_dimensions(items: List[Item], item: Item) -> int:
 
 
 def select_item_from_list(
-    items: List[Item], strategy: ItemSelectStrategy
+    items: List[Item],
+    strategy: ItemSelectStrategy,
+    prev_item: "Item | None",
 ) -> "Item | None":
     """
     Selects a item based on the specified strategy.
@@ -478,6 +445,13 @@ def select_item_from_list(
     """
     if len(items) < 1:
         return None
+    """
+    if prev_item is not None and count_same_dimensions(items, prev_item) > 0:
+        same_dimensional_items = [
+            i for i in items if i.dimensions == prev_item.dimensions
+        ]
+        return same_dimensional_items[0]
+    """
 
     if strategy == ItemSelectStrategy.LARGEST_VOLUME:
         sorted_items = sorted(items, key=lambda x: x.volume, reverse=True)
@@ -494,5 +468,41 @@ def select_item_from_list(
             items, key=lambda x: (x.width, x.height, x.length), reverse=True
         )
         return sorted_items[0]
+
+    if strategy == ItemSelectStrategy.LARGEST_L_H_W:
+        sorted_items = sorted(
+            items, key=lambda x: (x.length, x.height, x.width), reverse=True
+        )
+        return sorted_items[0]
+
+    if strategy == ItemSelectStrategy.LARGEST_L_W_H:
+        sorted_items = sorted(
+            items, key=lambda x: (x.length, x.width, x.height), reverse=True
+        )
+        return sorted_items[0]
+
+    if strategy == ItemSelectStrategy.LARGEST_W_TO_FILL:
+        unique_items = set(items)
+        largest_w = 0
+        best_item = None
+
+        for item in unique_items:
+            item_count = count_same_dimensions(items, item)
+            if item_count * item.width > largest_w:
+                largest_w = item_count * item.width
+                best_item = item
+        return best_item
+
+    if strategy == ItemSelectStrategy.LARGEST_W_H_TO_FILL:
+        unique_items = set(items)
+        largest_w_h = 0
+        best_item = None
+
+        for item in unique_items:
+            item_count = count_same_dimensions(items, item)
+            if item_count * item.width * item.height > largest_w_h:
+                largest_w_h = item_count * item.width * item.height
+                best_item = item
+        return best_item
 
     raise NotImplementedError(f"ItemSelectStrategy not implemented: {strategy}")

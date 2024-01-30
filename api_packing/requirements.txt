@@ -5,4 +5,4 @@ pydantic
 fastapi 
 uvicorn
 httpx
--e git+https://github.com/SWMSConsulting/PackingUtils.git#egg=packutils
+python-dotenv
