@@ -23,6 +23,6 @@ EXPOSE 8000
 # ENV MIRROR_WALLS="OPTIONAL bool(s) to mirror walls"
 # ENV BIN_STABILITY_FACTOR="OPTIONAL bin stability factor(s)"
 # ENV NUM_VARIANTS="OPTIONAL number of variants"
-
+# ENV PADDING_X="OPTIONAL padding x (width)"
 
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

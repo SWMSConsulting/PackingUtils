@@ -64,7 +64,12 @@ class PalletierWishPacker(AbstractPacker):
         self.reset(config)
 
         items_to_pack = [
-            Item(id=a.article_id, width=a.width, length=a.length, height=a.height)
+            Item(
+                id=a.article_id,
+                width=a.width + config.padding_x,
+                length=a.length,
+                height=a.height,
+            )
             for a in order.articles
             for _ in range(a.amount)
         ]

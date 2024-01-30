@@ -97,6 +97,8 @@ def get_possible_config_params(
             else [float(env_direction_change_volumes)]
         )
     )
+    env_padding_x = int(os.environ.get("PADDING_X", 0))
+
     env_num_variants = os.environ.get("NUM_VARIANTS", None)
     env_num_variants = int(env_num_variants) if env_num_variants is not None else None
 
@@ -121,10 +123,11 @@ def get_possible_config_params(
         "bin_stability_factor": possible_bin_stability_factor,
         "allow_item_exceeds_layer": possible_allow_item_exceeds_layer,
         "mirror_walls": possible_mirror_walls,
+        "padding_x": env_padding_x,
         "num_variants": env_num_variants,
         "num_combinations": len(combinations),
     }
-    print("Possible variables:")
+    print("Used variables:")
     for k, v in possible_params.items():
         print(f"{k :<50}: {v}")
     print("")
@@ -137,6 +140,7 @@ def get_possible_config_params(
             bin_stability_factor=combination[3],
             allow_item_exceeds_layer=combination[4],
             mirror_walls=combination[5],
+            padding_x=env_padding_x,
         )
         for combination in combinations
     ], env_num_variants

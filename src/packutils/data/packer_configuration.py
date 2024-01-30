@@ -37,6 +37,9 @@ class PackerConfiguration(BaseModel):
 
     mirror_walls: Optional[bool] = False
 
+    # padding along the x-axis (width)
+    padding_x: Optional[int] = 0
+
     def __hash__(self):
         return hash(
             (

@@ -37,6 +37,8 @@ def get_possible_config_params() -> Tuple[List[PackerConfiguration], int]:
 
     possible_direction_change_volume = [0]  # None
 
+    padding_x = 20
+
     params = [
         possible_default_select_strategy,
         possible_new_layer_select_strategy,
@@ -70,6 +72,7 @@ def get_possible_config_params() -> Tuple[List[PackerConfiguration], int]:
             bin_stability_factor=combination[3],
             allow_item_exceeds_layer=combination[4],
             mirror_walls=combination[5],
+            padding_x=padding_x,
         )
         for combination in combinations
     ]
