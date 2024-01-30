@@ -1,11 +1,6 @@
-from setuptools import setup, find_packages
+#!/usr/bon/env python
 
-setup(
-    name="packutils",
-    version="0.0.1",
-    install_requires=[],
-    packages=find_packages(
-        where="packutils", 
-        include=["packutils.*"]
-    ),
-)
+from setuptools import setup
+
+if __name__ == "__main__":
+    setup()

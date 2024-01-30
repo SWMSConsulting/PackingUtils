@@ -14,9 +14,10 @@ class AbstractPacker(ABC):
         if "bins" not in kwargs:
             self.reference_bins = [default_bin]
             logging.info(
-                f"No bin provided for packer, using default bin: {default_bin}.")
+                f"No bin provided for packer, using default bin: {default_bin}."
+            )
         else:
-            self.reference_bins = kwargs.get('bins')
+            self.reference_bins = kwargs.get("bins")
 
     def pack_order(self, order: Order) -> PackedOrder:
         variant = self.pack_variant(order)

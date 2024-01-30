@@ -27,7 +27,7 @@ class PackingVariant:
         """
         self.bins.append(bin)
 
-    def add_unpacked_item(self, item: Item, error_message: 'str | None'):
+    def add_unpacked_item(self, item: Item, error_message: "str | None"):
         """
         Add an unpacked item along with the corresponding error message (if provided).
 
@@ -46,4 +46,9 @@ class PackingVariant:
         return self.bins == other.bins and self.unpacked_items == other.unpacked_items
 
     def __hash__(self):
-        return hash(tuple([hash(bin) for bin in self.bins] + [hash(item) for item in self.unpacked_items]))
+        return hash(
+            tuple(
+                [hash(bin) for bin in self.bins]
+                + [hash(item) for item in self.unpacked_items]
+            )
+        )
