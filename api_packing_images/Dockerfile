@@ -6,7 +6,12 @@ WORKDIR /app
 
 COPY . /app/
 
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 RUN pip install -r /app/requirements.txt
+RUN pip install -e pip install git+https://github.com/SWMSConsulting/PackingUtils.git@stage
 
 EXPOSE 8000
 
