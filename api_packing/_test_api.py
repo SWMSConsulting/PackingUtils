@@ -43,7 +43,7 @@ def ping_api():
 def get_packing_variants(
     order: Order, baseConfig: PackerConfiguration, num_variants: int
 ):
-    request = f"http://{HOST}:{PORT}/{PACKING_ENDPOINT}"
+    request = f"http://{HOST}:{PORT}/api/v1/{PACKING_ENDPOINT}"
     print(f"Request:    {request}")
     orderDict = order.to_dict()
     orderDict["colli_details"] = {
@@ -57,7 +57,10 @@ def get_packing_variants(
         "num_variants": num_variants,
         "config": baseConfig.__dict__,
     }
+
+    data = """{"order":{"order_id":"467139","articles":[{"id":"70171000","width":68.0,"length":1.0,"height":68.0,"weight":3.5,"amount":10},{"id":"71610126","width":68.0,"length":1.0,"height":68.0,"weight":0.0,"amount":2}],"supplies":[],"colli_details":{"width":800.0,"length":1.0,"height":600.0,"max_collis":10}}}"""
     print(f"Data:       {data}")
+
     response = requests.post(request, json=data)
 
     body = json.loads(response.text)

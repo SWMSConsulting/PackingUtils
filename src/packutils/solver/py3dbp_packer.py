@@ -8,13 +8,13 @@ from packutils.solver.abstract_packer import AbstractPacker
 
 try:
     import py3dbp
+
     PACKER_AVAILABLE = True
 except ImportError as e:
     PACKER_AVAILABLE = False
 
 
 class Py3dbpPacker(AbstractPacker):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -23,10 +23,11 @@ class Py3dbpPacker(AbstractPacker):
     def get_params(self) -> dict:
         return {}
 
-    def pack_variant(self, order: Order) -> 'PackingVariant | None':
+    def pack_variant(self, order: Order) -> "PackingVariant | None":
         if not self.is_packer_available():
             raise ImportError(
-                "Py3dbpPacker requires py3dbp to be installed (pip install py3dbp)")
+                "Py3dbpPacker requires py3dbp to be installed (pip install py3dbp)"
+            )
 
         packer = py3dbp.Packer()
 
@@ -37,8 +38,9 @@ class Py3dbpPacker(AbstractPacker):
                     width=bin.width,
                     height=bin.height,
                     depth=bin.length,
-                    max_weight=int(
-                        bin.max_weight) if bin.max_weight is not None and bin.max_weight != 0.0 else 1000
+                    max_weight=int(bin.max_weight)
+                    if bin.max_weight is not None and bin.max_weight != 0.0
+                    else 1000,
                 )
             )
 
@@ -50,11 +52,10 @@ class Py3dbpPacker(AbstractPacker):
                         width=int(article.width),
                         height=int(article.height),
                         depth=int(article.length),
-                        weight=int(article.weight)
+                        weight=int(article.weight),
                     )
                 )
-        packer.pack(
-            bigger_first=self.larger_first)
+        packer.pack(bigger_first=self.larger_first)
 
         variant = PackingVariant()
         for b in packer.bins:
@@ -63,7 +64,7 @@ class Py3dbpPacker(AbstractPacker):
                 width=int(b.width),
                 length=int(b.depth),
                 height=int(b.height),
-                max_weight=b.max_weight
+                max_weight=b.max_weight,
             )
 
             for idx, packed in enumerate(b.items):
@@ -78,7 +79,7 @@ class Py3dbpPacker(AbstractPacker):
                     width=int(packed.width),
                     length=int(packed.depth),
                     height=int(packed.height),
-                    position=pos
+                    position=pos,
                 )
                 is_packed, error_msg = bin.pack_item(item)
                 if not is_packed:

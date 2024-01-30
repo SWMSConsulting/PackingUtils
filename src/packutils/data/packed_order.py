@@ -37,8 +37,7 @@ class PackedOrder:
             packing_variant (PackingVariant): The packing variant to be added.
         """
         if not isinstance(packing_variant, PackingVariant):
-            raise TypeError(
-                "Packing variant should be of class PackingVariant.")
+            raise TypeError("Packing variant should be of class PackingVariant.")
 
         self.packing_variants.append(packing_variant)
 
@@ -71,8 +70,7 @@ class PackedOrder:
 
         articles = []
         for item in items:
-            filtered = list(
-                filter(lambda x: x.article_id == item.id, articles))
+            filtered = list(filter(lambda x: x.article_id == item.id, articles))
             if len(filtered) > 0:
                 index = articles.index(filtered[0])
                 articles[index].amount += 1
@@ -93,7 +91,10 @@ class PackedOrder:
         return f"PackedOrder({self.order_id}, {self.packing_variants})"
 
     def __eq__(self, other: object) -> bool:
-        return self.order_id == other.order_id and self.packing_variants == other.packing_variants
+        return (
+            self.order_id == other.order_id
+            and self.packing_variants == other.packing_variants
+        )
 
     def to_dict(self, as_string=True) -> str:
         """
@@ -105,7 +106,7 @@ class PackedOrder:
         data = {
             "order_id": self.order_id,
             "packing_variants": [],
-            "articles": [article.to_dict() for article in self.get_articles_list()]
+            "articles": [article.to_dict() for article in self.get_articles_list()],
         }
 
         for variant in self.packing_variants:
@@ -114,27 +115,31 @@ class PackedOrder:
             for idx, bin in enumerate(variant.bins):
                 positions = []
                 for item in bin.packed_items:
-                    positions.append({
-                        "article_id": item.id,
-                        "x": item.position.x,
-                        "y": item.position.y,
-                        "z": item.position.z,
-                        "rotation": item.position.rotation,
-                        "centerpoint_x": item.centerpoint().x,
-                        "centerpoint_y": item.centerpoint().y,
-                        "centerpoint_z": item.centerpoint().z
-                    })
+                    positions.append(
+                        {
+                            "article_id": item.id,
+                            "x": item.position.x,
+                            "y": item.position.y,
+                            "z": item.position.z,
+                            "rotation": item.position.rotation,
+                            "centerpoint_x": item.centerpoint().x,
+                            "centerpoint_y": item.centerpoint().y,
+                            "centerpoint_z": item.centerpoint().z,
+                        }
+                    )
 
-                variant_data.append({
-                    "colli": idx + 1,
-                    "colli_total": len(variant.bins),
-                    "colli_dimension": {
-                        "width": bin.width,
-                        "length": bin.length,
-                        "height": bin.height
-                    },
-                    "positions": positions
-                })
+                variant_data.append(
+                    {
+                        "colli": idx + 1,
+                        "colli_total": len(variant.bins),
+                        "colli_dimension": {
+                            "width": bin.width,
+                            "length": bin.length,
+                            "height": bin.height,
+                        },
+                        "positions": positions,
+                    }
+                )
 
             data["packing_variants"].append(variant_data)
 
@@ -154,7 +159,7 @@ class PackedOrder:
             file.write(json_data)
 
     @classmethod
-    def load_from_json(cls, json_str: str) -> 'PackedOrder':
+    def load_from_json(cls, json_str: str) -> "PackedOrder":
         """
         Load a PackedOrder object from a JSON string.
 
@@ -168,7 +173,7 @@ class PackedOrder:
         return PackedOrder.from_dict(data)
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'PackedOrder':
+    def from_dict(cls, data: Dict) -> "PackedOrder":
         """
         Load a PackedOrder object from a dict.
 
@@ -193,10 +198,8 @@ class PackedOrder:
         for variant_data in variants_data:
             variant = PackingVariant()
             for bin_data in variant_data:
-
                 colli_dim = bin_data.get("colli_dimension")
-                bin = Bin(
-                    colli_dim["width"], colli_dim["length"], colli_dim["height"])
+                bin = Bin(colli_dim["width"], colli_dim["length"], colli_dim["height"])
 
                 for pos_data in bin_data.get("positions", []):
                     article = article_dict[pos_data["article_id"]]
@@ -204,7 +207,7 @@ class PackedOrder:
                         x=int(pos_data["x"]),
                         y=int(pos_data["y"]),
                         z=int(pos_data["z"]),
-                        rotation=pos_data["rotation"]
+                        rotation=pos_data["rotation"],
                     )
                     item = Item(
                         id=article.article_id,
@@ -212,7 +215,7 @@ class PackedOrder:
                         length=article.length,
                         height=article.height,
                         weight=article.weight,
-                        position=pos
+                        position=pos,
                     )
                     is_packed, _ = bin.pack_item(item)
 
@@ -225,7 +228,7 @@ class PackedOrder:
         return packed_order
 
     @classmethod
-    def load_from_file(cls, file_path: str) -> 'PackedOrder':
+    def load_from_file(cls, file_path: str) -> "PackedOrder":
         """
         Load a PackedOrder object from a JSON file.
 

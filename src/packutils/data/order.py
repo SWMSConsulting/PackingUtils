@@ -32,7 +32,7 @@ class Supply:
         self.amount = amount
 
     @classmethod
-    def from_json(cls, json_data: dict) -> 'Supply':
+    def from_json(cls, json_data: dict) -> "Supply":
         """
         Creates a Supply object from JSON data.
 
@@ -68,7 +68,9 @@ class Order:
 
     """
 
-    def __init__(self, order_id: str, articles: List[Article], supplies: List[Supply] = []):
+    def __init__(
+        self, order_id: str, articles: List[Article], supplies: List[Supply] = []
+    ):
         """
         Initializes an Order object with the specified attributes.
 
@@ -97,7 +99,7 @@ class Order:
                 length=article.length,
                 height=article.height,
                 weight=article.weight,
-                position=None
+                position=None,
             )
             for article in self.articles
         ]
@@ -113,7 +115,7 @@ class Order:
         json_data = {
             "order_id": self.order_id,
             "articles": [article.to_dict() for article in self.articles],
-            "supplies": [supply.to_dict() for supply in self.supplies]
+            "supplies": [supply.to_dict() for supply in self.supplies],
         }
         return json_data
 
@@ -124,7 +126,7 @@ class Order:
         return self.order_id == other.order_id and self.articles == other.articles
 
     @classmethod
-    def from_json_file(cls, file_path: str) -> 'Order':
+    def from_json_file(cls, file_path: str) -> "Order":
         """
         Creates an Order object from a JSON file.
 
@@ -143,7 +145,7 @@ class Order:
         return cls.from_json(json_data)
 
     @classmethod
-    def from_json(cls, json_data: dict) -> 'Order':
+    def from_json(cls, json_data: dict) -> "Order":
         """
         Creates an Order object from JSON data.
 
@@ -158,10 +160,14 @@ class Order:
 
         """
         order_id = json_data["order_id"]
-        articles = [Article.from_json(article_data)
-                    for article_data in json_data.get("articles", [])]
-        supplies = [Supply.from_json(supply_data)
-                    for supply_data in json_data.get("supplies", [])]
+        articles = [
+            Article.from_json(article_data)
+            for article_data in json_data.get("articles", [])
+        ]
+        supplies = [
+            Supply.from_json(supply_data)
+            for supply_data in json_data.get("supplies", [])
+        ]
 
         if len(articles) < 1:
             raise ValueError("Order must have at least one article.")

@@ -9,19 +9,28 @@ from packutils.solver.abstract_packer import AbstractPacker
 try:
     import greedypacker
     import sys
+
     PACKER_AVAILABLE = sys.version.startswith("3.8")
 except ImportError as e:
     PACKER_AVAILABLE = False
 
 
 class GreedyPacker(AbstractPacker):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if len(set(map(lambda x: tuple([x.width, x.length, x.height, x.max_weight]), self.reference_bins))) != 1:
-            raise ValueError(
-                "GreedyPacker can only handle one type of reference bin.")
+        if (
+            len(
+                set(
+                    map(
+                        lambda x: tuple([x.width, x.length, x.height, x.max_weight]),
+                        self.reference_bins,
+                    )
+                )
+            )
+            != 1
+        ):
+            raise ValueError("GreedyPacker can only handle one type of reference bin.")
 
         reference_bin = self.reference_bins[0]
         is_2d, dims = reference_bin.is_packing_2d()
@@ -29,7 +38,8 @@ class GreedyPacker(AbstractPacker):
             raise ValueError("GreedyPacker can only handle 2D packings.")
         if dims != ["width", "length"]:
             raise ValueError(
-                "GreedyPacker does not fullfil stability condition required for handling height dimension.")
+                "GreedyPacker does not fullfil stability condition required for handling height dimension."
+            )
         self.max_bins = len(self.reference_bins)
 
         self.dimensions = dims
@@ -44,13 +54,35 @@ class GreedyPacker(AbstractPacker):
 
         if self.pack_algo == "shelf":
             supported_heuristics = [
-                "next_fit", "first_fit", "best_width_fit", "best_height_fit", "best_area_fit", "worst_width_fit", "worst_height_fit", "worst_area_fit"]
+                "next_fit",
+                "first_fit",
+                "best_width_fit",
+                "best_height_fit",
+                "best_area_fit",
+                "worst_width_fit",
+                "worst_height_fit",
+                "worst_area_fit",
+            ]
         elif self.pack_algo == "guillotine":
             supported_heuristics = [
-                "best_shortside", "best_longside", "best_area", "worst_shortside", "worst_longside", "worst_area"]
+                "best_shortside",
+                "best_longside",
+                "best_area",
+                "worst_shortside",
+                "worst_longside",
+                "worst_area",
+            ]
         elif self.pack_algo == "maximal_rectangle":
             supported_heuristics = [
-                "best_shortside", "best_longside", "best_area", "worst_shortside", "worst_longside", "worst_area", "bottom_left", "contact_point"]
+                "best_shortside",
+                "best_longside",
+                "best_area",
+                "worst_shortside",
+                "worst_longside",
+                "worst_area",
+                "bottom_left",
+                "contact_point",
+            ]
         elif self.pack_algo == "skyline":
             supported_heuristics = ["bottom_left", "best_fit"]
         else:
@@ -58,8 +90,9 @@ class GreedyPacker(AbstractPacker):
 
         if self.heuristic == "default":
             self.heuristic = supported_heuristics[0]
-        assert self.heuristic in supported_heuristics, \
-            f"Heuristic not supported: {self.heuristic} (expected one of {supported_heuristics})"
+        assert (
+            self.heuristic in supported_heuristics
+        ), f"Heuristic not supported: {self.heuristic} (expected one of {supported_heuristics})"
 
         logging.info(f"\nUsing GreedyPacker with:")
         params = self.get_params()
@@ -84,13 +117,14 @@ class GreedyPacker(AbstractPacker):
             "rotation": self.rotation,
             "wastemap": self.wastemap,
             "rectangle_merge": self.rectangle_merge,
-            "sorting": self.sorting
+            "sorting": self.sorting,
         }
 
-    def pack_variant(self, order: Order) -> 'PackingVariant | None':
+    def pack_variant(self, order: Order) -> "PackingVariant | None":
         if not self.is_packer_available():
             raise ImportError(
-                "GreedyPacker requires Python 3.8 and greedypacker to be installed (pip install greedypacker)")
+                "GreedyPacker requires Python 3.8 and greedypacker to be installed (pip install greedypacker)"
+            )
 
         packer = greedypacker.BinManager(
             self.bin_dim[0],
@@ -102,7 +136,7 @@ class GreedyPacker(AbstractPacker):
             rotation=self.rotation,
             rectangle_merge=self.rectangle_merge,
             wastemap=self.wastemap,
-            sorting=self.sorting
+            sorting=self.sorting,
         )
 
         greedy_items = []
@@ -122,8 +156,7 @@ class GreedyPacker(AbstractPacker):
 
         variant = PackingVariant()
         for idx, b in enumerate(packer.bins):
-            bin = copy.deepcopy(
-                self.reference_bins[idx % len(self.reference_bins)])
+            bin = copy.deepcopy(self.reference_bins[idx % len(self.reference_bins)])
 
             bin_items = []
             if self.pack_algo == "shelf":
@@ -150,7 +183,7 @@ class GreedyPacker(AbstractPacker):
                     length=l,
                     height=h,
                     weight=0.0,
-                    position=pos
+                    position=pos,
                 )
                 is_packed, error_msg = bin.pack_item(item)
                 if not is_packed:

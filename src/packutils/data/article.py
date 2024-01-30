@@ -1,4 +1,3 @@
-
 class Article:
     """
     Represents an article. This is used to convert to JSON and back.
@@ -17,7 +16,15 @@ class Article:
 
     """
 
-    def __init__(self, article_id: str, width: int, length: int, height: int, amount: int, weight: float = 0.0):
+    def __init__(
+        self,
+        article_id: str,
+        width: int,
+        length: int,
+        height: int,
+        amount: int,
+        weight: float = 0.0,
+    ):
         """
         Initializes an Article object with the specified attributes.
 
@@ -59,10 +66,17 @@ class Article:
         return f"{self.amount}x {self.article_id} {self.width, self.length, self.height, self.weight}"
 
     def __eq__(self, other):
-        return self.article_id == other.article_id and self.width == other.width and self.length == other.length and self.height == other.height and self.weight == other.weight and self.amount == other.amount
+        return (
+            self.article_id == other.article_id
+            and self.width == other.width
+            and self.length == other.length
+            and self.height == other.height
+            and self.weight == other.weight
+            and self.amount == other.amount
+        )
 
     @classmethod
-    def from_json(cls, json_data: dict) -> 'Article':
+    def from_json(cls, json_data: dict) -> "Article":
         """
         Creates an Article object from JSON data.
 
@@ -86,5 +100,5 @@ class Article:
             length=length,
             height=height,
             amount=amount,
-            weight=weight
+            weight=weight,
         )

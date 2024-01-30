@@ -15,8 +15,14 @@ class Bin:
     Represents a bin for packing items.
     """
 
-    def __init__(self, width: int, length: int, height: int, max_weight: 'float | None' = None,
-                 stability_factor: 'float | None' = None):
+    def __init__(
+        self,
+        width: int,
+        length: int,
+        height: int,
+        max_weight: "float | None" = None,
+        stability_factor: "float | None" = None,
+    ):
         """
         Initializes a Bin object with specified dimensions and optional maximum weight.
 
@@ -32,12 +38,16 @@ class Bin:
         self.height = height
         self.max_weight = max_weight
 
-        self.stability_factor = stability_factor if stability_factor is not None else DEFAULT_STABILITY_FACTOR
+        self.stability_factor = (
+            stability_factor
+            if stability_factor is not None
+            else DEFAULT_STABILITY_FACTOR
+        )
 
         self.matrix = np.zeros((height, length, width), dtype=int)
         self.packed_items: List[Item] = []
 
-    def can_item_be_packed(self, item: Item) -> Tuple[bool, 'str | None']:
+    def can_item_be_packed(self, item: Item) -> Tuple[bool, "str | None"]:
         if not item.is_packed():
             return False, f"{item.id}: Position is None."
         x, y, z = item.position.x, item.position.y, item.position.z
@@ -49,17 +59,25 @@ class Bin:
             or y + item.length > self.length
             or z + item.height > self.height
         ):
-            return False, f"{item.id}: Item is out of bounds of the bin (containment condition)."
+            return (
+                False,
+                f"{item.id}: Item is out of bounds of the bin (containment condition).",
+            )
 
-        if np.any(self.matrix[z: z + item.height, y: y + item.length, x: x + item.width]):
-            return False, f"{item.id}: Position is already occupied (non-overlapping condition)."
+        if np.any(
+            self.matrix[z : z + item.height, y : y + item.length, x : x + item.width]
+        ):
+            return (
+                False,
+                f"{item.id}: Position is already occupied (non-overlapping condition).",
+            )
 
         if not self._is_item_position_stable(item):
             return False, f"{item.id}: Position is not stable (stability condition)."
 
         return True, None
 
-    def pack_item(self, item: Item) -> Tuple[bool, 'str | None']:
+    def pack_item(self, item: Item) -> Tuple[bool, "str | None"]:
         """
         Packs an item into the bin at a valid position.
 
@@ -76,9 +94,9 @@ class Bin:
         if can_be_packed:
             self.packed_items.append(item)
             x, y, z = item.position.x, item.position.y, item.position.z
-            self.matrix[z: z + item.height,
-                        y: y + item.length,
-                        x: x + item.width] = len(self.packed_items)
+            self.matrix[
+                z : z + item.height, y : y + item.length, x : x + item.width
+            ] = len(self.packed_items)
         return can_be_packed, info
 
     def _is_item_position_stable(self, item: Item) -> bool:
@@ -99,11 +117,16 @@ class Bin:
         if not item.is_packed():
             return False
 
-        positions_below = self.matrix[item.position.z - 1,
-                                      item.position.y: item.position.y + item.length,
-                                      item.position.x: item.position.x + item.width]
+        positions_below = self.matrix[
+            item.position.z - 1,
+            item.position.y : item.position.y + item.length,
+            item.position.x : item.position.x + item.width,
+        ]
 
-        if np.count_nonzero(positions_below) < item.width * item.length * self.stability_factor:
+        if (
+            np.count_nonzero(positions_below)
+            < item.width * item.length * self.stability_factor
+        ):
             return False
 
         return True
@@ -138,9 +161,15 @@ class Bin:
             ValueError: If the dimensions list does not contain two valid dimension strings.
 
         """
-        if dimensions.count("width") + dimensions.count("length") + dimensions.count("height") != 2:
+        if (
+            dimensions.count("width")
+            + dimensions.count("length")
+            + dimensions.count("height")
+            != 2
+        ):
             raise ValueError(
-                "Dimensions should contain two strings out of [width, length, height].")
+                "Dimensions should contain two strings out of [width, length, height]."
+            )
 
         dim = []
         for d in dimensions:
@@ -177,7 +206,7 @@ class Bin:
         Calculate the used volume of the Bin.
 
         Args:
-            use_percentage (bool, optional): Whether to return the used volume as a percentage of the total volume. 
+            use_percentage (bool, optional): Whether to return the used volume as a percentage of the total volume.
                                             Defaults to False.
 
         Returns:
@@ -198,13 +227,13 @@ class Bin:
         """
         height_matrix = np.zeros(self.matrix.shape)
         for z in range(height_matrix.shape[0]):
-            height_matrix[z] = z+1
+            height_matrix[z] = z + 1
         height_matrix *= self.matrix != 0
 
         height_map = np.max(height_matrix, axis=0)
         return height_map
 
-    def get_snappoints(self, min_z: 'int | None' = None) -> List[Snappoint]:
+    def get_snappoints(self, min_z: "int | None" = None) -> List[Snappoint]:
         """
         Calculate and return the list of snap points in the bin.
 
@@ -220,8 +249,7 @@ class Bin:
             NotImplementedError: If the method is called for a 3D packing scenario.
         """
         if not self.is_packing_2d():
-            raise NotImplementedError(
-                "get_snappoints not implemented for 3D case.")
+            raise NotImplementedError("get_snappoints not implemented for 3D case.")
 
         heightmap = copy.deepcopy(self.get_height_map()).flatten()
         if min_z is not None:
@@ -231,23 +259,37 @@ class Bin:
             min_z = 0
 
         snappoints = []
-        snappoints.append(Snappoint(
-            x=0, y=0, z=int(heightmap[0]) + min_z,
-            direction=SnappointDirection.RIGHT))
+        snappoints.append(
+            Snappoint(
+                x=0,
+                y=0,
+                z=int(heightmap[0]) + min_z,
+                direction=SnappointDirection.RIGHT,
+            )
+        )
 
         for index in range(1, len(heightmap)):
             last_z = int(heightmap[index - 1]) + min_z
             next_z = int(heightmap[index]) + min_z
             if last_z != next_z:
-                snappoints.append(Snappoint(
-                    x=index, y=0, z=last_z, direction=SnappointDirection.LEFT))
+                snappoints.append(
+                    Snappoint(x=index, y=0, z=last_z, direction=SnappointDirection.LEFT)
+                )
 
-                snappoints.append(Snappoint(
-                    x=index, y=0, z=next_z, direction=SnappointDirection.RIGHT))
+                snappoints.append(
+                    Snappoint(
+                        x=index, y=0, z=next_z, direction=SnappointDirection.RIGHT
+                    )
+                )
 
-        snappoints.append(Snappoint(
-            x=len(heightmap), y=0, z=int(heightmap[-1]) + min_z,
-            direction=SnappointDirection.LEFT))
+        snappoints.append(
+            Snappoint(
+                x=len(heightmap),
+                y=0,
+                z=int(heightmap[-1]) + min_z,
+                direction=SnappointDirection.LEFT,
+            )
+        )
 
         return snappoints
 
@@ -275,26 +317,33 @@ class Bin:
         if np.sum(m) == 0:
             return Position(x=0, y=0, z=0)
 
-        cgx = np.sum(x*m)/np.sum(m)
-        cgy = np.sum(y*m)/np.sum(m)
-        cgz = np.sum(z*m)/np.sum(m)
+        cgx = np.sum(x * m) / np.sum(m)
+        cgy = np.sum(y * m) / np.sum(m)
+        cgz = np.sum(z * m) / np.sum(m)
         return Position(x=int(cgx), y=int(cgy), z=int(cgz))
 
     def __repr__(self):
-        return f"Bin: {self.width} {self.length} {self.height} - Items{self.packed_items}"
+        return (
+            f"Bin: {self.width} {self.length} {self.height} - Items{self.packed_items}"
+        )
 
     def __eq__(self, other):
-        return self.width == other.width and self.length == other.length and self.height == other.height and self.packed_items == other.packed_items
+        return (
+            self.width == other.width
+            and self.length == other.length
+            and self.height == other.height
+            and self.packed_items == other.packed_items
+        )
 
     def __hash__(self):
         return hash((self.width, self.length, self.height, tuple(self.packed_items)))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     bin = Bin(2, 2, 2)
     item = Item("", 1, 1, 2, position=Position(0, 0, 0))
     bin.pack_item(item)
-    
-    
+
     bin2 = Bin(2, 2, 2)
     item = Item("", 1, 1, 2, position=Position(0, 0, 0))
     bin2.pack_item(item)

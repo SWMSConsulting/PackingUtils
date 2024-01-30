@@ -10,7 +10,7 @@ from packutils.data.bin import Bin
 from packutils.data.packing_variant import PackingVariant
 
 
-class PackingVisualization():
+class PackingVisualization:
     def __init__(self):
         self.colors = list(mcolors.TABLEAU_COLORS.keys())
 
@@ -19,12 +19,13 @@ class PackingVisualization():
         return color
 
     def visualize_bin(
-        self, bin: Bin,
-        snappoint_min_z: 'int|None' = None,
+        self,
+        bin: Bin,
+        snappoint_min_z: "int|None" = None,
         title: str = None,
         show: bool = True,
-        output_dir: 'str | None' = None,
-        return_png: bool = False
+        output_dir: "str | None" = None,
+        return_png: bool = False,
     ):
         is_2d, _ = bin.is_packing_2d()
         if is_2d:
@@ -38,15 +39,15 @@ class PackingVisualization():
             title=title,
             show=show,
             output_dir=output_dir,
-            return_png=return_png
+            return_png=return_png,
         )
 
     def visualize_packing_variant(
         self,
         variant: PackingVariant,
         show: bool = True,
-        output_dir: 'str | None' = None,
-        return_png=False
+        output_dir: "str | None" = None,
+        return_png=False,
     ):
         images = []
         for idx, bin in enumerate(variant.bins):
@@ -55,7 +56,7 @@ class PackingVisualization():
                 title=f"Bin {idx+1}",
                 show=show,
                 output_dir=output_dir,
-                return_png=return_png
+                return_png=return_png,
             )
             images.append(img)
         return images
@@ -63,11 +64,11 @@ class PackingVisualization():
     def _visualize_bin_2d(
         self,
         bin: Bin,
-        snappoint_min_z: 'int|None' = None,
+        snappoint_min_z: "int|None" = None,
         title: str = None,
         show: bool = True,
-        output_dir: 'str | None' = None,
-        return_png: bool = False
+        output_dir: "str | None" = None,
+        return_png: bool = False,
     ):
         is_2d, dimensions = bin.is_packing_2d()
         if not is_2d:
@@ -76,9 +77,7 @@ class PackingVisualization():
         items = bin.packed_items
         fig, ax = plt.subplots()
 
-        pos_dim_2d = [
-            item.to_position_and_dimension_2d(dimensions) for item in items
-        ]
+        pos_dim_2d = [item.to_position_and_dimension_2d(dimensions) for item in items]
         x_max, y_max = bin.get_dimension_2d(dimensions)
 
         ax.axes.set_xlim(0, x_max)
@@ -88,12 +87,18 @@ class PackingVisualization():
 
         if title is not None:
             ax.set_title(title)
-        ax.set_aspect('equal')
+        ax.set_aspect("equal")
 
         for idx, (pos, dim) in enumerate(pos_dim_2d):
             ax.add_patch(
-                Rectangle(pos, dim[0], dim[1],
-                          facecolor=self.get_color(idx), edgecolor="black", linewidth=2)
+                Rectangle(
+                    pos,
+                    dim[0],
+                    dim[1],
+                    facecolor=self.get_color(idx),
+                    edgecolor="black",
+                    linewidth=2,
+                )
             )
 
         if snappoint_min_z is not None:
@@ -101,9 +106,7 @@ class PackingVisualization():
 
             radius = 0.2
             for point in snappoints:
-                ax.add_patch(
-                    plt.Circle((point.x, point.z), radius, color='r')
-                )
+                ax.add_patch(plt.Circle((point.x, point.z), radius, color="r"))
 
         if not output_dir is None:
             os.makedirs(output_dir, exist_ok=True)
@@ -118,7 +121,7 @@ class PackingVisualization():
 
         if return_png:
             img_buf = io.BytesIO()
-            plt.savefig(img_buf, format='png')
+            plt.savefig(img_buf, format="png")
             img = Image.open(img_buf)
             img_buf.close()
             return img
@@ -128,11 +131,11 @@ class PackingVisualization():
     def _visualize_bin_3d(
         self,
         bin: Bin,
-        snappoint_min_z: 'int|None' = None,
+        snappoint_min_z: "int|None" = None,
         title: str = None,
         show: bool = True,
-        output_dir: 'str | None' = None,
-        return_png: bool = False
+        output_dir: "str | None" = None,
+        return_png: bool = False,
     ):
         items = bin.packed_items
         fig = plt.figure()
@@ -199,7 +202,7 @@ class PackingVisualization():
 
         if return_png:
             img_buf = io.BytesIO()
-            plt.savefig(img_buf, format='png')
+            plt.savefig(img_buf, format="png")
             img = Image.open(img_buf)
             img_buf.close()
             return img
