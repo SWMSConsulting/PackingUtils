@@ -1,4 +1,5 @@
 from ast import Tuple
+import math
 from typing import List
 from packutils.data.article import Article
 from packutils.data.position import Position
@@ -23,7 +24,7 @@ class Item:
         pack(position: Position):
             Sets the position of the item in the container.
 
-        is_packed() -> bool:
+        is_packed -> bool:
             Checks if the item is packed in a position.
 
         __str__() -> str:
@@ -74,7 +75,19 @@ class Item:
             rotation=self.position.rotation,
         )
 
-    def pack(self, position: Position):
+    def get_max_overhang_y(self, stability_factor) -> int:
+        """
+        Returns the maximum overhang of the item in the y-direction.
+
+        Args:
+            stability_factor (float): The stability factor of the bin.
+
+        Returns:
+            int: The maximum overhang of the item in the y-direction.
+        """
+        return int(math.floor(self.length * (1 - stability_factor)))
+
+    def pack(self, position: "Position|None"):
         """
         Sets the position of the item in the container.
 
@@ -82,12 +95,13 @@ class Item:
             position (Position): The position object representing the coordinates and rotation of the item.
 
         """
-        assert isinstance(
+        assert position is None or isinstance(
             position, Position
         ), "This method requires a Position object as input."
 
         self.position = position
 
+    @property
     def is_packed(self) -> bool:
         """
         Checks if the item is packed in a position.
@@ -99,7 +113,7 @@ class Item:
         return self.position is not None
 
     def get_rotated_dimensions_3D(self):
-        if not self.is_packed():
+        if not self.is_packed:
             return self.width, self.length, self.height
 
         rot_type = self.position.rotation
@@ -132,7 +146,7 @@ class Item:
             ValueError: If the dimensions list does not contain two valid dimension strings.
 
         """
-        if not self.is_packed():
+        if not self.is_packed:
             return None, None
 
         if (

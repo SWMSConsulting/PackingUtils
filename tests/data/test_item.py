@@ -16,12 +16,16 @@ class ItemTestCase(unittest.TestCase):
         item = Item(id="test", width=10, length=20, height=30)
         position = Position(x=5, y=5, z=5, rotation=0)
         item.pack(position)
-        self.assertEqual(item.is_packed(), True)
+        self.assertEqual(item.is_packed, True)
         self.assertEqual(item.position, position)
 
     def test_to_position_and_dimension_2d(self):
         item = Item(
-            id="test", width=40, length=50, height=60, position=Position(x=10, y=20, z=30)
+            id="test",
+            width=40,
+            length=50,
+            height=60,
+            position=Position(x=10, y=20, z=30),
         )
 
         # Test for valid dimensions
@@ -40,12 +44,19 @@ class ItemTestCase(unittest.TestCase):
         # Test for invalid dimensions
         with self.assertRaises(ValueError):
             item.to_position_and_dimension_2d(
-                ["width", "length", "height"])  # More than 2 dimensions
+                ["width", "length", "height"]
+            )  # More than 2 dimensions
 
         with self.assertRaises(ValueError):
-            item.to_position_and_dimension_2d(
-                ["width", "depth"])  # Invalid dimension
+            item.to_position_and_dimension_2d(["width", "depth"])  # Invalid dimension
+
+    def test_get_max_overhang_y(self):
+        item = Item(id="test", width=10, length=20, height=30)
+
+        self.assertEqual(item.get_max_overhang_y(0.5), 10)
+        self.assertEqual(item.get_max_overhang_y(0.75), 5)
+        self.assertEqual(item.get_max_overhang_y(1), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

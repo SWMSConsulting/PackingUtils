@@ -215,9 +215,8 @@ class PackedOrder:
                         length=article.length,
                         height=article.height,
                         weight=article.weight,
-                        position=pos,
                     )
-                    is_packed, _ = bin.pack_item(item)
+                    is_packed, _ = bin.pack_item(item, pos)
 
                     if not is_packed:
                         variant.unpacked_items.append(item)

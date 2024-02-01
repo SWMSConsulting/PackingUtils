@@ -18,18 +18,14 @@ class TestPackingVisualization(unittest.TestCase):
 
         self.variant = PackingVariant()
         bin = Bin(width=10, length=10, height=5)
-        item1 = Item(id="item1", width=1, length=1, height=1,
-                     position=Position(x=0, y=0, z=0))
-        bin.pack_item(item1)
-        item2 = Item(id="item2", width=1, length=1, height=1,
-                     position=Position(x=1, y=0, z=0))
-        bin.pack_item(item2)
-        item3 = Item(id="item3", width=1, length=1, height=1,
-                     position=Position(x=0, y=1, z=0))
-        bin.pack_item(item3)
-        item4 = Item(id="item4", width=1, length=1, height=1,
-                     position=Position(x=0, y=0, z=1))
-        bin.pack_item(item4)
+        item1 = Item(id="item1", width=1, length=1, height=1)
+        bin.pack_item(item1, Position(x=0, y=0, z=0))
+        item2 = Item(id="item2", width=1, length=1, height=1)
+        bin.pack_item(item2, Position(x=1, y=0, z=0))
+        item3 = Item(id="item3", width=1, length=1, height=1)
+        bin.pack_item(item3, Position(x=0, y=1, z=0))
+        item4 = Item(id="item4", width=1, length=1, height=1)
+        bin.pack_item(item4, Position(x=0, y=0, z=1))
         self.variant.add_bin(bin)
 
     def tearDown(self):
@@ -37,8 +33,8 @@ class TestPackingVisualization(unittest.TestCase):
         # This method will be called after all the test methods in the class have been executed
         if self.clean_up:
             import glob
-            image_files = glob.glob(os.path.join(
-                self.output_dir, "packing_*.png"))
+
+            image_files = glob.glob(os.path.join(self.output_dir, "packing_*.png"))
             for f in image_files:
                 os.remove(f)
             if self.delete_dir and os.path.exists(self.output_dir):
@@ -47,14 +43,16 @@ class TestPackingVisualization(unittest.TestCase):
     def test_visualize_bin_3d(self):
         num_images_before = self._count_image_outputs()
         self.visualization.visualize_bin(
-            self.variant.bins[0], title="Test", show=False, output_dir=self.output_dir)
+            self.variant.bins[0], title="Test", show=False, output_dir=self.output_dir
+        )
         self.assertEqual(self._count_image_outputs(), num_images_before + 1)
 
     def test_visualize_packing_variant(self):
         num_images_before = self._count_image_outputs()
         self.variant.add_bin(self.variant.bins[0])
         self.visualization.visualize_packing_variant(
-            self.variant, show=False, output_dir=self.output_dir)
+            self.variant, show=False, output_dir=self.output_dir
+        )
         self.assertEqual(self._count_image_outputs(), num_images_before + 2)
 
     def test_visualize_bin_2d(self):
@@ -62,38 +60,36 @@ class TestPackingVisualization(unittest.TestCase):
 
         bin.width = 1
         num_images_before = self._count_image_outputs()
-        self.visualization.visualize_bin(
-            bin, show=False, output_dir=self.output_dir)
+        self.visualization.visualize_bin(bin, show=False, output_dir=self.output_dir)
         self.assertEqual(self._count_image_outputs(), num_images_before + 1)
         bin.width = 10
 
         bin.length = 1
         num_images_before = self._count_image_outputs()
-        self.visualization.visualize_bin(
-            bin, show=False, output_dir=self.output_dir)
+        self.visualization.visualize_bin(bin, show=False, output_dir=self.output_dir)
         self.assertEqual(self._count_image_outputs(), num_images_before + 1)
         bin.length = 10
 
         bin.height = 1
         num_images_before = self._count_image_outputs()
-        self.visualization.visualize_bin(
-            bin, show=False, output_dir=self.output_dir)
+        self.visualization.visualize_bin(bin, show=False, output_dir=self.output_dir)
         self.assertEqual(self._count_image_outputs(), num_images_before + 1)
         bin.height = 10
 
     def test_visualize_bin_2d_with_snappoints(self):
         bin = Bin(10, 1, 10)
-        bin.pack_item(Item("", 2, 1, 2, position=Position(1, 0, 0)))
+        bin.pack_item(Item("", 2, 1, 2), Position(1, 0, 0))
 
         bin.length = 1
         num_images_before = self._count_image_outputs()
         self.visualization.visualize_bin(
-            bin, snappoint_min_z=0,
-            show=True, output_dir=self.output_dir)
+            bin, snappoint_min_z=0, show=True, output_dir=self.output_dir
+        )
         self.assertEqual(self._count_image_outputs(), num_images_before + 1)
 
     def _count_image_outputs(self):
         import glob
+
         image_files = glob.glob(os.path.join(self.output_dir, "packing_*.png"))
         return len(image_files)
 

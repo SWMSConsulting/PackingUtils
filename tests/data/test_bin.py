@@ -12,96 +12,112 @@ class TestBin(unittest.TestCase):
         self.bin = Bin(width=10, length=10, height=10)
 
     def test_pack_item_successful(self):
-        item = Item(
-            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
-        )
-        result, _ = self.bin.pack_item(item)
+        item = Item(id="test", width=3, length=3, height=3)
+        position = Position(0, 0, 0)
+        result, _ = self.bin.pack_item(item, position)
 
         self.assertTrue(result)
         self.assertEqual(len(self.bin.packed_items), 1)
-        self.assertEqual(np.count_nonzero(self.bin.matrix), 27)
+        self.assertEqual(np.count_nonzero(self.bin.heightmap), 9)
 
     def test_pack_item_stability_check(self):
-
         # item is flying
         bin = Bin(width=10, length=10, height=10)
-        flying_item = Item(
-            id="test", width=3, length=3, height=3, position=Position(0, 0, 1)
-        )
-        result, _ = bin.pack_item(flying_item)
+        item = Item(id="test", width=3, length=3, height=3)
+        flying_position = Position(0, 0, 1)
+        result, _ = bin.pack_item(item, flying_position)
         self.assertFalse(result)
 
         # item is packed on the bottom of container
         bin = Bin(width=10, length=10, height=10)
-        valid_item = Item(
-            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
-        )
-        result, _ = bin.pack_item(valid_item)
+        valid_item = Item(id="test", width=3, length=3, height=3)
+        position = Position(0, 0, 0)
+        result, _ = bin.pack_item(valid_item, position)
         self.assertTrue(result)
 
         # item is placed fully on top of other item
         bin = Bin(width=10, length=10, height=10)
-        bin.pack_item(Item(
-            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
-        ))
-        valid_item = Item(
-            id="test", width=3, length=3, height=3, position=Position(0, 0, 3)
-        )
-        result, _ = bin.pack_item(valid_item)
+        item1 = Item(id="test", width=3, length=3, height=3)
+        position = Position(0, 0, 0)
+        bin.pack_item(item1, position)
+
+        item2 = Item(id="test2", width=3, length=3, height=3)
+        position = Position(0, 0, 3)
+        result, info = bin.pack_item(item2, position)
+        print(info)
         self.assertTrue(result)
 
         # item is placed fully on top of other item with small overhang
         bin = Bin(width=10, length=10, height=10)
-        bin.pack_item(Item(
-            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
-        ))
-        valid_item = Item(
-            id="test", width=4, length=3, height=3, position=Position(0, 0, 3)
-        )
-        result, _ = bin.pack_item(valid_item)
+        item = Item(id="test", width=3, length=3, height=3)
+        position = Position(0, 0, 0)
+        bin.pack_item(item, position)
+
+        valid_item = Item(id="test", width=4, length=3, height=3)
+        position = Position(0, 0, 3)
+        result, _ = bin.pack_item(valid_item, position)
         self.assertTrue(result)
 
         # item is placed fully on top of other item with too much overhang
         bin = Bin(width=10, length=10, height=10)
-        bin.pack_item(Item(
-            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
-        ))
-        too_much_overhang_item = Item(
-            id="test", width=3, length=3, height=3, position=Position(2, 0, 3)
-        )
-        result, _ = bin.pack_item(too_much_overhang_item)
+        item = Item(id="test", width=3, length=3, height=3)
+        position = Position(0, 0, 0)
+        bin.pack_item(item, position)
+
+        item = Item(id="test", width=3, length=3, height=3)
+        too_much_overhang_position = Position(2, 0, 3)
+        result, _ = bin.pack_item(item, too_much_overhang_position)
         self.assertFalse(result)
 
     def test_pack_item_out_of_bounds(self):
-        item = Item(
-            id="test", width=5, length=5, height=5, position=Position(7, 7, 7))
-        result, _ = self.bin.pack_item(item)
+        item = Item(id="test", width=5, length=5, height=5)
+        position = Position(7, 7, 7)
+        result, _ = self.bin.pack_item(item, position)
 
         self.assertFalse(result)
         self.assertEqual(len(self.bin.packed_items), 0)
-        self.assertEqual(np.count_nonzero(self.bin.matrix), 0)
+        self.assertEqual(np.count_nonzero(self.bin.heightmap), 0)
 
     def test_pack_item_position_occupied(self):
-        item1 = Item(
-            id="test", width=4, length=4, height=4, position=Position(0, 0, 0)
-        )
-        item2 = Item(
-            id="test", width=2, length=2, height=2, position=Position(1, 1, 1)
-        )
-        self.bin.pack_item(item1)
-        result, _ = self.bin.pack_item(item2)
+        item1 = Item(id="test", width=4, length=4, height=4)
+        position = Position(0, 0, 0)
+        self.bin.pack_item(item1, position)
+
+        item = Item(id="test", width=2, length=2, height=2)
+        position = Position(1, 1, 1)
+        result, _ = self.bin.pack_item(item, position)
         self.assertFalse(result)
         self.assertEqual(len(self.bin.packed_items), 1)
         self.assertEqual(
-            np.count_nonzero(self.bin.matrix),
-            item1.width * item1.length * item1.height)
+            np.count_nonzero(self.bin.heightmap), item1.width * item1.length
+        )
 
     def test_pack_item_with_none_position(self):
         item = Item(id="test", width=3, length=3, height=3)
-        result, _ = self.bin.pack_item(item)
+        result, _ = self.bin.pack_item(item, None)
         self.assertFalse(result)
         self.assertEqual(len(self.bin.packed_items), 0)
-        self.assertEqual(np.count_nonzero(self.bin.matrix), 0)
+        self.assertEqual(np.count_nonzero(self.bin.heightmap), 0)
+
+    def test_remove_item(self):
+        item1 = Item(id="test1", width=3, length=3, height=3)
+        position = Position(0, 0, 0)
+        self.bin.pack_item(item1, position)
+        expected_heightmap = self.bin.heightmap.copy()
+
+        item2 = Item(id="test2", width=4, length=3, height=1)
+        position = Position(0, 0, 3)
+
+        is_packed, _ = self.bin.pack_item(item2, position)
+        result, info = self.bin.remove_item(item2)
+
+        self.assertTrue(is_packed)
+        self.assertTrue(result)
+        self.assertIsNone(info)
+
+        self.assertIsNone(item2.position)
+        self.assertEqual(len(self.bin.packed_items), 1)
+        self.assertTrue(np.array_equal(self.bin.heightmap, expected_heightmap))
 
     def test_is_packing_2d(self):
         bin1 = Bin(width=1, length=10, height=10)
@@ -154,38 +170,45 @@ class TestBin(unittest.TestCase):
 
     def test_used_volume(self):
         bin = Bin(width=10, length=20, height=5)
-        bin.pack_item(Item(id="test1", width=2, length=10,
-                      height=2, position=Position(x=0, y=0, z=0)))
-        bin.pack_item(Item(id="test2", width=3, length=5,
-                      height=2, position=Position(x=4, y=0, z=0)))
+        bin.pack_item(
+            Item(
+                id="test1",
+                width=2,
+                length=10,
+                height=2,
+            ),
+            Position(x=0, y=0, z=0),
+        )
+        bin.pack_item(
+            Item(id="test2", width=3, length=5, height=2), Position(x=4, y=0, z=0)
+        )
         self.assertEqual(bin.get_used_volume(), 40 + 30)
         self.assertEqual(bin.get_used_volume(use_percentage=True), 7)
 
-    def test_get_height_map_empty_bin(self):
-        height_map = self.bin.get_height_map()
+    def test_heightmap_empty_bin(self):
+        height_map = self.bin.heightmap
         expected_height_map = np.zeros((10, 10), dtype=int)
         np.testing.assert_array_equal(height_map, expected_height_map)
 
-    def test_get_height_map_single_item(self):
+    def test_heightmap_single_item(self):
         # You need to import Item class or create it if not available
-        item = Item("test", width=1, length=1, height=1,
-                    position=Position(0, 0, 0))
-        self.bin.pack_item(item)
+        item = Item("test", width=1, length=1, height=1)
+        self.bin.pack_item(item, Position(0, 0, 0))
 
-        height_map = self.bin.get_height_map()
+        height_map = self.bin.heightmap
         expected_height_map = np.zeros((10, 10), dtype=int)
         expected_height_map[0, 0] = 1  # The packed item occupies this cell
         np.testing.assert_array_equal(height_map, expected_height_map)
 
-    def test_get_height_map_multiple_items(self):
-        item1 = Item("test", 2, 2, 1, position=Position(0, 0, 0))
-        item2 = Item("test", 3, 1, 2, position=Position(2, 0, 0))
-        item3 = Item("test", 1, 3, 3, position=Position(0, 2, 0))
-        self.bin.pack_item(item1)
-        self.bin.pack_item(item2)
-        self.bin.pack_item(item3)
+    def test_heightmap_multiple_items(self):
+        item1 = Item("test", 2, 2, 1)
+        self.bin.pack_item(item1, Position(0, 0, 0))
+        item2 = Item("test", 3, 1, 2)
+        self.bin.pack_item(item2, Position(2, 0, 0))
+        item3 = Item("test", 1, 3, 3)
+        self.bin.pack_item(item3, Position(0, 2, 0))
 
-        height_map = self.bin.get_height_map()
+        height_map = self.bin.heightmap
 
         expected_height_map = np.zeros((10, 10), dtype=int)
         expected_height_map[0:2, 0:2] = 1  # Item1
@@ -219,13 +242,12 @@ class TestBin(unittest.TestCase):
         bin = Bin(10, 1, 10)
 
         # Pack some items into the bin
-        item1 = Item("item1", 2, 1, 2, position=Position(0, 0, 0))
-        item2 = Item("item2", 2, 1, 2, position=Position(4, 0, 0))
-        item3 = Item("item3", 2, 1, 2, position=Position(6, 0, 0))
-
-        bin.pack_item(item1)
-        bin.pack_item(item2)
-        bin.pack_item(item3)
+        item1 = Item("item1", 2, 1, 2)
+        bin.pack_item(item1, Position(0, 0, 0))
+        item2 = Item("item2", 2, 1, 2)
+        bin.pack_item(item2, Position(4, 0, 0))
+        item3 = Item("item3", 2, 1, 2)
+        bin.pack_item(item3, Position(6, 0, 0))
 
         # Get the snap points
         snappoints = bin.get_snappoints()
@@ -235,33 +257,27 @@ class TestBin(unittest.TestCase):
         # Check if the snap points are as expected
         expected_snappoints = [
             Snappoint(x=0, y=0, z=2, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=2, y=0, z=2, direction=SnappointDirection.LEFT),
             Snappoint(x=2, y=0, z=0, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=4, y=0, z=0, direction=SnappointDirection.LEFT),
             Snappoint(x=4, y=0, z=2, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=8, y=0, z=2, direction=SnappointDirection.LEFT),
             Snappoint(x=8, y=0, z=0, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=10, y=0, z=0, direction=SnappointDirection.LEFT),
         ]
 
         self.assertEqual(snappoints, expected_snappoints)
 
     def test_get_snappoints_min_z(self):
-
         bin = Bin(10, 1, 10)
 
         # Pack some items into the bin
-        item1 = Item("item1", 2, 1, 4, position=Position(0, 0, 0))
-        item2 = Item("item2", 2, 1, 2, position=Position(4, 0, 0))
-        item3 = Item("item3", 2, 1, 2, position=Position(6, 0, 0))
-
-        bin.pack_item(item1)
-        bin.pack_item(item2)
-        bin.pack_item(item3)
+        item1 = Item("item1", 2, 1, 4)
+        bin.pack_item(item1, Position(0, 0, 0))
+        item2 = Item("item2", 2, 1, 2)
+        bin.pack_item(item2, Position(4, 0, 0))
+        item3 = Item("item3", 2, 1, 2)
+        bin.pack_item(item3, Position(6, 0, 0))
 
         # Get the snap points
         snappoints = bin.get_snappoints(min_z=2)
@@ -271,15 +287,107 @@ class TestBin(unittest.TestCase):
         # Check if the snap points are as expected
         expected_snappoints = [
             Snappoint(x=0, y=0, z=4, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=2, y=0, z=4, direction=SnappointDirection.LEFT),
             Snappoint(x=2, y=0, z=2, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=10, y=0, z=2, direction=SnappointDirection.LEFT),
         ]
 
         self.assertEqual(snappoints, expected_snappoints)
 
+    def test_pack_item_with_overhang(self):
+        bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
 
-if __name__ == '__main__':
+        item = Item(id="test", width=5, length=12, height=5)
+        result, _ = bin.pack_item(item, Position(0, 0, 0))
+
+        self.assertTrue(result)
+        self.assertEqual(len(bin.packed_items), 1)
+        self.assertEqual(np.count_nonzero(bin.heightmap), item.width * bin.length)
+        self.assertEqual(item.position.y, -1)
+
+    def test_remove_item_with_overhang(self):
+        bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
+
+        item = Item(id="test", width=5, length=12, height=5)
+        bin.pack_item(item, Position(0, 0, 0))
+        prev_pos = item.position
+        result, _ = bin.remove_item(item)
+
+        self.assertEqual(prev_pos.y, -1)
+        self.assertTrue(result)
+        self.assertEqual(len(bin.packed_items), 0)
+        self.assertEqual(np.count_nonzero(bin.heightmap), 0)
+        self.assertIsNone(item.position)
+
+    def test_pack_item_too_much_overhang(self):
+        bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
+
+        item = Item(id="test", width=5, length=12, height=5)
+        result, _ = bin.pack_item(item, Position(0, -6, 0))
+
+        self.assertFalse(result)
+        self.assertEqual(len(bin.packed_items), 0)
+        self.assertEqual(np.count_nonzero(bin.heightmap), 0)
+
+        result, _ = bin.pack_item(item, Position(0, -1, 0))
+
+        self.assertFalse(result)
+
+    def test_pack_item_with_overhang_stack_multiple(self):
+        bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
+
+        item1 = Item(id="test", width=5, length=18, height=5)
+        bin.pack_item(item1, Position(0, 0, 0))
+        item2 = Item(id="test", width=5, length=18, height=5)
+        bin.pack_item(item2, Position(0, 0, 5))
+
+        self.assertTrue(item1.is_packed)
+        self.assertEqual(item1.position.y, -4)
+        self.assertTrue(item2.is_packed)
+        self.assertEqual(item2.position.y, -4)
+
+    def test_get_gaps(self):
+        bin = Bin(width=10, length=10, height=10)
+
+        item1 = Item(id="test1", width=2, length=10, height=2)
+        bin.pack_item(item1, Position(0, 0, 0))
+        item2 = Item(id="test2", width=2, length=10, height=2)
+        bin.pack_item(item2, Position(5, 0, 0))
+        item2 = Item(id="test3", width=2, length=10, height=2)
+        bin.pack_item(item2, Position(5, 0, 2))
+
+        gaps = bin.get_gaps()
+
+        expected_gaps = [(2, 5)]
+
+        self.assertEqual(gaps, expected_gaps)
+
+    def test_remove_gaps(self):
+        bin = Bin(width=10, length=10, height=10)
+
+        item1 = Item(id="test1", width=2, length=10, height=2)
+        bin.pack_item(item1, Position(0, 0, 0))
+        item2 = Item(id="test2", width=2, length=10, height=2)
+        bin.pack_item(item2, Position(5, 0, 0))
+        item2 = Item(id="test3", width=2, length=10, height=2)
+        bin.pack_item(item2, Position(5, 0, 2))
+
+        bin.remove_gaps()
+        gaps = bin.get_gaps()
+
+        expected_positions = {
+            "test1": Position(0, 0, 0),
+            "test2": Position(2, 0, 0),
+            "test3": Position(2, 0, 2),
+        }
+
+        self.assertEqual(len(gaps), 0)
+        self.assertEqual(len(bin.packed_items), 3)
+        self.assertEqual(np.count_nonzero(bin.heightmap), 4 * 10)
+        for name, pos in expected_positions.items():
+            item = [i for i in bin.packed_items if i.id == name][0]
+            self.assertEqual(item.position, pos)
+
+
+if __name__ == "__main__":
     unittest.main()

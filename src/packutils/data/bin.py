@@ -1,4 +1,6 @@
+from collections import namedtuple
 import copy
+import math
 from packutils.data.item import Item
 from typing import List, Tuple
 import numpy as np
@@ -8,6 +10,8 @@ from packutils.data.snappoint import Snappoint, SnappointDirection
 
 # describes the percentage of the bottom area required to lay on top of other item
 DEFAULT_STABILITY_FACTOR = 0.75
+
+Gap = namedtuple("Gap", ["start_x", "end_x"])
 
 
 class Bin:
@@ -21,7 +25,8 @@ class Bin:
         length: int,
         height: int,
         max_weight: "float | None" = None,
-        stability_factor: "float | None" = None,
+        stability_factor: float = DEFAULT_STABILITY_FACTOR,
+        overhang_y_stability_factor: "float | None" = None,
     ):
         """
         Initializes a Bin object with specified dimensions and optional maximum weight.
@@ -33,30 +38,53 @@ class Bin:
             max_weight (float, optional): The maximum weight limit of the bin.
 
         """
+        assert all(
+            isinstance(dim, int) and dim > 0 for dim in [width, length, height]
+        ), "Bin dimensions must be positive integers."
+
         self.width = width
         self.length = length
         self.height = height
         self.max_weight = max_weight
 
-        self.stability_factor = (
-            stability_factor
-            if stability_factor is not None
-            else DEFAULT_STABILITY_FACTOR
-        )
+        assert stability_factor is None or (
+            stability_factor >= 0 and stability_factor <= 1
+        ), "Stability factor must be between 0 and 1."
+        self.stability_factor = stability_factor
 
-        self.matrix = np.zeros((height, length, width), dtype=int)
+        assert overhang_y_stability_factor is None or (
+            overhang_y_stability_factor >= 0.5 and overhang_y_stability_factor < 1
+        ), "Overhang y stability factor must be between 0 and 1."
+        self.allow_overhang_y = overhang_y_stability_factor != None
+        self.overhang_y_stability_factor = overhang_y_stability_factor
+
+        self.heightmap = np.zeros((length, width), dtype=int)
         self.packed_items: List[Item] = []
 
-    def can_item_be_packed(self, item: Item) -> Tuple[bool, "str | None"]:
-        if not item.is_packed():
-            return False, f"{item.id}: Position is None."
-        x, y, z = item.position.x, item.position.y, item.position.z
+    def can_item_be_packed(
+        self, item: Item, position: Position
+    ) -> Tuple[bool, "str | None"]:
+        """
+        Checks if an item can be packed into the bin at a specified position.
+
+        Args:
+            item (Item): The item to be packed.
+            position (Position): The position to pack the item at.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating if the item can be packed and a string message explaining the result.
+        """
+
+        if item.is_packed:
+            return False, f"{item.id}: Item already packed."
+
+        x, y, z = position.x, position.y, position.z
         if (
             x < 0
             or y < 0
             or z < 0
             or x + item.width > self.width
-            or y + item.length > self.length
+            or (y + item.length > self.length and not self.allow_overhang_y)
             or z + item.height > self.height
         ):
             return (
@@ -64,42 +92,129 @@ class Bin:
                 f"{item.id}: Item is out of bounds of the bin (containment condition).",
             )
 
-        if np.any(
-            self.matrix[z : z + item.height, y : y + item.length, x : x + item.width]
+        overhang_y = math.floor((item.length - self.length) / 2)
+        if self.allow_overhang_y and overhang_y > item.get_max_overhang_y(
+            self.overhang_y_stability_factor
         ):
+            return (
+                False,
+                f"{item.id}: Item overhangs the bin and is not stable (stability condition).",
+            )
+
+        if np.any(self.heightmap[y : y + item.length, x : x + item.width] > z):
             return (
                 False,
                 f"{item.id}: Position is already occupied (non-overlapping condition).",
             )
 
-        if not self._is_item_position_stable(item):
+        if not self._is_item_position_stable(item, position):
             return False, f"{item.id}: Position is not stable (stability condition)."
 
         return True, None
 
-    def pack_item(self, item: Item) -> Tuple[bool, "str | None"]:
+    def pack_item(self, item: Item, position: Position) -> Tuple[bool, "str | None"]:
         """
         Packs an item into the bin at a valid position.
 
         Args:
             item (Item): The item to be packed.
+            position (Position): The position to pack the item at.
 
         Returns:
             Tuple[bool, str]: A tuple containing a boolean indicating if the packing was successful
             and a string message explaining the result.
 
         """
-        can_be_packed, info = self.can_item_be_packed(item)
+        if position is None:
+            return False, f"{item.id}: Position is None."
+
+        can_be_packed, info = self.can_item_be_packed(item, position)
 
         if can_be_packed:
             self.packed_items.append(item)
-            x, y, z = item.position.x, item.position.y, item.position.z
-            self.matrix[
-                z : z + item.height, y : y + item.length, x : x + item.width
-            ] = len(self.packed_items)
+            x = position.x
+            max_z = position.z + item.height
+            y = max(position.y, 0)
+            self.heightmap[y : y + item.length, x : x + item.width] = max_z
+
+            if item.length > self.length and self.allow_overhang_y:
+                position.y -= math.floor((item.length - self.length) / 2)
+
+            item.pack(position)
         return can_be_packed, info
 
-    def _is_item_position_stable(self, item: Item) -> bool:
+    def remove_item(self, item: Item) -> Tuple[bool, "str | None"]:
+        """
+        Removes an item from the bin.
+
+        Args:
+            item (Item): The item to be removed.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating if the removal was successful
+            and a string message explaining the result.
+
+        """
+        if not item in self.packed_items:
+            return False, f"{item.id}: Item not found in bin."
+
+        if np.any(
+            self.heightmap[
+                max(item.position.y, 0) : item.position.y + item.length,
+                item.position.x : item.position.x + item.width,
+            ]
+            != item.position.z + item.height
+        ):
+            return (
+                False,
+                f"{item.id}: Item can not be removed because it is not on top.",
+            )
+
+        self.packed_items.remove(item)
+        self.recreate_heightmap()
+        item.pack(None)
+
+        return True, None
+
+    def recreate_heightmap(self):
+        """
+        Recreates the heightmap of the bin based on the items packed in it.
+        """
+        self.heightmap = np.zeros((self.length, self.width), dtype=int)
+        for item in sorted(self.packed_items, key=lambda x: x.position.z, reverse=True):
+            x, y, z = item.position.x, item.position.y, item.position.z
+            self.heightmap[y : y + item.length, x : x + item.width] = z + item.height
+
+    def get_gaps(self) -> List[Gap]:
+        gaps = []
+
+        start_x = None
+
+        for x in range(self.width):
+            if np.count_nonzero(self.heightmap[:, x]) == 0:
+                if start_x is None:
+                    start_x = x
+            else:
+                if start_x is not None:
+                    gaps.append(Gap(start_x, x))
+                    start_x = None
+        return gaps
+
+    def remove_gaps(self):
+        gaps = self.get_gaps()
+
+        for gap in sorted(gaps, key=lambda x: x.start_x, reverse=True):
+            # find all items right of the gap
+            items_right = [
+                item for item in self.packed_items if item.position.x >= gap.end_x
+            ]
+            for item in items_right:
+                item.position.x -= gap.end_x - gap.start_x
+
+        # update heightmap
+        self.recreate_heightmap()
+
+    def _is_item_position_stable(self, item: Item, position: Position) -> bool:
         """
         Check if an item's position is stable based on the already packed items below it.
 
@@ -110,22 +225,24 @@ class Bin:
             bool: True if the item's position is stable, False otherwise.
         """
 
-        # every position with z == 0 is stable
-        if item.position.z == 0:
-            return True
-
-        if not item.is_packed():
+        if item.is_packed:
             return False
 
-        positions_below = self.matrix[
-            item.position.z - 1,
-            item.position.y : item.position.y + item.length,
-            item.position.x : item.position.x + item.width,
-        ]
+        # every position with z == 0 is stable
+        if position.z == 0:
+            return True
+
+        positions_below = (
+            self.heightmap[
+                position.y : position.y + item.length,
+                position.x : position.x + item.width,
+            ]
+            == position.z
+        )
 
         if (
             np.count_nonzero(positions_below)
-            < item.width * item.length * self.stability_factor
+            < item.width * min(item.length, self.length) * self.stability_factor
         ):
             return False
 
@@ -189,7 +306,7 @@ class Bin:
         Returns:
         int: The maximum z value of the Bin.
         """
-        return int(np.max(self.get_height_map()))
+        return int(np.max(self.heightmap))
 
     @property
     def volume(self) -> int:
@@ -218,21 +335,6 @@ class Bin:
             return int(used_volume / self.volume * 100)
         return used_volume
 
-    def get_height_map(self) -> np.ndarray:
-        """
-        Calculate the height map of the bin's packing matrix.
-
-        Returns:
-            numpy.ndarray: A 2D array representing the height map of the bin's packing matrix.
-        """
-        height_matrix = np.zeros(self.matrix.shape)
-        for z in range(height_matrix.shape[0]):
-            height_matrix[z] = z + 1
-        height_matrix *= self.matrix != 0
-
-        height_map = np.max(height_matrix, axis=0)
-        return height_map
-
     def get_snappoints(self, min_z: "int | None" = None) -> List[Snappoint]:
         """
         Calculate and return the list of snap points in the bin.
@@ -251,7 +353,7 @@ class Bin:
         if not self.is_packing_2d():
             raise NotImplementedError("get_snappoints not implemented for 3D case.")
 
-        heightmap = copy.deepcopy(self.get_height_map()).flatten()
+        heightmap = copy.deepcopy(self.heightmap).flatten()
         if min_z is not None:
             heightmap -= min_z
             heightmap[heightmap < 0] = 0
