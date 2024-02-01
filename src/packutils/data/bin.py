@@ -1,3 +1,4 @@
+from collections import namedtuple
 import copy
 import math
 from packutils.data.item import Item
@@ -9,6 +10,8 @@ from packutils.data.snappoint import Snappoint, SnappointDirection
 
 # describes the percentage of the bottom area required to lay on top of other item
 DEFAULT_STABILITY_FACTOR = 0.75
+
+Gap = namedtuple("Gap", ["start_x", "end_x"])
 
 
 class Bin:
@@ -181,6 +184,35 @@ class Bin:
         for item in sorted(self.packed_items, key=lambda x: x.position.z, reverse=True):
             x, y, z = item.position.x, item.position.y, item.position.z
             self.heightmap[y : y + item.length, x : x + item.width] = z + item.height
+
+    def get_gaps(self) -> List[Gap]:
+        gaps = []
+
+        start_x = None
+
+        for x in range(self.width):
+            if np.count_nonzero(self.heightmap[:, x]) == 0:
+                if start_x is None:
+                    start_x = x
+            else:
+                if start_x is not None:
+                    gaps.append(Gap(start_x, x))
+                    start_x = None
+        return gaps
+
+    def remove_gaps(self):
+        gaps = self.get_gaps()
+
+        for gap in sorted(gaps, key=lambda x: x.start_x, reverse=True):
+            # find all items right of the gap
+            items_right = [
+                item for item in self.packed_items if item.position.x >= gap.end_x
+            ]
+            for item in items_right:
+                item.position.x -= gap.end_x - gap.start_x
+
+        # update heightmap
+        self.recreate_heightmap()
 
     def _is_item_position_stable(self, item: Item, position: Position) -> bool:
         """

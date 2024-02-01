@@ -42,6 +42,8 @@ class PackerConfiguration(BaseModel):
 
     overhang_y_stability_factor: Optional[float] = None
 
+    remove_gaps: Optional[bool] = False
+
     def __hash__(self):
         return hash(
             (

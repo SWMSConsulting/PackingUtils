@@ -221,6 +221,8 @@ class PalletierWishPacker(AbstractPacker):
                             items_to_pack.remove(mirror_item)
 
             if len(bin.packed_items) > 0:
+                if self.config.remove_gaps:
+                    bin.remove_gaps()
                 variant.add_bin(bin)
 
         for item in items_to_pack:
@@ -337,43 +339,6 @@ class PalletierWishPacker(AbstractPacker):
             possible_items, self.config.default_select_strategy, self.prev_item
         )
         return next_item
-
-    def _fill_gaps(self, bin: Bin, min_z: int):
-        # detect the gap
-        heightmap = bin.heightmap - min_z
-
-        total_gap_width = np.count_nonzero(heightmap == 0)
-        if total_gap_width <= 0:
-            return False
-
-        left_space = int(total_gap_width / 2)
-
-        # get all items of the layer
-        items_to_move = [item for item in bin.packed_items if item.position.z >= min_z]
-        if len(items_to_move) < 1:
-            return False
-
-        # this does not work for larger stacks to move (use prev approach with items left and right of gap)
-        for item in items_to_move:
-            bin.packed_items.remove(item)
-            bin.matrix[min_z:, :, :] = 0
-
-        items_to_move = sorted(
-            items_to_move, key=lambda x: (x.position.z, x.position.x)
-        )
-        current_x = left_space
-        current_z = min_z
-        for item in items_to_move:
-            if current_z != item.position.z:
-                current_z = item.position.z
-                current_x = left_space
-
-            item.position.x = current_x
-            current_x += item.width
-            done, info = bin.pack_item(item)
-            if not done:
-                logging.info(info, item)
-        return True
 
 
 ## Helper functions

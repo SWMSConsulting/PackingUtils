@@ -346,6 +346,48 @@ class TestBin(unittest.TestCase):
         self.assertTrue(item2.is_packed)
         self.assertEqual(item2.position.y, -4)
 
+    def test_get_gaps(self):
+        bin = Bin(width=10, length=10, height=10)
+
+        item1 = Item(id="test1", width=2, length=10, height=2)
+        bin.pack_item(item1, Position(0, 0, 0))
+        item2 = Item(id="test2", width=2, length=10, height=2)
+        bin.pack_item(item2, Position(5, 0, 0))
+        item2 = Item(id="test3", width=2, length=10, height=2)
+        bin.pack_item(item2, Position(5, 0, 2))
+
+        gaps = bin.get_gaps()
+
+        expected_gaps = [(2, 5)]
+
+        self.assertEqual(gaps, expected_gaps)
+
+    def test_remove_gaps(self):
+        bin = Bin(width=10, length=10, height=10)
+
+        item1 = Item(id="test1", width=2, length=10, height=2)
+        bin.pack_item(item1, Position(0, 0, 0))
+        item2 = Item(id="test2", width=2, length=10, height=2)
+        bin.pack_item(item2, Position(5, 0, 0))
+        item2 = Item(id="test3", width=2, length=10, height=2)
+        bin.pack_item(item2, Position(5, 0, 2))
+
+        bin.remove_gaps()
+        gaps = bin.get_gaps()
+
+        expected_positions = {
+            "test1": Position(0, 0, 0),
+            "test2": Position(2, 0, 0),
+            "test3": Position(2, 0, 2),
+        }
+
+        self.assertEqual(len(gaps), 0)
+        self.assertEqual(len(bin.packed_items), 3)
+        self.assertEqual(np.count_nonzero(bin.heightmap), 4 * 10)
+        for name, pos in expected_positions.items():
+            item = [i for i in bin.packed_items if i.id == name][0]
+            self.assertEqual(item.position, pos)
+
 
 if __name__ == "__main__":
     unittest.main()
