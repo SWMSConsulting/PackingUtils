@@ -116,12 +116,8 @@ class TestPalletierWishPacker(unittest.TestCase):
 
     def test_get_best_item_to_pack_largest_volume_for_gap(self):
         bin = Bin(10, 1, 15)
-        bin.pack_item(
-            Item(id="", width=3, length=1, height=10, position=Position(0, 0, 0))
-        )
-        bin.pack_item(
-            Item(id="", width=4, length=1, height=8, position=Position(6, 0, 0))
-        )
+        bin.pack_item(Item(id="", width=3, length=1, height=10), Position(0, 0, 0))
+        bin.pack_item(Item(id="", width=4, length=1, height=8), Position(6, 0, 0))
         config = PackerConfiguration(
             new_layer_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
             default_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
@@ -152,12 +148,8 @@ class TestPalletierWishPacker(unittest.TestCase):
 
     def test_get_best_item_to_pack_largest_volume(self):
         bin = Bin(10, 1, 15)
-        bin.pack_item(
-            Item(id="", width=3, length=1, height=10, position=Position(0, 0, 0))
-        )
-        bin.pack_item(
-            Item(id="", width=4, length=1, height=8, position=Position(6, 0, 0))
-        )
+        bin.pack_item(Item(id="", width=3, length=1, height=10), Position(0, 0, 0))
+        bin.pack_item(Item(id="", width=4, length=1, height=8), Position(6, 0, 0))
         packer = PalletierWishPacker(bins=[bin])
 
         config = PackerConfiguration(
@@ -268,8 +260,8 @@ class TestPalletierWishPacker(unittest.TestCase):
 
     def test_fill_gaps_no_gap(self):
         bin = Bin(width=10, length=1, height=2)
-        bin.pack_item(Item("", width=5, length=1, height=1, position=Position(0, 0, 0)))
-        bin.pack_item(Item("", width=5, length=1, height=1, position=Position(5, 0, 0)))
+        bin.pack_item(Item("", width=5, length=1, height=1), Position(0, 0, 0))
+        bin.pack_item(Item("", width=5, length=1, height=1), Position(5, 0, 0))
 
         packer = PalletierWishPacker(bins=[bin], fill_gaps=True)
         changed = packer._fill_gaps(bin, min_z=0)

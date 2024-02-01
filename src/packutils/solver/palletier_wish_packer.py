@@ -229,8 +229,7 @@ class PalletierWishPacker(AbstractPacker):
         if snappoint.direction == SnappointDirection.RIGHT:
             position = Position(snappoint.x, snappoint.y, snappoint.z)
 
-        item.position = position
-        done, info = bin.pack_item(item)
+        done, info = bin.pack_item(item, position)
         if info is not None:
             logging.info(f"{info} - {item}")
         if done:
@@ -388,8 +387,7 @@ def can_pack_on_snappoint(
     if snappoint.direction == SnappointDirection.RIGHT:
         position = Position(snappoint.x, snappoint.y, snappoint.z)
 
-    item.position = position
-    can_be_packed, _ = bin.can_item_be_packed(item)
+    can_be_packed, _ = bin.can_item_be_packed(item, position)
 
     exceeds_height = item.height + snappoint.z > max_z if max_z is not None else False
 

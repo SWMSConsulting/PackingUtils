@@ -19,8 +19,7 @@ class TestPackedOrder(unittest.TestCase):
 
         self.packed_order.add_packing_variant(packing_variant)
         self.assertEqual(len(self.packed_order.packing_variants), 1)
-        self.assertEqual(
-            self.packed_order.packing_variants[0], packing_variant)
+        self.assertEqual(self.packed_order.packing_variants[0], packing_variant)
 
     def test_add_packing_variant_multiple(self):
         packing_variant1 = PackingVariant()
@@ -29,10 +28,8 @@ class TestPackedOrder(unittest.TestCase):
         self.packed_order.add_packing_variant(packing_variant2)
 
         self.assertEqual(len(self.packed_order.packing_variants), 2)
-        self.assertEqual(
-            self.packed_order.packing_variants[0], packing_variant1)
-        self.assertEqual(
-            self.packed_order.packing_variants[1], packing_variant2)
+        self.assertEqual(self.packed_order.packing_variants[0], packing_variant1)
+        self.assertEqual(self.packed_order.packing_variants[1], packing_variant2)
 
     def test_add_packing_variant_invalid_type(self):
         with self.assertRaises(TypeError):
@@ -40,38 +37,35 @@ class TestPackedOrder(unittest.TestCase):
 
     def test_get_articles_list(self):
         packed_order = PackedOrder(order_id="xyz")
-        item1 = Item(
-            id="item1", width=1, length=1, height=1,
-            weight=1.0, position=Position(x=0, y=0, z=0))
-        item2 = Item(
-            id="item2", width=1, length=1, height=1,
-            weight=1.0, position=Position(x=2, y=0, z=0))
-        item3 = Item(
-            id="item1", width=1, length=1, height=1,
-            weight=1.0, position=Position(x=0, y=0, z=0))
+        item1 = Item(id="item1", width=1, length=1, height=1, weight=1.0)
+        item2 = Item(id="item2", width=1, length=1, height=1, weight=1.0)
+        item3 = Item(id="item1", width=1, length=1, height=1, weight=1.0)
         item4 = Item(id="item3", width=1, length=1, height=1, weight=1.0)
 
         bin1 = Bin(width=10, length=10, height=10)
-        bin1.pack_item(item1)
-        bin1.pack_item(item2)
+        bin1.pack_item(item1, Position(x=0, y=0, z=0))
+        bin1.pack_item(item2, position=Position(x=2, y=0, z=0))
         variant1 = PackingVariant()
         variant1.add_bin(bin1)
         packed_order.add_packing_variant(variant1)
 
         bin2 = Bin(width=15, length=15, height=15)
-        bin2.pack_item(item3)
+        bin2.pack_item(item3, Position(x=0, y=0, z=0))
         variant2 = PackingVariant()
         variant2.add_bin(bin2)
         variant2.add_unpacked_item(item4, error_message=None)
         packed_order.add_packing_variant(variant2)
 
         expected_articles = [
-            Article(article_id="item1", width=1, length=1,
-                    height=1, amount=2, weight=1.0),
-            Article(article_id="item2", width=1, length=1,
-                    height=1, amount=1, weight=1.0),
-            Article(article_id="item3", width=1, length=1,
-                    height=1, amount=1, weight=1.0),
+            Article(
+                article_id="item1", width=1, length=1, height=1, amount=2, weight=1.0
+            ),
+            Article(
+                article_id="item2", width=1, length=1, height=1, amount=1, weight=1.0
+            ),
+            Article(
+                article_id="item3", width=1, length=1, height=1, amount=1, weight=1.0
+            ),
         ]
 
         articles = packed_order.get_articles_list()
@@ -93,13 +87,13 @@ class TestPackedOrder(unittest.TestCase):
         bin1 = Bin(10, 10, 10)
         bin2 = Bin(20, 20, 20)
 
-        item1 = Item("item1", 1, 1, 1, 1.0, Position(x=0, y=0, z=0))
-        item2 = Item("item2", 1, 1, 1, 2.0, Position(x=0, y=0, z=0))
-        item3 = Item("item1", 1, 1, 1, 1.0, Position(x=1, y=0, z=0))
+        item1 = Item("item1", 1, 1, 1, 1.0)
+        item2 = Item("item2", 1, 1, 1, 2.0)
+        item3 = Item("item1", 1, 1, 1, 1.0)
 
-        bin1.pack_item(item1)
-        bin2.pack_item(item2)
-        bin2.pack_item(item3)
+        bin1.pack_item(item1, Position(x=0, y=0, z=0))
+        bin2.pack_item(item2, Position(x=0, y=0, z=0))
+        bin2.pack_item(item3, Position(x=1, y=0, z=0))
 
         variant1.add_bin(bin1)
         variant2.add_bin(bin2)
@@ -114,11 +108,7 @@ class TestPackedOrder(unittest.TestCase):
                     {
                         "colli": 1,
                         "colli_total": 1,
-                        "colli_dimension": {
-                            "width": 10,
-                            "length": 10,
-                            "height": 10
-                        },
+                        "colli_dimension": {"width": 10, "length": 10, "height": 10},
                         "positions": [
                             {
                                 "article_id": "item1",
@@ -128,20 +118,16 @@ class TestPackedOrder(unittest.TestCase):
                                 "rotation": 0,
                                 "centerpoint_x": 0.5,
                                 "centerpoint_y": 0.5,
-                                "centerpoint_z": 0.5
+                                "centerpoint_z": 0.5,
                             }
-                        ]
+                        ],
                     }
                 ],
                 [
                     {
                         "colli": 1,
                         "colli_total": 1,
-                        "colli_dimension": {
-                            "width": 20,
-                            "length": 20,
-                            "height": 20
-                        },
+                        "colli_dimension": {"width": 20, "length": 20, "height": 20},
                         "positions": [
                             {
                                 "article_id": "item2",
@@ -151,7 +137,7 @@ class TestPackedOrder(unittest.TestCase):
                                 "rotation": 0,
                                 "centerpoint_x": 0.5,
                                 "centerpoint_y": 0.5,
-                                "centerpoint_z": 0.5
+                                "centerpoint_z": 0.5,
                             },
                             {
                                 "article_id": "item1",
@@ -161,11 +147,11 @@ class TestPackedOrder(unittest.TestCase):
                                 "rotation": 0,
                                 "centerpoint_x": 1.5,
                                 "centerpoint_y": 0.5,
-                                "centerpoint_z": 0.5
-                            }
-                        ]
+                                "centerpoint_z": 0.5,
+                            },
+                        ],
                     }
-                ]
+                ],
             ],
             "articles": [
                 {
@@ -174,7 +160,7 @@ class TestPackedOrder(unittest.TestCase):
                     "width": 1,
                     "height": 1,
                     "amount": 2,
-                    "weight": 1.0
+                    "weight": 1.0,
                 },
                 {
                     "id": "item2",
@@ -182,9 +168,9 @@ class TestPackedOrder(unittest.TestCase):
                     "width": 1,
                     "height": 1,
                     "amount": 1,
-                    "weight": 2.0
-                }
-            ]
+                    "weight": 2.0,
+                },
+            ],
         }
 
         path = os.path.join(os.path.dirname(__file__), "testPackingBins.json")
@@ -195,8 +181,9 @@ class TestPackedOrder(unittest.TestCase):
         self.assertTrue(os.path.exists(path))
         self.assertEqual(parsed_json["order_id"], expected_json["order_id"])
         self.assertEqual(parsed_json["articles"], expected_json["articles"])
-        self.assertEqual(parsed_json["packing_variants"],
-                         expected_json["packing_variants"])
+        self.assertEqual(
+            parsed_json["packing_variants"], expected_json["packing_variants"]
+        )
 
         loaded_packed_order = PackedOrder.load_from_file(path)
         self.assertEqual(loaded_packed_order, packed_order)
