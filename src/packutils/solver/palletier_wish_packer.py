@@ -63,10 +63,12 @@ class PalletierWishPacker(AbstractPacker):
     ) -> "PackingVariant | None":
         self.reset(config)
 
+        padding_x = 0 if config is None else config.padding_x
+
         items_to_pack = [
             Item(
                 id=a.article_id,
-                width=a.width + config.padding_x,
+                width=a.width + padding_x,
                 length=a.length,
                 height=a.height,
             )
@@ -281,7 +283,7 @@ class PalletierWishPacker(AbstractPacker):
             possible_items, self.config.new_layer_select_strategy, None
         )
 
-        is_new_layer = not np.any(bin.get_height_map() > snappoint.z)
+        is_new_layer = not np.any(bin.heightmap > snappoint.z)
         if is_new_layer:
             return new_layer_item
 
@@ -308,7 +310,7 @@ class PalletierWishPacker(AbstractPacker):
 
     def _fill_gaps(self, bin: Bin, min_z: int):
         # detect the gap
-        heightmap = bin.get_height_map() - min_z
+        heightmap = bin.heightmap - min_z
 
         total_gap_width = np.count_nonzero(heightmap == 0)
         if total_gap_width <= 0:

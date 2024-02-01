@@ -100,27 +100,6 @@ class TestPalletierWishPacker(unittest.TestCase):
         self.assertEqual(len(packing_variant.bins[0].packed_items), 3)
         self.assertEqual(expected_items, packing_variant.bins[0].packed_items)
 
-    def test_get_candidate_layers(self):
-        self.packer = PalletierWishPacker(
-            bins=[Bin(1, 1, 1)],
-            layer_score_strategy=LayerScoreStrategy.MIN_HEIGHT_VARIANCE,
-        )
-        items = [
-            Item(id="1", width=1, length=1, height=30),
-            Item(id="2", width=1, length=1, height=35),
-            Item(id="3", width=1, length=1, height=30),
-        ]
-
-        expected_candidates = [Layer(30, -5), Layer(35, -10)]
-        layers = self.packer.get_candidate_layers(items)
-
-        self.assertEqual(expected_candidates, layers)
-
-        scores = [layer.score for layer in layers]
-        self.assertEqual(
-            scores, sorted(scores, reverse=True), "Layers are not sorted by score"
-        )
-
     def test_get_best_item_to_pack_no_item_fit(self):
         bin = Bin(1, 1, 1)
         self.packer = PalletierWishPacker(

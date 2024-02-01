@@ -12,17 +12,14 @@ class TestBin(unittest.TestCase):
         self.bin = Bin(width=10, length=10, height=10)
 
     def test_pack_item_successful(self):
-        item = Item(
-            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
-        )
+        item = Item(id="test", width=3, length=3, height=3, position=Position(0, 0, 0))
         result, _ = self.bin.pack_item(item)
 
         self.assertTrue(result)
         self.assertEqual(len(self.bin.packed_items), 1)
-        self.assertEqual(np.count_nonzero(self.bin.matrix), 27)
+        self.assertEqual(np.count_nonzero(self.bin.heightmap), 9)
 
     def test_pack_item_stability_check(self):
-
         # item is flying
         bin = Bin(width=10, length=10, height=10)
         flying_item = Item(
@@ -41,9 +38,9 @@ class TestBin(unittest.TestCase):
 
         # item is placed fully on top of other item
         bin = Bin(width=10, length=10, height=10)
-        bin.pack_item(Item(
-            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
-        ))
+        bin.pack_item(
+            Item(id="test", width=3, length=3, height=3, position=Position(0, 0, 0))
+        )
         valid_item = Item(
             id="test", width=3, length=3, height=3, position=Position(0, 0, 3)
         )
@@ -52,9 +49,9 @@ class TestBin(unittest.TestCase):
 
         # item is placed fully on top of other item with small overhang
         bin = Bin(width=10, length=10, height=10)
-        bin.pack_item(Item(
-            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
-        ))
+        bin.pack_item(
+            Item(id="test", width=3, length=3, height=3, position=Position(0, 0, 0))
+        )
         valid_item = Item(
             id="test", width=4, length=3, height=3, position=Position(0, 0, 3)
         )
@@ -63,9 +60,9 @@ class TestBin(unittest.TestCase):
 
         # item is placed fully on top of other item with too much overhang
         bin = Bin(width=10, length=10, height=10)
-        bin.pack_item(Item(
-            id="test", width=3, length=3, height=3, position=Position(0, 0, 0)
-        ))
+        bin.pack_item(
+            Item(id="test", width=3, length=3, height=3, position=Position(0, 0, 0))
+        )
         too_much_overhang_item = Item(
             id="test", width=3, length=3, height=3, position=Position(2, 0, 3)
         )
@@ -73,35 +70,30 @@ class TestBin(unittest.TestCase):
         self.assertFalse(result)
 
     def test_pack_item_out_of_bounds(self):
-        item = Item(
-            id="test", width=5, length=5, height=5, position=Position(7, 7, 7))
+        item = Item(id="test", width=5, length=5, height=5, position=Position(7, 7, 7))
         result, _ = self.bin.pack_item(item)
 
         self.assertFalse(result)
         self.assertEqual(len(self.bin.packed_items), 0)
-        self.assertEqual(np.count_nonzero(self.bin.matrix), 0)
+        self.assertEqual(np.count_nonzero(self.bin.heightmap), 0)
 
     def test_pack_item_position_occupied(self):
-        item1 = Item(
-            id="test", width=4, length=4, height=4, position=Position(0, 0, 0)
-        )
-        item2 = Item(
-            id="test", width=2, length=2, height=2, position=Position(1, 1, 1)
-        )
+        item1 = Item(id="test", width=4, length=4, height=4, position=Position(0, 0, 0))
+        item2 = Item(id="test", width=2, length=2, height=2, position=Position(1, 1, 1))
         self.bin.pack_item(item1)
         result, _ = self.bin.pack_item(item2)
         self.assertFalse(result)
         self.assertEqual(len(self.bin.packed_items), 1)
         self.assertEqual(
-            np.count_nonzero(self.bin.matrix),
-            item1.width * item1.length * item1.height)
+            np.count_nonzero(self.bin.heightmap), item1.width * item1.length
+        )
 
     def test_pack_item_with_none_position(self):
         item = Item(id="test", width=3, length=3, height=3)
         result, _ = self.bin.pack_item(item)
         self.assertFalse(result)
         self.assertEqual(len(self.bin.packed_items), 0)
-        self.assertEqual(np.count_nonzero(self.bin.matrix), 0)
+        self.assertEqual(np.count_nonzero(self.bin.heightmap), 0)
 
     def test_is_packing_2d(self):
         bin1 = Bin(width=1, length=10, height=10)
@@ -154,30 +146,43 @@ class TestBin(unittest.TestCase):
 
     def test_used_volume(self):
         bin = Bin(width=10, length=20, height=5)
-        bin.pack_item(Item(id="test1", width=2, length=10,
-                      height=2, position=Position(x=0, y=0, z=0)))
-        bin.pack_item(Item(id="test2", width=3, length=5,
-                      height=2, position=Position(x=4, y=0, z=0)))
+        bin.pack_item(
+            Item(
+                id="test1",
+                width=2,
+                length=10,
+                height=2,
+                position=Position(x=0, y=0, z=0),
+            )
+        )
+        bin.pack_item(
+            Item(
+                id="test2",
+                width=3,
+                length=5,
+                height=2,
+                position=Position(x=4, y=0, z=0),
+            )
+        )
         self.assertEqual(bin.get_used_volume(), 40 + 30)
         self.assertEqual(bin.get_used_volume(use_percentage=True), 7)
 
-    def test_get_height_map_empty_bin(self):
-        height_map = self.bin.get_height_map()
+    def test_heightmap_empty_bin(self):
+        height_map = self.bin.heightmap
         expected_height_map = np.zeros((10, 10), dtype=int)
         np.testing.assert_array_equal(height_map, expected_height_map)
 
-    def test_get_height_map_single_item(self):
+    def test_heightmap_single_item(self):
         # You need to import Item class or create it if not available
-        item = Item("test", width=1, length=1, height=1,
-                    position=Position(0, 0, 0))
+        item = Item("test", width=1, length=1, height=1, position=Position(0, 0, 0))
         self.bin.pack_item(item)
 
-        height_map = self.bin.get_height_map()
+        height_map = self.bin.heightmap
         expected_height_map = np.zeros((10, 10), dtype=int)
         expected_height_map[0, 0] = 1  # The packed item occupies this cell
         np.testing.assert_array_equal(height_map, expected_height_map)
 
-    def test_get_height_map_multiple_items(self):
+    def test_heightmap_multiple_items(self):
         item1 = Item("test", 2, 2, 1, position=Position(0, 0, 0))
         item2 = Item("test", 3, 1, 2, position=Position(2, 0, 0))
         item3 = Item("test", 1, 3, 3, position=Position(0, 2, 0))
@@ -185,7 +190,7 @@ class TestBin(unittest.TestCase):
         self.bin.pack_item(item2)
         self.bin.pack_item(item3)
 
-        height_map = self.bin.get_height_map()
+        height_map = self.bin.heightmap
 
         expected_height_map = np.zeros((10, 10), dtype=int)
         expected_height_map[0:2, 0:2] = 1  # Item1
@@ -235,23 +240,18 @@ class TestBin(unittest.TestCase):
         # Check if the snap points are as expected
         expected_snappoints = [
             Snappoint(x=0, y=0, z=2, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=2, y=0, z=2, direction=SnappointDirection.LEFT),
             Snappoint(x=2, y=0, z=0, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=4, y=0, z=0, direction=SnappointDirection.LEFT),
             Snappoint(x=4, y=0, z=2, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=8, y=0, z=2, direction=SnappointDirection.LEFT),
             Snappoint(x=8, y=0, z=0, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=10, y=0, z=0, direction=SnappointDirection.LEFT),
         ]
 
         self.assertEqual(snappoints, expected_snappoints)
 
     def test_get_snappoints_min_z(self):
-
         bin = Bin(10, 1, 10)
 
         # Pack some items into the bin
@@ -271,15 +271,13 @@ class TestBin(unittest.TestCase):
         # Check if the snap points are as expected
         expected_snappoints = [
             Snappoint(x=0, y=0, z=4, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=2, y=0, z=4, direction=SnappointDirection.LEFT),
             Snappoint(x=2, y=0, z=2, direction=SnappointDirection.RIGHT),
-
             Snappoint(x=10, y=0, z=2, direction=SnappointDirection.LEFT),
         ]
 
         self.assertEqual(snappoints, expected_snappoints)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
