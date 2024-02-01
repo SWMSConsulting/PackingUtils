@@ -1,6 +1,4 @@
 import itertools
-import json
-import os
 import random
 from typing import List, Tuple
 import streamlit as st
@@ -27,17 +25,24 @@ matplotlib.use("Agg")
 
 @st.cache_data
 def get_possible_config_params() -> Tuple[List[PackerConfiguration], int]:
-    possible_default_select_strategy = [ItemSelectStrategy.LARGEST_VOLUME]
-    possible_new_layer_select_strategy = [ItemSelectStrategy.LARGEST_H_W_L]
+    possible_default_select_strategy = [
+        ItemSelectStrategy.LARGEST_L_H_W,
+        ItemSelectStrategy.LARGEST_L_W_H,
+    ]
+    possible_new_layer_select_strategy = [
+        ItemSelectStrategy.LARGEST_L_H_W,
+        ItemSelectStrategy.LARGEST_L_W_H,
+    ]
 
     possible_bin_stability_factor = [1.0]
 
     possible_allow_item_exceeds_layer = [False]
     possible_mirror_walls = [True]
 
-    possible_direction_change_volume = [0]  # None
+    possible_direction_change_volume = [1]  # None
 
-    padding_x = 20
+    padding_x = 0  # 20
+    overhang_y_stability_factor = 0.6
 
     params = [
         possible_default_select_strategy,
@@ -73,6 +78,7 @@ def get_possible_config_params() -> Tuple[List[PackerConfiguration], int]:
             allow_item_exceeds_layer=combination[4],
             mirror_walls=combination[5],
             padding_x=padding_x,
+            overhang_y_stability_factor=overhang_y_stability_factor,
         )
         for combination in combinations
     ]
@@ -86,7 +92,7 @@ st.write("""# Packing Visualisation""")
 # logging.basicConfig(level=logging.INFO)
 
 max_bins = 3
-bins = [Bin(800, 1, 600) for _ in range(max_bins)]
+bins = [Bin(800, 10, 600) for _ in range(max_bins)]
 packer = PalletierWishPacker(bins=bins)
 
 with st.expander("Order", expanded=True):
@@ -96,27 +102,35 @@ with st.expander("Order", expanded=True):
     order = Order(
         "Test",
         articles=[
-            Article(f"Article {1}", width=68, length=1, height=68, amount=21),
-            Article(f"Article {2}", width=170, length=1, height=175, amount=19),
-            Article(f"Article {3}", width=82, length=1, height=20, amount=19),
-            Article(f"Article {4}", width=185, length=1, height=80, amount=8),
+            Article(f"Article {1}", width=68, length=10, height=68, amount=21),
+            Article(f"Article {2}", width=170, length=12, height=175, amount=19),
+            Article(f"Article {3}", width=82, length=10, height=20, amount=19),
+            Article(f"Article {4}", width=185, length=8, height=80, amount=8),
             # for idx in range(num_articles)
         ],
     )
-    _c1, _c2, _c3, _c4 = st.columns(4)
+    _c0, _c1, _c2, _c3, _c4 = st.columns(5)
     for article in order.articles:
-        article.article_id = _c1.text_input(
+        article.article_id = _c0.text_input(
             key=f"{article.article_id}_id",
             label="Name",
             value=article.article_id,
             disabled=True,
+        )
+        article.length = _c1.number_input(
+            key=f"{article.article_id}_length",
+            value=article.length,
+            label="Length",
+            min_value=2,
+            max_value=2 * bins[0].length,
+            step=1,
         )
         article.width = _c2.number_input(
             key=f"{article.article_id}_width",
             value=article.width,
             label="Width",
             min_value=10,
-            max_value=500,
+            max_value=bins[0].width,
             step=1,
         )
         article.height = _c3.number_input(
@@ -124,7 +138,7 @@ with st.expander("Order", expanded=True):
             value=article.height,
             label="Height",
             min_value=10,
-            max_value=500,
+            max_value=bins[0].height,
             step=1,
         )
         article.amount = _c4.number_input(
@@ -197,6 +211,11 @@ else:
 
         for bin_idx, bin in enumerate(variant.bins):
             cols = st.columns(max_bins)
-            fig = vis.visualize_bin(bin, show=False)
+            fig = vis.visualize_bin(bin, show=False, force_2d=True)
             cols[bin_idx].pyplot(fig)
             plt.close(fig)
+
+        if len(variant.unpacked_items) > 0:
+            with st.expander("Unpacked articles", expanded=True):
+                for a in variant.unpacked_items:
+                    st.write(a)

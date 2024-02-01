@@ -40,6 +40,8 @@ class PackerConfiguration(BaseModel):
     # padding along the x-axis (width)
     padding_x: Optional[int] = 0
 
+    overhang_y_stability_factor: Optional[float] = None
+
     def __hash__(self):
         return hash(
             (
@@ -49,5 +51,7 @@ class PackerConfiguration(BaseModel):
                 self.bin_stability_factor,
                 self.allow_item_exceeds_layer,
                 self.mirror_walls,
+                self.padding_x,
+                self.overhang_y_stability_factor,
             )
         )

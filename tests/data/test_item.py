@@ -16,7 +16,7 @@ class ItemTestCase(unittest.TestCase):
         item = Item(id="test", width=10, length=20, height=30)
         position = Position(x=5, y=5, z=5, rotation=0)
         item.pack(position)
-        self.assertEqual(item.is_packed(), True)
+        self.assertEqual(item.is_packed, True)
         self.assertEqual(item.position, position)
 
     def test_to_position_and_dimension_2d(self):

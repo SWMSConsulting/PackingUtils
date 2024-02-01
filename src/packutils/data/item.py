@@ -24,7 +24,7 @@ class Item:
         pack(position: Position):
             Sets the position of the item in the container.
 
-        is_packed() -> bool:
+        is_packed -> bool:
             Checks if the item is packed in a position.
 
         __str__() -> str:
@@ -101,6 +101,7 @@ class Item:
 
         self.position = position
 
+    @property
     def is_packed(self) -> bool:
         """
         Checks if the item is packed in a position.
@@ -112,7 +113,7 @@ class Item:
         return self.position is not None
 
     def get_rotated_dimensions_3D(self):
-        if not self.is_packed():
+        if not self.is_packed:
             return self.width, self.length, self.height
 
         rot_type = self.position.rotation
@@ -145,7 +146,7 @@ class Item:
             ValueError: If the dimensions list does not contain two valid dimension strings.
 
         """
-        if not self.is_packed():
+        if not self.is_packed:
             return None, None
 
         if (

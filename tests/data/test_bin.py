@@ -333,6 +333,19 @@ class TestBin(unittest.TestCase):
 
         self.assertFalse(result)
 
+    def test_pack_item_with_overhang_stack_multiple(self):
+        bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
+
+        item1 = Item(id="test", width=5, length=18, height=5)
+        bin.pack_item(item1, Position(0, 0, 0))
+        item2 = Item(id="test", width=5, length=18, height=5)
+        bin.pack_item(item2, Position(0, 0, 5))
+
+        self.assertTrue(item1.is_packed)
+        self.assertEqual(item1.position.y, -4)
+        self.assertTrue(item2.is_packed)
+        self.assertEqual(item2.position.y, -4)
+
 
 if __name__ == "__main__":
     unittest.main()

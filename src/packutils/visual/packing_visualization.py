@@ -26,9 +26,10 @@ class PackingVisualization:
         show: bool = True,
         output_dir: "str | None" = None,
         return_png: bool = False,
+        force_2d: bool = False,
     ):
         is_2d, _ = bin.is_packing_2d()
-        if is_2d:
+        if is_2d or force_2d:
             plot_fn = self._visualize_bin_2d
         else:
             plot_fn = self._visualize_bin_3d
@@ -72,7 +73,7 @@ class PackingVisualization:
     ):
         is_2d, dimensions = bin.is_packing_2d()
         if not is_2d:
-            raise ValueError("Bin is not 2D, use _visualize_bin_3d.")
+            dimensions = ["width", "height"]
 
         items = bin.packed_items
         fig, ax = plt.subplots()
@@ -176,7 +177,7 @@ class PackingVisualization:
         for item in items:
             ax.bar3d(
                 item.position.x,
-                item.position.y,
+                max(item.position.y, 0),
                 item.position.z,
                 item.width,
                 item.length,

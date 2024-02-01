@@ -72,7 +72,7 @@ class Bin:
             Tuple[bool, str]: A tuple containing a boolean indicating if the item can be packed and a string message explaining the result.
         """
 
-        if item.is_packed():
+        if item.is_packed:
             return False, f"{item.id}: Item already packed."
 
         x, y, z = position.x, position.y, position.z
@@ -138,7 +138,6 @@ class Bin:
                 position.y -= math.floor((item.length - self.length) / 2)
 
             item.pack(position)
-
         return can_be_packed, info
 
     def remove_item(self, item: Item) -> Tuple[bool, "str | None"]:
@@ -175,6 +174,9 @@ class Bin:
         return True, None
 
     def recreate_heightmap(self):
+        """
+        Recreates the heightmap of the bin based on the items packed in it.
+        """
         self.heightmap = np.zeros((self.length, self.width), dtype=int)
         for item in sorted(self.packed_items, key=lambda x: x.position.z, reverse=True):
             x, y, z = item.position.x, item.position.y, item.position.z
@@ -191,7 +193,7 @@ class Bin:
             bool: True if the item's position is stable, False otherwise.
         """
 
-        if item.is_packed():
+        if item.is_packed:
             return False
 
         # every position with z == 0 is stable
@@ -208,7 +210,7 @@ class Bin:
 
         if (
             np.count_nonzero(positions_below)
-            < item.width * item.length * self.stability_factor
+            < item.width * min(item.length, self.length) * self.stability_factor
         ):
             return False
 
