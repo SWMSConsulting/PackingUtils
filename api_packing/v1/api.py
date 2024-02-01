@@ -152,12 +152,12 @@ api_v1 = FastAPI()
 
 
 @api_v1.get("/")
-async def status():
+def status():
     return {"status": "Healthy"}
 
 
 @api_v1.post("/variants")
-async def get_packing_variants(body: VariantsRequestModel):
+def get_packing_variants(body: VariantsRequestModel):
     """Get packing variants for an order."""
 
     if body.order.colli_details is not None:
