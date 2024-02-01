@@ -88,13 +88,51 @@ class Bin:
 
         """
         can_be_packed, info = self.can_item_be_packed(item)
-        print(can_be_packed, item)
 
         if can_be_packed:
             self.packed_items.append(item)
             x, y, z = item.position.x, item.position.y, item.position.z
             self.heightmap[y : y + item.length, x : x + item.width] = z + item.height
         return can_be_packed, info
+
+    def remove_item(self, item: Item) -> Tuple[bool, "str | None"]:
+        """
+        Removes an item from the bin.
+
+        Args:
+            item (Item): The item to be removed.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating if the removal was successful
+            and a string message explaining the result.
+
+        """
+        if not item in self.packed_items:
+            return False, f"{item.id}: Item not found in bin."
+
+        if np.any(
+            self.heightmap[
+                item.position.y : item.position.y + item.length,
+                item.position.x : item.position.x + item.width,
+            ]
+            != item.position.z + item.height
+        ):
+            return (
+                False,
+                f"{item.id}: Item can not be removed because it is not on top.",
+            )
+
+        self.packed_items.remove(item)
+        self.recreate_heightmap()
+        item.position = None
+
+        return True, None
+
+    def recreate_heightmap(self):
+        self.heightmap = np.zeros((self.length, self.width), dtype=int)
+        for item in sorted(self.packed_items, key=lambda x: x.position.z, reverse=True):
+            x, y, z = item.position.x, item.position.y, item.position.z
+            self.heightmap[y : y + item.length, x : x + item.width] = z + item.height
 
     def _is_item_position_stable(self, item: Item) -> bool:
         """

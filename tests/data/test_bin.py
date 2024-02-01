@@ -95,6 +95,31 @@ class TestBin(unittest.TestCase):
         self.assertEqual(len(self.bin.packed_items), 0)
         self.assertEqual(np.count_nonzero(self.bin.heightmap), 0)
 
+    def test_remove_item(self):
+        item1 = Item(
+            id="test1", width=3, length=3, height=3, position=Position(0, 0, 0)
+        )
+        item2 = Item(
+            id="test2",
+            width=4,
+            length=3,
+            height=1,
+            position=Position(0, 0, 3),
+        )
+        self.bin.pack_item(item1)
+        expected_heightmap = self.bin.heightmap.copy()
+
+        is_packed, _ = self.bin.pack_item(item2)
+        result, info = self.bin.remove_item(item2)
+
+        self.assertTrue(is_packed)
+        self.assertTrue(result)
+        self.assertIsNone(info)
+
+        self.assertIsNone(item2.position)
+        self.assertEqual(len(self.bin.packed_items), 1)
+        self.assertTrue(np.array_equal(self.bin.heightmap, expected_heightmap))
+
     def test_is_packing_2d(self):
         bin1 = Bin(width=1, length=10, height=10)
         result, dimensions = bin1.is_packing_2d()
