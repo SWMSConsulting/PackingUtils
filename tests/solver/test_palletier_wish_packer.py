@@ -8,11 +8,7 @@ from packutils.data.packer_configuration import ItemSelectStrategy, PackerConfig
 from packutils.data.packing_variant import PackingVariant
 from packutils.data.position import Position
 from packutils.data.snappoint import Snappoint, SnappointDirection
-from packutils.solver.palletier_wish_packer import (
-    Layer,
-    LayerScoreStrategy,
-    PalletierWishPacker,
-)
+from packutils.solver.palletier_wish_packer import PalletierWishPacker
 from packutils.visual.packing_visualization import PackingVisualization
 
 import logging
@@ -102,9 +98,7 @@ class TestPalletierWishPacker(unittest.TestCase):
 
     def test_get_best_item_to_pack_no_item_fit(self):
         bin = Bin(1, 1, 1)
-        self.packer = PalletierWishPacker(
-            bins=[bin], layer_score_strategy=LayerScoreStrategy.MIN_HEIGHT_VARIANCE
-        )
+        self.packer = PalletierWishPacker(bins=[bin])
         items = [
             Item(id="1", width=2, length=1, height=30),
             Item(id="2", width=3, length=1, height=35),

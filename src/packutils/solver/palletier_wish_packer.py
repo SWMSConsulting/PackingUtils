@@ -19,12 +19,6 @@ from packutils.solver.abstract_packer import AbstractPacker
 PACKER_AVAILABLE = True
 
 ScoredVariant = collections.namedtuple("ScoredVariant", ["variant", "score"])
-Layer = collections.namedtuple("Layer", ["height", "score"])
-
-
-class LayerScoreStrategy(Enum):
-    # for each layer candidate loop over the items and sum the absolute height differnce between item and layer
-    MIN_HEIGHT_VARIANCE = 0
 
 
 class PalletierWishPacker(AbstractPacker):
