@@ -21,6 +21,8 @@ EXPOSE 8000
 # ENV DIRECTION_CHANGE_VOLUMES="OPTIONAL proportion of direction change volumes"
 # ENV ALLOW_ITEM_EXCEEDS_LAYER="OPTIONAL bool(s) to allow item exceeds layer"
 # ENV MIRROR_WALLS="OPTIONAL bool(s) to mirror walls"
+# ENV ITEM_GROUPING_MODE="OPTIONAL item grouping mode(s)"
+
 # ENV BIN_STABILITY_FACTOR="OPTIONAL bin stability factor(s)"
 # ENV NUM_VARIANTS="OPTIONAL number of variants"
 # ENV PADDING_X="OPTIONAL padding x (width)"

@@ -12,7 +12,11 @@ from packutils.data.bin import Bin
 from packutils.data.order import Order
 from packutils.data.article import Article
 from packutils.data.packed_order import PackedOrder
-from packutils.data.packer_configuration import ItemSelectStrategy, PackerConfiguration
+from packutils.data.packer_configuration import (
+    ItemGroupingMode,
+    ItemSelectStrategy,
+    PackerConfiguration,
+)
 from packutils.eval.packing_evaluation import (
     PackingEvaluation,
     PackingEvaluationWeights,
@@ -97,6 +101,18 @@ def get_possible_config_params(
             else [float(env_direction_change_volumes)]
         )
     )
+
+    env_item_grouping_mode = os.environ.get("ITEM_GROUPING_MODE", None)
+    if env_item_grouping_mode is None:
+        possible_item_grouping_mode = [None]
+    else:
+        if env_item_grouping_mode.startswith("["):
+            possible_item_grouping_mode = [
+                ItemGroupingMode(s) for s in json.loads(env_item_grouping_mode)
+            ]
+        else:
+            possible_item_grouping_mode = [ItemGroupingMode(env_item_grouping_mode)]
+
     env_padding_x = int(os.environ.get("PADDING_X", 0))
 
     env_num_variants = os.environ.get("NUM_VARIANTS", None)
@@ -111,7 +127,8 @@ def get_possible_config_params(
         change_volumes,
         possible_bin_stability_factor,
         possible_allow_item_exceeds_layer,
-        possible_mirror_walls
+        possible_mirror_walls,
+        possible_item_grouping_mode,
         # add here other possible parameter
     ]
     combinations = list(itertools.product(*params))
@@ -123,6 +140,7 @@ def get_possible_config_params(
         "bin_stability_factor": possible_bin_stability_factor,
         "allow_item_exceeds_layer": possible_allow_item_exceeds_layer,
         "mirror_walls": possible_mirror_walls,
+        "item_grouping_mode": possible_item_grouping_mode,
         "padding_x": env_padding_x,
         "num_variants": env_num_variants,
         "num_combinations": len(combinations),
@@ -140,6 +158,7 @@ def get_possible_config_params(
             bin_stability_factor=combination[3],
             allow_item_exceeds_layer=combination[4],
             mirror_walls=combination[5],
+            item_grouping_mode=combination[6],
             padding_x=env_padding_x,
         )
         for combination in combinations
@@ -163,11 +182,11 @@ def get_packing_variants(body: VariantsRequestModel):
     if body.order.colli_details is not None:
         details = body.order.colli_details
         bins = [
-            Bin(details.width, 1, details.height, details.max_weight)  # details.length,
+            Bin(details.width, details.length, details.height, details.max_weight)
             for _ in range(details.max_collis)
         ]
     else:
-        bins = [Bin(800, 1, 500)]
+        bins = [Bin(800, 1200, 500)]
 
     bin_w = bins[0].width
     bin_h = bins[0].height
