@@ -1,18 +1,21 @@
 import copy
 import unittest
+
 from packutils.data.article import Article
 from packutils.data.bin import Bin
-from packutils.data.item import Item
+from packutils.data.single_item import SingleItem
 from packutils.data.order import Order
-from packutils.data.packer_configuration import ItemSelectStrategy, PackerConfiguration
-from packutils.data.packing_variant import PackingVariant
+from packutils.data.packer_configuration import (
+    ItemGroupingMode,
+    ItemSelectStrategy,
+    PackerConfiguration,
+)
 from packutils.data.position import Position
 from packutils.data.snappoint import Snappoint, SnappointDirection
 from packutils.solver.palletier_wish_packer import PalletierWishPacker
 from packutils.visual.packing_visualization import PackingVisualization
 
-import logging
-
+# import logging
 # logging.basicConfig(level=logging.INFO)
 
 
@@ -34,7 +37,9 @@ class TestPalletierWishPacker(unittest.TestCase):
         original_item_ids = set(
             a.article_id for a in order.articles for _ in range(a.amount)
         )
-        unpacked_item_ids = set(item.id for item in packing_variant.unpacked_items)
+        unpacked_item_ids = set(
+            item.identifier for item in packing_variant.unpacked_items
+        )
 
         self.assertEqual(
             original_item_ids,
@@ -61,11 +66,18 @@ class TestPalletierWishPacker(unittest.TestCase):
         # self.vis.visualize_packing_variant(packing_variant)
 
         self.assertIsNotNone(packing_variant, "pack_variant returned None")
-        expected_items = [
-            Item("2", width=8, length=1, height=2, position=Position(0, 0, 0)),
-            Item("1", width=4, length=1, height=4, position=Position(0, 0, 2)),
-            Item("1", width=4, length=1, height=4, position=Position(4, 0, 2)),
-        ]
+
+        item1 = SingleItem(identifier="2", width=8, length=1, height=2)
+        item1.pack(position=Position(0, 0, 0))
+
+        item2 = SingleItem(identifier="1", width=4, length=1, height=4)
+        item2.pack(position=Position(0, 0, 2))
+
+        item3 = SingleItem(identifier="1", width=4, length=1, height=4)
+        item3.pack(position=Position(4, 0, 2))
+
+        expected_items = [item1, item2, item3]
+
         print(packing_variant.bins[0].packed_items)
         self.assertEqual(len(packing_variant.bins), 1)
         self.assertEqual(len(packing_variant.bins[0].packed_items), 3)
@@ -87,11 +99,18 @@ class TestPalletierWishPacker(unittest.TestCase):
         # self.vis.visualize_packing_variant(packing_variant)
 
         self.assertIsNotNone(packing_variant, "pack_variant returned None")
-        expected_items = [
-            Item("1", width=4, length=1, height=4, position=Position(0, 0, 0)),
-            Item("1", width=4, length=1, height=4, position=Position(4, 0, 0)),
-            Item("2", width=7, length=1, height=2, position=Position(0, 0, 4)),
-        ]
+
+        item1 = SingleItem(identifier="1", width=4, length=1, height=4)
+        item1.pack(position=Position(0, 0, 0))
+
+        item2 = SingleItem(identifier="1", width=4, length=1, height=4)
+        item2.pack(position=Position(4, 0, 0))
+
+        item3 = SingleItem(identifier="2", width=7, length=1, height=2)
+        item3.pack(position=Position(0, 0, 4))
+
+        expected_items = [item1, item2, item3]
+
         self.assertEqual(len(packing_variant.bins), 1)
         self.assertEqual(len(packing_variant.bins[0].packed_items), 3)
         self.assertEqual(expected_items, packing_variant.bins[0].packed_items)
@@ -100,9 +119,9 @@ class TestPalletierWishPacker(unittest.TestCase):
         bin = Bin(1, 1, 1)
         self.packer = PalletierWishPacker(bins=[bin])
         items = [
-            Item(id="1", width=2, length=1, height=30),
-            Item(id="2", width=3, length=1, height=35),
-            Item(id="3", width=4, length=1, height=30),
+            SingleItem(identifier="1", width=2, length=1, height=30),
+            SingleItem(identifier="2", width=3, length=1, height=35),
+            SingleItem(identifier="3", width=4, length=1, height=30),
         ]
 
         item = self.packer.get_best_item_to_pack(
@@ -116,8 +135,12 @@ class TestPalletierWishPacker(unittest.TestCase):
 
     def test_get_best_item_to_pack_largest_volume_for_gap(self):
         bin = Bin(10, 1, 15)
-        bin.pack_item(Item(id="", width=3, length=1, height=10), Position(0, 0, 0))
-        bin.pack_item(Item(id="", width=4, length=1, height=8), Position(6, 0, 0))
+        bin.pack_item(
+            SingleItem(identifier="", width=3, length=1, height=10), Position(0, 0, 0)
+        )
+        bin.pack_item(
+            SingleItem(identifier="", width=4, length=1, height=8), Position(6, 0, 0)
+        )
         config = PackerConfiguration(
             new_layer_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
             default_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
@@ -126,11 +149,11 @@ class TestPalletierWishPacker(unittest.TestCase):
         packer = PalletierWishPacker(bins=[bin])
         packer.reset(config)
         items = [
-            Item(id="best", width=3, length=1, height=10),
-            Item(id="best2", width=2, length=1, height=9),
-            Item(id="best3", width=3, length=1, height=8),
-            Item(id="toolarge", width=3, length=1, height=11),
-            Item(id="toolarge", width=4, length=1, height=10),
+            SingleItem(identifier="best", width=3, length=1, height=10),
+            SingleItem(identifier="best2", width=2, length=1, height=9),
+            SingleItem(identifier="best3", width=3, length=1, height=8),
+            SingleItem(identifier="toolarge", width=3, length=1, height=11),
+            SingleItem(identifier="toolarge", width=4, length=1, height=10),
         ]
 
         for expected_item in copy.deepcopy(items):
@@ -140,7 +163,9 @@ class TestPalletierWishPacker(unittest.TestCase):
                 snappoint=Snappoint(3, 0, 0, SnappointDirection.RIGHT),
                 max_z=10,
             )
-            ex_item = expected_item if expected_item.id.startswith("best") else None
+            ex_item = (
+                expected_item if expected_item.identifier.startswith("best") else None
+            )
             self.assertEqual(ex_item, item)
 
             items.remove(expected_item)
@@ -148,8 +173,12 @@ class TestPalletierWishPacker(unittest.TestCase):
 
     def test_get_best_item_to_pack_largest_volume(self):
         bin = Bin(10, 1, 15)
-        bin.pack_item(Item(id="", width=3, length=1, height=10), Position(0, 0, 0))
-        bin.pack_item(Item(id="", width=4, length=1, height=8), Position(6, 0, 0))
+        bin.pack_item(
+            SingleItem(identifier="", width=3, length=1, height=10), Position(0, 0, 0)
+        )
+        bin.pack_item(
+            SingleItem(identifier="", width=4, length=1, height=8), Position(6, 0, 0)
+        )
         packer = PalletierWishPacker(bins=[bin])
 
         config = PackerConfiguration(
@@ -160,11 +189,11 @@ class TestPalletierWishPacker(unittest.TestCase):
         packer.reset(config)
 
         items = [
-            Item(id="best1", width=3, length=1, height=10),
-            Item(id="best2", width=3, length=1, height=8),
-            Item(id="best3", width=2, length=1, height=9),
-            Item(id="toolarge", width=3, length=1, height=11),
-            Item(id="toolarge", width=4, length=1, height=10),
+            SingleItem(identifier="best1", width=3, length=1, height=10),
+            SingleItem(identifier="best2", width=3, length=1, height=8),
+            SingleItem(identifier="best3", width=2, length=1, height=9),
+            SingleItem(identifier="toolarge", width=3, length=1, height=11),
+            SingleItem(identifier="toolarge", width=4, length=1, height=10),
         ]
 
         for expected_item in copy.deepcopy(items):
@@ -174,7 +203,9 @@ class TestPalletierWishPacker(unittest.TestCase):
                 snappoint=Snappoint(3, 0, 0, SnappointDirection.RIGHT),
                 max_z=10,
             )
-            ex_item = expected_item if expected_item.id.startswith("best") else None
+            ex_item = (
+                expected_item if expected_item.identifier.startswith("best") else None
+            )
             self.assertEqual(ex_item, item)
 
             items.remove(expected_item)
@@ -189,11 +220,11 @@ class TestPalletierWishPacker(unittest.TestCase):
         packer.reset(config)
 
         items = [
-            Item(id="item1", width=9, length=1, height=5),
-            Item(id="item2", width=5, length=1, height=1),
-            Item(id="item3", width=4, length=1, height=3),
-            Item(id="item4", width=3, length=1, height=3),
-            Item(id="item5", width=2, length=1, height=3),
+            SingleItem(identifier="item1", width=9, length=1, height=5),
+            SingleItem(identifier="item2", width=5, length=1, height=1),
+            SingleItem(identifier="item3", width=4, length=1, height=3),
+            SingleItem(identifier="item4", width=3, length=1, height=3),
+            SingleItem(identifier="item5", width=2, length=1, height=3),
         ]
 
         for expected_item in copy.deepcopy(items):
@@ -217,11 +248,11 @@ class TestPalletierWishPacker(unittest.TestCase):
         packer.reset(config)
 
         items = [
-            Item(id="item1", width=9, length=1, height=5),
-            Item(id="item2", width=3, length=1, height=4),
-            Item(id="item3", width=3, length=1, height=3),
-            Item(id="item4", width=2, length=1, height=2),
-            Item(id="item5", width=5, length=1, height=1),
+            SingleItem(identifier="item1", width=9, length=1, height=5),
+            SingleItem(identifier="item2", width=3, length=1, height=4),
+            SingleItem(identifier="item3", width=3, length=1, height=3),
+            SingleItem(identifier="item4", width=2, length=1, height=2),
+            SingleItem(identifier="item5", width=5, length=1, height=1),
         ]
 
         for expected_item in copy.deepcopy(items):
@@ -238,7 +269,7 @@ class TestPalletierWishPacker(unittest.TestCase):
 
     def test_pack_item_on_snappoint(self):
         bin = Bin(width=10, length=1, height=10)
-        item = Item(id="1", width=5, length=1, height=5)
+        item = SingleItem(identifier="1", width=5, length=1, height=5)
         packer = PalletierWishPacker(bins=[bin])
 
         # Create a Snappoint object
@@ -258,51 +289,114 @@ class TestPalletierWishPacker(unittest.TestCase):
         )
         self.assertTrue(result_right, "Failed to pack item on the right snappoint")
 
-    def test_fill_gaps_no_gap(self):
-        bin = Bin(width=10, length=1, height=2)
-        bin.pack_item(Item("", width=5, length=1, height=1), Position(0, 0, 0))
-        bin.pack_item(Item("", width=5, length=1, height=1), Position(5, 0, 0))
+    def test_prepare_items_to_pack_no_grouping(self):
+        articles = [
+            Article(article_id="1", width=2, length=8, height=3, amount=2),
+            Article(article_id="2", width=3, length=12, height=1, amount=1),
+        ]
+        order = Order(order_id="", articles=articles)
+        packer = PalletierWishPacker(bins=[Bin(10, 10, 10)])
 
-        packer = PalletierWishPacker(bins=[bin], fill_gaps=True)
-        changed = packer._fill_gaps(bin, min_z=0)
-        self.assertFalse(changed)
+        items_to_pack = packer.prepare_items_to_pack(order)
 
-    def test_fill_gaps_empty_bin(self):
-        bin = Bin(width=10, length=1, height=2)
-        packer = PalletierWishPacker(bins=[bin], fill_gaps=True)
-        changed = packer._fill_gaps(bin, min_z=0)
-        self.assertFalse(changed)
+        expected_items = [
+            SingleItem(identifier="1", width=2, length=8, height=3),
+            SingleItem(identifier="1", width=2, length=8, height=3),
+            SingleItem(identifier="2", width=3, length=12, height=1),
+        ]
 
-    def test_fill_gaps_single_item(self):
-        bin = Bin(width=10, length=1, height=2)
-        bin.pack_item(Item("", width=5, length=1, height=1, position=Position(5, 0, 0)))
+        self.assertEqual(len(items_to_pack), len(expected_items))
+        for item, expected_item in zip(items_to_pack, expected_items):
+            self.assertEqual(item.identifier, expected_item.identifier)
+            self.assertEqual(item.width, expected_item.width)
+            self.assertEqual(item.length, expected_item.length)
+            self.assertEqual(item.height, expected_item.height)
 
-        packer = PalletierWishPacker(bins=[bin], fill_gaps=True)
-        changed = packer._fill_gaps(bin, min_z=0)
+    def test_prepare_items_to_pack_with_lengthwise_grouping(self):
+        articles = [
+            Article(article_id="1", width=2, length=10, height=4, amount=1),
+            Article(article_id="2", width=4, length=5, height=4, amount=2),
+            Article(article_id="3", width=6, length=2, height=6, amount=4),
+        ]
+        order = Order(order_id="", articles=articles)
+        config = PackerConfiguration(item_grouping_mode=ItemGroupingMode.LENGTHWISE)
+        packer = PalletierWishPacker(bins=[Bin(10, 10, 10)])
 
-        self.assertTrue(changed)
-        self.assertEqual(bin.packed_items[0].position, Position(2, 0, 0))
+        items_to_pack = packer.prepare_items_to_pack(order, config=config)
+        flattened_items = sum([i.flatten() for i in items_to_pack], [])
 
-    def test_fill_gaps_single_item(self):
-        return
-        bin = Bin(width=10, length=1, height=8)
-        bin.pack_item(Item("", width=5, length=1, height=2, position=Position(0, 0, 0)))
-        bin.pack_item(Item("", width=3, length=1, height=2, position=Position(5, 0, 0)))
-        bin.pack_item(Item("", width=2, length=1, height=2, position=Position(0, 0, 2)))
-        bin.pack_item(Item("", width=2, length=1, height=2, position=Position(6, 0, 2)))
+        self.assertEqual(len(items_to_pack), 3)
+        self.assertEqual(len(flattened_items), 7)
 
-        packer = PalletierWishPacker(bins=[bin], fill_gaps=True)
-        changed = packer._fill_gaps(bin, min_z=2)
-        vis = PackingVisualization()
-        vis.visualize_bin(bin)
+    def test_pack_variant_with_grouping(self):
+        articles = [
+            Article(article_id="1", width=5, length=4, height=5, amount=2),
+            Article(article_id="2", width=3, length=2, height=3, amount=2),
+        ]
+        order = Order(order_id="", articles=articles)
+        packer = PalletierWishPacker(bins=[Bin(10, 10, 10)])
 
-        self.assertTrue(changed)
-        # staying the same
-        self.assertEqual(bin.packed_items[0].position, Position(0, 0, 0))
-        self.assertEqual(bin.packed_items[1].position, Position(5, 0, 0))
-        # updated
-        self.assertEqual(bin.packed_items[-2].position, Position(2, 0, 0))
-        self.assertEqual(bin.packed_items[-1].position, Position(4, 0, 0))
+        config = PackerConfiguration(item_grouping_mode=ItemGroupingMode.LENGTHWISE)
+        items_to_pack = packer.prepare_items_to_pack(order, config=config)
+
+        packing_variant = packer.pack_variant(order, config)
+        print(packing_variant)
+
+        item1 = SingleItem(identifier="1", width=5, length=4, height=5)
+        item1.pack(position=Position(0, 0, 0))
+        item2 = SingleItem(identifier="1", width=5, length=4, height=5)
+        item2.pack(position=Position(0, 4, 0))
+
+        item3 = SingleItem(identifier="2", width=3, length=2, height=3)
+        item3.pack(position=Position(5, 0, 0))
+        item4 = SingleItem(identifier="2", width=3, length=2, height=3)
+        item4.pack(position=Position(5, 2, 0))
+
+        expected_items = [item1, item2, item3, item4]
+
+        self.assertEqual(len(items_to_pack), 2)  # two groups expected
+        self.assertIsNotNone(packing_variant, "pack_variant returned None")
+
+        self.assertEqual(len(packing_variant.bins), 1)
+        self.assertEqual(len(packing_variant.bins[0].packed_items), 4)
+        self.assertEqual(packing_variant.bins[0].packed_items, expected_items)
+
+    def test_pack_variant_with_grouping_and_overhang(self):
+        articles = [
+            Article(article_id="1", width=5, length=4, height=5, amount=2),
+            Article(article_id="2", width=3, length=6, height=3, amount=2),
+        ]
+        order = Order(order_id="", articles=articles)
+        packer = PalletierWishPacker(bins=[Bin(10, 10, 10)])
+
+        config = PackerConfiguration(
+            default_select_strategy=ItemSelectStrategy.LARGEST_VOLUME,
+            new_layer_select_strategy=ItemSelectStrategy.LARGEST_VOLUME,
+            overhang_y_stability_factor=0.6,
+            item_grouping_mode=ItemGroupingMode.LENGTHWISE,
+        )
+        items_to_pack = packer.prepare_items_to_pack(order, config=config)
+
+        packing_variant = packer.pack_variant(order, config)
+        print(packing_variant)
+
+        item1 = SingleItem(identifier="1", width=5, length=4, height=5)
+        item1.pack(position=Position(0, 0, 0))
+        item2 = SingleItem(identifier="1", width=5, length=4, height=5)
+        item2.pack(position=Position(0, 4, 0))
+
+        item3 = SingleItem(identifier="2", width=3, length=6, height=3)
+        item3.pack(position=Position(5, -1, 0))
+        item4 = SingleItem(identifier="2", width=3, length=6, height=3)
+        item4.pack(position=Position(5, 5, 0))
+
+        expected_items = [item1, item2, item3, item4]
+
+        self.assertEqual(len(items_to_pack), 2)  # two groups expected
+        self.assertEqual(len(packing_variant.bins), 1)
+        self.assertEqual(len(packing_variant.unpacked_items), 0)
+        self.assertEqual(len(packing_variant.bins[0].packed_items), 4)
+        self.assertEqual(packing_variant.bins[0].packed_items, expected_items)
 
 
 if __name__ == "__main__":

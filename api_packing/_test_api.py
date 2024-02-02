@@ -1,17 +1,12 @@
-import requests
 import json
-import copy
-import os
+import requests
 
 from packutils.data.order import Order
 from packutils.data.article import Article
-from packutils.data.bin import Bin
-from packutils.data.item import Item
-from packutils.data.packer_configuration import PackerConfiguration
-from packutils.data.position import Position
 from packutils.data.packed_order import PackedOrder
-
+from packutils.data.packer_configuration import PackerConfiguration
 from packutils.visual.packing_visualization import PackingVisualization
+
 
 HOST = "65.108.147.211"
 # HOST = "localhost"

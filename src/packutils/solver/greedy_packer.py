@@ -1,6 +1,6 @@
 import copy
 import logging
-from packutils.data.item import Item
+from packutils.data.single_item import SingleItem
 from packutils.data.order import Order
 from packutils.data.packing_variant import PackingVariant
 from packutils.data.position import Position
@@ -177,15 +177,17 @@ class GreedyPacker(AbstractPacker):
                     w, l, h = 1, i.width, i.height
                     pos = Position(x=0, y=i.x, z=i.y)
 
-                item = Item(
-                    id=f"Item {w, l, h, 0.0}",
+                item = SingleItem(
+                    identifier=f"Item {w, l, h, 0.0}",
                     width=w,
                     length=l,
                     height=h,
                     weight=0.0,
+                )
+                is_packed, error_msg = bin.pack_item(
+                    item=item,
                     position=pos,
                 )
-                is_packed, error_msg = bin.pack_item(item)
                 if not is_packed:
                     variant.add_unpacked_item(item, error_msg)
 

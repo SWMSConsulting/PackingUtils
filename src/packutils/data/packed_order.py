@@ -3,6 +3,7 @@ from typing import Dict, List
 from packutils.data.article import Article
 from packutils.data.bin import Bin
 from packutils.data.item import Item
+from packutils.data.single_item import SingleItem
 from packutils.data.packing_variant import PackingVariant
 from packutils.data.position import Position
 
@@ -60,7 +61,7 @@ class PackedOrder:
                 Article(article_id="item2", width=20, length=20, height=20, amount=1, weight=2.0)
             ]
         """
-        items = []
+        items: List[Item] = []
         for variant in self.packing_variants:
             for bin in variant.bins:
                 for item in bin.packed_items:
@@ -68,16 +69,16 @@ class PackedOrder:
             for item in variant.unpacked_items:
                 items.append(item)
 
-        articles = []
+        articles: List[Article] = []
         for item in items:
-            filtered = list(filter(lambda x: x.article_id == item.id, articles))
+            filtered = list(filter(lambda x: x.article_id == item.identifier, articles))
             if len(filtered) > 0:
                 index = articles.index(filtered[0])
                 articles[index].amount += 1
             else:
                 articles.append(
                     Article(
-                        article_id=item.id,
+                        article_id=item.identifier,
                         width=item.width,
                         length=item.length,
                         height=item.height,
@@ -90,7 +91,7 @@ class PackedOrder:
     def __repr__(self):
         return f"PackedOrder({self.order_id}, {self.packing_variants})"
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: "PackedOrder") -> bool:
         return (
             self.order_id == other.order_id
             and self.packing_variants == other.packing_variants
@@ -117,14 +118,14 @@ class PackedOrder:
                 for item in bin.packed_items:
                     positions.append(
                         {
-                            "article_id": item.id,
+                            "article_id": item.identifier,
                             "x": item.position.x,
                             "y": item.position.y,
                             "z": item.position.z,
                             "rotation": item.position.rotation,
-                            "centerpoint_x": item.centerpoint().x,
-                            "centerpoint_y": item.centerpoint().y,
-                            "centerpoint_z": item.centerpoint().z,
+                            "centerpoint_x": item.centerpoint.x,
+                            "centerpoint_y": item.centerpoint.y,
+                            "centerpoint_z": item.centerpoint.z,
                         }
                     )
 
@@ -209,8 +210,8 @@ class PackedOrder:
                         z=int(pos_data["z"]),
                         rotation=pos_data["rotation"],
                     )
-                    item = Item(
-                        id=article.article_id,
+                    item = SingleItem(
+                        identifier=article.article_id,
                         width=article.width,
                         length=article.length,
                         height=article.height,

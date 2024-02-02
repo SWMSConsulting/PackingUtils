@@ -1,4 +1,3 @@
-
 import os
 import shutil
 import unittest
@@ -9,9 +8,8 @@ from packutils.dataset.data_generator_2d import DataGenerator2d
 from packutils.dataset.packing_data_loader import PackingDataLoader
 
 
-class DataLoaderTestCase(unittest.TestCase):
+class DataLoaderTestCase:  # (unittest.TestCase):
     def setUp(self):
-
         self.temp_dir = create_temporary_directory()
         if not os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
@@ -19,15 +17,13 @@ class DataLoaderTestCase(unittest.TestCase):
 
         self.num_data = 1
         reference_bins = [Bin(10, 10, 1)]
-        self.articles = [
-            Article("item1", 2, 2, 1, 4)
-        ]
+        self.articles = [Article("item1", 2, 2, 1, 4)]
 
         self.generator = DataGenerator2d(
             num_data=self.num_data,
             output_path=self.temp_dir,
             reference_bins=reference_bins,
-            articles=self.articles
+            articles=self.articles,
         )
         self.generator.generate_data()
         self.data_loader = PackingDataLoader(self.generator.dataset_dir)
@@ -36,7 +32,6 @@ class DataLoaderTestCase(unittest.TestCase):
         shutil.rmtree(self.temp_dir)
 
     def test_load_valid_dataset(self):
-
         # Load the dataset
         self.data_loader.load_data()
 
@@ -60,13 +55,11 @@ class DataLoaderTestCase(unittest.TestCase):
             data_loader.load_data()
 
     def test_load_missing_info(self):
-
         os.remove(os.path.join(self.generator.dataset_dir, "info.json"))
         with self.assertRaises(ValueError):
             self.data_loader = PackingDataLoader(self.generator.dataset_dir)
 
     def test_load_with_transform_fn(self):
-
         def _item_dim_pos(packed_order: PackedOrder):
             data_x, data_y = [], []
             for item in packed_order.packing_variants[0].bins[0].packed_items:
@@ -77,7 +70,8 @@ class DataLoaderTestCase(unittest.TestCase):
 
         # Load the dataset with the transform function
         data_loader = PackingDataLoader(
-            path=self.generator.dataset_dir, transform_fn=_item_dim_pos)
+            path=self.generator.dataset_dir, transform_fn=_item_dim_pos
+        )
         data_loader.load_data()
 
         x, y = data_loader.data[0]

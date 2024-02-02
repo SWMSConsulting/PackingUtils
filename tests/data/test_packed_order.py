@@ -3,7 +3,7 @@ import os
 import unittest
 from packutils.data.article import Article
 from packutils.data.bin import Bin
-from packutils.data.item import Item
+from packutils.data.single_item import SingleItem
 from packutils.data.packing_variant import PackingVariant
 from packutils.data.packed_order import PackedOrder
 from packutils.data.position import Position
@@ -37,10 +37,10 @@ class TestPackedOrder(unittest.TestCase):
 
     def test_get_articles_list(self):
         packed_order = PackedOrder(order_id="xyz")
-        item1 = Item(id="item1", width=1, length=1, height=1, weight=1.0)
-        item2 = Item(id="item2", width=1, length=1, height=1, weight=1.0)
-        item3 = Item(id="item1", width=1, length=1, height=1, weight=1.0)
-        item4 = Item(id="item3", width=1, length=1, height=1, weight=1.0)
+        item1 = SingleItem(identifier="item1", width=1, length=1, height=1, weight=1.0)
+        item2 = SingleItem(identifier="item2", width=1, length=1, height=1, weight=1.0)
+        item3 = SingleItem(identifier="item1", width=1, length=1, height=1, weight=1.0)
+        item4 = SingleItem(identifier="item3", width=1, length=1, height=1, weight=1.0)
 
         bin1 = Bin(width=10, length=10, height=10)
         bin1.pack_item(item1, Position(x=0, y=0, z=0))
@@ -87,9 +87,9 @@ class TestPackedOrder(unittest.TestCase):
         bin1 = Bin(10, 10, 10)
         bin2 = Bin(20, 20, 20)
 
-        item1 = Item("item1", 1, 1, 1, 1.0)
-        item2 = Item("item2", 1, 1, 1, 2.0)
-        item3 = Item("item1", 1, 1, 1, 1.0)
+        item1 = SingleItem(identifier="item1", width=1, height=1, length=1, weight=1.0)
+        item2 = SingleItem(identifier="item2", width=1, height=1, length=1, weight=2.0)
+        item3 = SingleItem(identifier="item1", width=1, height=1, length=1, weight=1.0)
 
         bin1.pack_item(item1, Position(x=0, y=0, z=0))
         bin2.pack_item(item2, Position(x=0, y=0, z=0))
