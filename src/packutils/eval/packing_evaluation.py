@@ -123,9 +123,9 @@ class PackingEvaluation:
                 other
                 for other in seen_items
                 if (
-                    abs(other.centerpoint().x - item.centerpoint().x)
+                    abs(other.centerpoint.x - item.centerpoint.x)
                     < max(item.width, other.width) / 2
-                    and abs(other.centerpoint().y - item.centerpoint().y)
+                    and abs(other.centerpoint.y - item.centerpoint.y)
                     < max(item.length, other.length) / 2
                 )
             ]
@@ -143,12 +143,8 @@ class PackingEvaluation:
         return np.mean(scores)
 
     def _distance_between_items(self, item1: Item, item2: Item):
-        p1 = np.array(
-            [item1.centerpoint().x, item1.centerpoint().y, item1.centerpoint().z]
-        )
-        p2 = np.array(
-            [item2.centerpoint().x, item2.centerpoint().y, item2.centerpoint().z]
-        )
+        p1 = np.array([item1.centerpoint.x, item1.centerpoint.y, item1.centerpoint.z])
+        p2 = np.array([item2.centerpoint.x, item2.centerpoint.y, item2.centerpoint.z])
         squared_dist = np.sum((p1 - p2) ** 2, axis=0)
         distance = np.sqrt(squared_dist)
 

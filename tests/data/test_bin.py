@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 from packutils.data.bin import Bin
-from packutils.data.item import Item
+from packutils.data.single_item import SingleItem
 from packutils.data.position import Position
 from packutils.data.snappoint import Snappoint, SnappointDirection
 
@@ -12,7 +12,7 @@ class TestBin(unittest.TestCase):
         self.bin = Bin(width=10, length=10, height=10)
 
     def test_pack_item_successful(self):
-        item = Item(id="test", width=3, length=3, height=3)
+        item = SingleItem(identifier="test", width=3, length=3, height=3)
         position = Position(0, 0, 0)
         result, _ = self.bin.pack_item(item, position)
 
@@ -23,25 +23,25 @@ class TestBin(unittest.TestCase):
     def test_pack_item_stability_check(self):
         # item is flying
         bin = Bin(width=10, length=10, height=10)
-        item = Item(id="test", width=3, length=3, height=3)
+        item = SingleItem(identifier="test", width=3, length=3, height=3)
         flying_position = Position(0, 0, 1)
         result, _ = bin.pack_item(item, flying_position)
         self.assertFalse(result)
 
         # item is packed on the bottom of container
         bin = Bin(width=10, length=10, height=10)
-        valid_item = Item(id="test", width=3, length=3, height=3)
+        valid_item = SingleItem(identifier="test", width=3, length=3, height=3)
         position = Position(0, 0, 0)
         result, _ = bin.pack_item(valid_item, position)
         self.assertTrue(result)
 
         # item is placed fully on top of other item
         bin = Bin(width=10, length=10, height=10)
-        item1 = Item(id="test", width=3, length=3, height=3)
+        item1 = SingleItem(identifier="test", width=3, length=3, height=3)
         position = Position(0, 0, 0)
         bin.pack_item(item1, position)
 
-        item2 = Item(id="test2", width=3, length=3, height=3)
+        item2 = SingleItem(identifier="test2", width=3, length=3, height=3)
         position = Position(0, 0, 3)
         result, info = bin.pack_item(item2, position)
         print(info)
@@ -49,28 +49,28 @@ class TestBin(unittest.TestCase):
 
         # item is placed fully on top of other item with small overhang
         bin = Bin(width=10, length=10, height=10)
-        item = Item(id="test", width=3, length=3, height=3)
+        item = SingleItem(identifier="test", width=3, length=3, height=3)
         position = Position(0, 0, 0)
         bin.pack_item(item, position)
 
-        valid_item = Item(id="test", width=4, length=3, height=3)
+        valid_item = SingleItem(identifier="test", width=4, length=3, height=3)
         position = Position(0, 0, 3)
         result, _ = bin.pack_item(valid_item, position)
         self.assertTrue(result)
 
         # item is placed fully on top of other item with too much overhang
         bin = Bin(width=10, length=10, height=10)
-        item = Item(id="test", width=3, length=3, height=3)
+        item = SingleItem(identifier="test", width=3, length=3, height=3)
         position = Position(0, 0, 0)
         bin.pack_item(item, position)
 
-        item = Item(id="test", width=3, length=3, height=3)
+        item = SingleItem(identifier="test", width=3, length=3, height=3)
         too_much_overhang_position = Position(2, 0, 3)
         result, _ = bin.pack_item(item, too_much_overhang_position)
         self.assertFalse(result)
 
     def test_pack_item_out_of_bounds(self):
-        item = Item(id="test", width=5, length=5, height=5)
+        item = SingleItem(identifier="test", width=5, length=5, height=5)
         position = Position(7, 7, 7)
         result, _ = self.bin.pack_item(item, position)
 
@@ -79,11 +79,11 @@ class TestBin(unittest.TestCase):
         self.assertEqual(np.count_nonzero(self.bin.heightmap), 0)
 
     def test_pack_item_position_occupied(self):
-        item1 = Item(id="test", width=4, length=4, height=4)
+        item1 = SingleItem(identifier="test", width=4, length=4, height=4)
         position = Position(0, 0, 0)
         self.bin.pack_item(item1, position)
 
-        item = Item(id="test", width=2, length=2, height=2)
+        item = SingleItem(identifier="test", width=2, length=2, height=2)
         position = Position(1, 1, 1)
         result, _ = self.bin.pack_item(item, position)
         self.assertFalse(result)
@@ -93,19 +93,19 @@ class TestBin(unittest.TestCase):
         )
 
     def test_pack_item_with_none_position(self):
-        item = Item(id="test", width=3, length=3, height=3)
+        item = SingleItem(identifier="test", width=3, length=3, height=3)
         result, _ = self.bin.pack_item(item, None)
         self.assertFalse(result)
         self.assertEqual(len(self.bin.packed_items), 0)
         self.assertEqual(np.count_nonzero(self.bin.heightmap), 0)
 
     def test_remove_item(self):
-        item1 = Item(id="test1", width=3, length=3, height=3)
+        item1 = SingleItem(identifier="test1", width=3, length=3, height=3)
         position = Position(0, 0, 0)
         self.bin.pack_item(item1, position)
         expected_heightmap = self.bin.heightmap.copy()
 
-        item2 = Item(id="test2", width=4, length=3, height=1)
+        item2 = SingleItem(identifier="test2", width=4, length=3, height=1)
         position = Position(0, 0, 3)
 
         is_packed, _ = self.bin.pack_item(item2, position)
@@ -171,8 +171,8 @@ class TestBin(unittest.TestCase):
     def test_used_volume(self):
         bin = Bin(width=10, length=20, height=5)
         bin.pack_item(
-            Item(
-                id="test1",
+            SingleItem(
+                identifier="test1",
                 width=2,
                 length=10,
                 height=2,
@@ -180,7 +180,8 @@ class TestBin(unittest.TestCase):
             Position(x=0, y=0, z=0),
         )
         bin.pack_item(
-            Item(id="test2", width=3, length=5, height=2), Position(x=4, y=0, z=0)
+            SingleItem(identifier="test2", width=3, length=5, height=2),
+            Position(x=4, y=0, z=0),
         )
         self.assertEqual(bin.get_used_volume(), 40 + 30)
         self.assertEqual(bin.get_used_volume(use_percentage=True), 7)
@@ -192,7 +193,7 @@ class TestBin(unittest.TestCase):
 
     def test_heightmap_single_item(self):
         # You need to import Item class or create it if not available
-        item = Item("test", width=1, length=1, height=1)
+        item = SingleItem("test", width=1, length=1, height=1)
         self.bin.pack_item(item, Position(0, 0, 0))
 
         height_map = self.bin.heightmap
@@ -201,11 +202,11 @@ class TestBin(unittest.TestCase):
         np.testing.assert_array_equal(height_map, expected_height_map)
 
     def test_heightmap_multiple_items(self):
-        item1 = Item("test", 2, 2, 1)
+        item1 = SingleItem("test", 2, 2, 1)
         self.bin.pack_item(item1, Position(0, 0, 0))
-        item2 = Item("test", 3, 1, 2)
+        item2 = SingleItem("test", 3, 1, 2)
         self.bin.pack_item(item2, Position(2, 0, 0))
-        item3 = Item("test", 1, 3, 3)
+        item3 = SingleItem("test", 1, 3, 3)
         self.bin.pack_item(item3, Position(0, 2, 0))
 
         height_map = self.bin.heightmap
@@ -220,10 +221,10 @@ class TestBin(unittest.TestCase):
     # Tests for the get_center_of_gravity function
     def test_get_center_of_gravity(self):
         bin = Bin(width=10, length=10, height=10)
-        item1 = Item("test", width=3, length=1, height=3, weight=1)
+        item1 = SingleItem("test", width=3, length=1, height=3, weight=1)
         item1.position = Position(x=1, y=0, z=1)  # center: 2.5, 0.5, 2.5
 
-        item2 = Item("test", width=2, length=1, height=2, weight=1)
+        item2 = SingleItem("test", width=2, length=1, height=2, weight=1)
         item2.position = Position(x=5, y=0, z=2)  # center: 6, 0.5, 3
 
         bin.packed_items = [item1, item2]
@@ -242,11 +243,11 @@ class TestBin(unittest.TestCase):
         bin = Bin(10, 1, 10)
 
         # Pack some items into the bin
-        item1 = Item("item1", 2, 1, 2)
+        item1 = SingleItem("item1", 2, 1, 2)
         bin.pack_item(item1, Position(0, 0, 0))
-        item2 = Item("item2", 2, 1, 2)
+        item2 = SingleItem("item2", 2, 1, 2)
         bin.pack_item(item2, Position(4, 0, 0))
-        item3 = Item("item3", 2, 1, 2)
+        item3 = SingleItem("item3", 2, 1, 2)
         bin.pack_item(item3, Position(6, 0, 0))
 
         # Get the snap points
@@ -272,11 +273,11 @@ class TestBin(unittest.TestCase):
         bin = Bin(10, 1, 10)
 
         # Pack some items into the bin
-        item1 = Item("item1", 2, 1, 4)
+        item1 = SingleItem("item1", 2, 1, 4)
         bin.pack_item(item1, Position(0, 0, 0))
-        item2 = Item("item2", 2, 1, 2)
+        item2 = SingleItem("item2", 2, 1, 2)
         bin.pack_item(item2, Position(4, 0, 0))
-        item3 = Item("item3", 2, 1, 2)
+        item3 = SingleItem("item3", 2, 1, 2)
         bin.pack_item(item3, Position(6, 0, 0))
 
         # Get the snap points
@@ -297,7 +298,7 @@ class TestBin(unittest.TestCase):
     def test_pack_item_with_overhang(self):
         bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
 
-        item = Item(id="test", width=5, length=12, height=5)
+        item = SingleItem(identifier="test", width=5, length=12, height=5)
         result, _ = bin.pack_item(item, Position(0, 0, 0))
 
         self.assertTrue(result)
@@ -308,7 +309,7 @@ class TestBin(unittest.TestCase):
     def test_remove_item_with_overhang(self):
         bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
 
-        item = Item(id="test", width=5, length=12, height=5)
+        item = SingleItem(identifier="test", width=5, length=12, height=5)
         bin.pack_item(item, Position(0, 0, 0))
         prev_pos = item.position
         result, _ = bin.remove_item(item)
@@ -322,7 +323,7 @@ class TestBin(unittest.TestCase):
     def test_pack_item_too_much_overhang(self):
         bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
 
-        item = Item(id="test", width=5, length=12, height=5)
+        item = SingleItem(identifier="test", width=5, length=12, height=5)
         result, _ = bin.pack_item(item, Position(0, -6, 0))
 
         self.assertFalse(result)
@@ -336,9 +337,9 @@ class TestBin(unittest.TestCase):
     def test_pack_item_with_overhang_stack_multiple(self):
         bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
 
-        item1 = Item(id="test", width=5, length=18, height=5)
+        item1 = SingleItem(identifier="test", width=5, length=18, height=5)
         bin.pack_item(item1, Position(0, 0, 0))
-        item2 = Item(id="test", width=5, length=18, height=5)
+        item2 = SingleItem(identifier="test", width=5, length=18, height=5)
         bin.pack_item(item2, Position(0, 0, 5))
 
         self.assertTrue(item1.is_packed)
@@ -349,11 +350,11 @@ class TestBin(unittest.TestCase):
     def test_get_gaps(self):
         bin = Bin(width=10, length=10, height=10)
 
-        item1 = Item(id="test1", width=2, length=10, height=2)
+        item1 = SingleItem(identifier="test1", width=2, length=10, height=2)
         bin.pack_item(item1, Position(0, 0, 0))
-        item2 = Item(id="test2", width=2, length=10, height=2)
+        item2 = SingleItem(identifier="test2", width=2, length=10, height=2)
         bin.pack_item(item2, Position(5, 0, 0))
-        item2 = Item(id="test3", width=2, length=10, height=2)
+        item2 = SingleItem(identifier="test3", width=2, length=10, height=2)
         bin.pack_item(item2, Position(5, 0, 2))
 
         gaps = bin.get_gaps()
@@ -365,11 +366,11 @@ class TestBin(unittest.TestCase):
     def test_remove_gaps(self):
         bin = Bin(width=10, length=10, height=10)
 
-        item1 = Item(id="test1", width=2, length=10, height=2)
+        item1 = SingleItem(identifier="test1", width=2, length=10, height=2)
         bin.pack_item(item1, Position(0, 0, 0))
-        item2 = Item(id="test2", width=2, length=10, height=2)
+        item2 = SingleItem(identifier="test2", width=2, length=10, height=2)
         bin.pack_item(item2, Position(5, 0, 0))
-        item2 = Item(id="test3", width=2, length=10, height=2)
+        item2 = SingleItem(identifier="test3", width=2, length=10, height=2)
         bin.pack_item(item2, Position(5, 0, 2))
 
         bin.remove_gaps()

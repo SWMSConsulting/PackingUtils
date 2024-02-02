@@ -1,24 +1,24 @@
 import copy
 import logging
-import time
 import numpy as np
-import collections
 import multiprocessing
-from enum import Enum
+
 from typing import List, Tuple
+from collections import namedtuple
 
 from packutils.data.bin import Bin
 from packutils.data.item import Item
 from packutils.data.order import Order
-from packutils.data.packer_configuration import ItemSelectStrategy, PackerConfiguration
-from packutils.data.packing_variant import PackingVariant
 from packutils.data.position import Position
-from packutils.data.snappoint import Snappoint, SnappointDirection
+from packutils.data.single_item import SingleItem
+from packutils.data.packing_variant import PackingVariant
 from packutils.solver.abstract_packer import AbstractPacker
+from packutils.data.snappoint import Snappoint, SnappointDirection
+from packutils.data.packer_configuration import ItemSelectStrategy, PackerConfiguration
 
 PACKER_AVAILABLE = True
 
-ScoredVariant = collections.namedtuple("ScoredVariant", ["variant", "score"])
+ScoredVariant = namedtuple("ScoredVariant", ["variant", "score"])
 
 
 class PalletierWishPacker(AbstractPacker):
@@ -72,8 +72,8 @@ class PalletierWishPacker(AbstractPacker):
         padding_x = 0 if config is None else config.padding_x
 
         items_to_pack = [
-            Item(
-                id=a.article_id,
+            SingleItem(
+                identifier=a.article_id,
                 width=a.width + padding_x,
                 length=a.length,
                 height=a.height,
@@ -107,22 +107,8 @@ class PalletierWishPacker(AbstractPacker):
                     if not point in snappoints_to_ignore and point.z < layer_z_max
                 ]
 
-                if is_new_layer:
-                    self.snappoint_direction = SnappointDirection.RIGHT
-
-                    sorted_points = sorted(snappoints, key=lambda p: p.x)
-
-                    # check if the first snappoint is at the edge of the bin
-                    if sorted_points[0].x != 0 and layer_z_max == bin.height:
-                        logging.info("First snappoint is not at the edge of the bin.")
-                        is_packing = False
-                        break
-
-                else:
-                    sorted_points = sorted(snappoints, key=lambda p: (p.z, p.x))
-
                 # no snappoint available
-                if len(sorted_points) < 2:
+                if len(snappoints) < 2:
                     # reached top of the bin or no possible positions left
                     if layer_z_max == bin.height:
                         is_packing = False
@@ -136,6 +122,20 @@ class PalletierWishPacker(AbstractPacker):
                         snappoints_to_ignore = []
                         layer_z_max = bin.height
                     continue
+
+                if is_new_layer:
+                    self.snappoint_direction = SnappointDirection.RIGHT
+
+                    sorted_points = sorted(snappoints, key=lambda p: p.x)
+
+                    # check if the first snappoint is at the edge of the bin
+                    if sorted_points[0].x != 0 and layer_z_max == bin.height:
+                        logging.info("First snappoint is not at the edge of the bin.")
+                        is_packing = False
+                        break
+
+                else:
+                    sorted_points = sorted(snappoints, key=lambda p: (p.z, p.x))
 
                 left_snappoint = [
                     p for p in sorted_points if p.direction == SnappointDirection.RIGHT

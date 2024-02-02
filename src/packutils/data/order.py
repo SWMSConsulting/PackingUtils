@@ -3,6 +3,7 @@ import os
 from typing import List
 from packutils.data.article import Article
 from packutils.data.item import Item
+from packutils.data.single_item import SingleItem
 
 
 class Supply:
@@ -93,13 +94,12 @@ class Order:
 
         """
         return [
-            Item(
-                id=article.article_id,
+            SingleItem(
+                identifier=article.article_id,
                 width=article.width,
                 length=article.length,
                 height=article.height,
                 weight=article.weight,
-                position=None,
             )
             for article in self.articles
         ]

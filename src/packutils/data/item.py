@@ -1,45 +1,26 @@
+from abc import ABC, abstractmethod
 from ast import Tuple
-import math
 from typing import List
+
 from packutils.data.article import Article
 from packutils.data.position import Position
 
 
-class Item:
+class Item(ABC):
     """
-    Represents an item to be packed in a container.
-
-    Attributes:
-        id (str): The identifier of the item.
-        width (int): The width of the item.
-        length (int): The length of the item.
-        height (int): The height of the item.
-        weight (float): The weight of the item.
-        position (Position): The position of the item in the container.
-
-    Methods:
-        __init__(id: str, width: int, length: int, height: int, weight: float = 0.0, position: Position = None):
-            Initializes an Item object with the specified attributes.
-
-        pack(position: Position):
-            Sets the position of the item in the container.
-
-        is_packed -> bool:
-            Checks if the item is packed in a position.
-
-        __str__() -> str:
-            Returns a string representation of the item.
-
+    An abstract class representing an item to be packed in a container.
     """
+
+    identifier: str
+    width: int
+    length: int
+    height: int
+    weight: float
+
+    position: "Position|None" = None
 
     def __init__(
-        self,
-        id: str,
-        width: int,
-        length: int,
-        height: int,
-        weight: float = 0.0,
-        position: Position = None,
+        self, identifier: str, width: int, length: int, height: int, weight: float = 0.0
     ):
         """
         Initializes an Item object with the specified attributes.
@@ -53,28 +34,13 @@ class Item:
             position (Position, optional): The position of the item in the container. Default is None.
 
         """
-        self.id = id
+        self.id = identifier
         self.width = width
         self.length = length
         self.height = height
         self.weight = weight
-        self.position = position
 
-    def centerpoint(self) -> Position:
-        """
-        Returns the centerpoint of the object.
-
-        Returns:
-            position (Position): The position of the centerpoint,
-
-        """
-        return Position(
-            x=self.position.x + self.width / 2,
-            y=self.position.y + self.length / 2,
-            z=self.position.z + self.height / 2,
-            rotation=self.position.rotation,
-        )
-
+    @abstractmethod
     def get_max_overhang_y(self, stability_factor) -> int:
         """
         Returns the maximum overhang of the item in the y-direction.
@@ -85,8 +51,9 @@ class Item:
         Returns:
             int: The maximum overhang of the item in the y-direction.
         """
-        return int(math.floor(self.length * (1 - stability_factor)))
+        pass
 
+    @abstractmethod
     def pack(self, position: "Position|None"):
         """
         Sets the position of the item in the container.
@@ -95,11 +62,27 @@ class Item:
             position (Position): The position object representing the coordinates and rotation of the item.
 
         """
-        assert position is None or isinstance(
-            position, Position
-        ), "This method requires a Position object as input."
+        pass
 
-        self.position = position
+    @property
+    def centerpoint(self) -> Position:
+        """
+        Returns the centerpoint of the object.
+
+        Returns:
+            position (Position): The position of the centerpoint,
+
+        """
+        return (
+            None
+            if self.position is None
+            else Position(
+                x=self.position.x + self.width / 2,
+                y=self.position.y + self.length / 2,
+                z=self.position.z + self.height / 2,
+                rotation=self.position.rotation,
+            )
+        )
 
     @property
     def is_packed(self) -> bool:
@@ -111,6 +94,37 @@ class Item:
 
         """
         return self.position is not None
+
+    @property
+    def volume(self) -> int:
+        """
+        Calculate the volume of the Item.
+
+        Returns:
+        int: The volume of the Item.
+        """
+        return int(self.width * self.length * self.height)
+
+    @property
+    def surface(self) -> int:
+        """
+        Calculate the surface of the Item.
+
+        Returns:
+        int: The surface of the Item.
+        """
+        return int(self.width * self.length)
+
+    @property
+    def dimensions(self) -> "Tuple[int, int, int]":
+        """
+        Returns the dimensions of the item.
+
+        Returns:
+            Tuple[int, int, int]: The dimensions of the item.
+
+        """
+        return (self.width, self.length, self.height)
 
     def get_rotated_dimensions_3D(self):
         if not self.is_packed:
@@ -175,37 +189,6 @@ class Item:
                 dim.append(self.height)
 
         return tuple(pos), tuple(dim)
-
-    @property
-    def volume(self) -> int:
-        """
-        Calculate the volume of the Item.
-
-        Returns:
-        int: The volume of the Item.
-        """
-        return int(self.width * self.length * self.height)
-
-    @property
-    def surface(self) -> int:
-        """
-        Calculate the surface of the Item.
-
-        Returns:
-        int: The surface of the Item.
-        """
-        return int(self.width * self.length)
-
-    @property
-    def dimensions(self) -> "Tuple[int, int, int]":
-        """
-        Returns the dimensions of the item.
-
-        Returns:
-            Tuple[int, int, int]: The dimensions of the item.
-
-        """
-        return (self.width, self.length, self.height)
 
     def __repr__(self) -> str:
         """

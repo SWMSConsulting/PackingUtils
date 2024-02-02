@@ -1,5 +1,5 @@
 import unittest
-from packutils.data.item import Item
+from packutils.data.single_item import SingleItem
 from packutils.data.bin import Bin
 from packutils.data.packing_variant import PackingVariant
 
@@ -16,7 +16,7 @@ class TestPackingVariant(unittest.TestCase):
 
     def test_add_unpacked_item(self):
         variant = PackingVariant()
-        item = Item(id="test_item", width=5, length=5, height=5)
+        item = SingleItem(identifier="test_item", width=5, length=5, height=5)
         error_message = "Item is too large for the available bins."
         variant.add_unpacked_item(item, error_message)
 
@@ -27,7 +27,7 @@ class TestPackingVariant(unittest.TestCase):
 
     def test_add_unpacked_item_without_error_message(self):
         variant = PackingVariant()
-        item = Item(id="test_item", width=5, length=5, height=5)
+        item = SingleItem(identifier="test_item", width=5, length=5, height=5)
         variant.add_unpacked_item(item, None)
 
         self.assertEqual(len(variant.unpacked_items), 1)

@@ -410,9 +410,9 @@ class Bin:
 
         for item in self.packed_items:
             m.append(item.volume if use_volume else item.weight)
-            x.append(item.centerpoint().x)
-            y.append(item.centerpoint().y)
-            z.append(item.centerpoint().z)
+            x.append(item.centerpoint.x)
+            y.append(item.centerpoint.y)
+            z.append(item.centerpoint.z)
 
         m, x, y, z = np.array(m), np.array(x), np.array(y), np.array(z)
 

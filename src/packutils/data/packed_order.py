@@ -2,7 +2,7 @@ import json
 from typing import Dict, List
 from packutils.data.article import Article
 from packutils.data.bin import Bin
-from packutils.data.item import Item
+from packutils.data.single_item import SingleItem
 from packutils.data.packing_variant import PackingVariant
 from packutils.data.position import Position
 
@@ -122,9 +122,9 @@ class PackedOrder:
                             "y": item.position.y,
                             "z": item.position.z,
                             "rotation": item.position.rotation,
-                            "centerpoint_x": item.centerpoint().x,
-                            "centerpoint_y": item.centerpoint().y,
-                            "centerpoint_z": item.centerpoint().z,
+                            "centerpoint_x": item.centerpoint.x,
+                            "centerpoint_y": item.centerpoint.y,
+                            "centerpoint_z": item.centerpoint.z,
                         }
                     )
 
@@ -209,8 +209,8 @@ class PackedOrder:
                         z=int(pos_data["z"]),
                         rotation=pos_data["rotation"],
                     )
-                    item = Item(
-                        id=article.article_id,
+                    item = SingleItem(
+                        identifier=article.article_id,
                         width=article.width,
                         length=article.length,
                         height=article.height,

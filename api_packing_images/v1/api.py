@@ -1,12 +1,14 @@
 import matplotlib.pyplot as plt
+
 from io import BytesIO
 from fastapi import FastAPI, responses, Request
 from fastapi.openapi.docs import get_swagger_ui_html
+
 from v1.models.bin_image_request_model import BinImageRequestModel
 
 from packutils.visual.packing_visualization import PackingVisualization
+from packutils.data.single_item import SingleItem
 from packutils.data.position import Position
-from packutils.data.item import Item
 from packutils.data.bin import Bin
 
 import matplotlib
@@ -44,13 +46,8 @@ def get_bin_image(request: BinImageRequestModel):
     errors = []
     for idx, p in enumerate(request.packages):
         done, msg = bin.pack_item(
-            Item(
-                id="",
-                width=p.width,
-                length=p.length,
-                height=p.height,
-                position=Position(x=p.x, y=p.y, z=p.z),
-            )
+            SingleItem(identifier="", width=p.width, length=p.length, height=p.height),
+            Position(x=p.x, y=p.y, z=p.z),
         )
         if not done:
             errors.append(f"Failed to pack index {idx}: {msg}")

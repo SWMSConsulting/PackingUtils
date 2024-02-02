@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from packutils.data.item import Item
+from packutils.data.single_item import SingleItem
 from packutils.data.bin import Bin
 from packutils.data.position import Position
 from packutils.data.packing_variant import PackingVariant
@@ -18,13 +18,13 @@ class TestPackingVisualization(unittest.TestCase):
 
         self.variant = PackingVariant()
         bin = Bin(width=10, length=10, height=5)
-        item1 = Item(id="item1", width=1, length=1, height=1)
+        item1 = SingleItem(identifier="item1", width=1, length=1, height=1)
         bin.pack_item(item1, Position(x=0, y=0, z=0))
-        item2 = Item(id="item2", width=1, length=1, height=1)
+        item2 = SingleItem(identifier="item2", width=1, length=1, height=1)
         bin.pack_item(item2, Position(x=1, y=0, z=0))
-        item3 = Item(id="item3", width=1, length=1, height=1)
+        item3 = SingleItem(identifier="item3", width=1, length=1, height=1)
         bin.pack_item(item3, Position(x=0, y=1, z=0))
-        item4 = Item(id="item4", width=1, length=1, height=1)
+        item4 = SingleItem(identifier="item4", width=1, length=1, height=1)
         bin.pack_item(item4, Position(x=0, y=0, z=1))
         self.variant.add_bin(bin)
 
@@ -78,7 +78,7 @@ class TestPackingVisualization(unittest.TestCase):
 
     def test_visualize_bin_2d_with_snappoints(self):
         bin = Bin(10, 1, 10)
-        bin.pack_item(Item("", 2, 1, 2), Position(1, 0, 0))
+        bin.pack_item(SingleItem("", 2, 1, 2), Position(1, 0, 0))
 
         bin.length = 1
         num_images_before = self._count_image_outputs()
