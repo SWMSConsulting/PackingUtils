@@ -59,7 +59,12 @@ class Bin:
         self.overhang_y_stability_factor = overhang_y_stability_factor
 
         self.heightmap = np.zeros((length, width), dtype=int)
-        self.packed_items: List[Item] = []
+        self._packed_items: List[Item] = []
+
+    @property
+    def packed_items(self) -> List[Item]:
+        flattened_items = sum([item.flatten() for item in self._packed_items], [])
+        return flattened_items
 
     def can_item_be_packed(
         self, item: Item, position: Position
@@ -134,7 +139,7 @@ class Bin:
         can_be_packed, info = self.can_item_be_packed(item, position)
 
         if can_be_packed:
-            self.packed_items.append(item)
+            self._packed_items.append(item)
             x = position.x
             max_z = position.z + item.height
             y = max(position.y, 0)
@@ -158,7 +163,7 @@ class Bin:
             and a string message explaining the result.
 
         """
-        if not item in self.packed_items:
+        if not item in self._packed_items:
             return False, f"{item.identifier}: Item not found in bin."
 
         if np.any(
@@ -173,7 +178,7 @@ class Bin:
                 f"{item.identifier}: Item can not be removed because it is not on top.",
             )
 
-        self.packed_items.remove(item)
+        self._packed_items.remove(item)
         self.recreate_heightmap()
         item.pack(None)
 
@@ -184,7 +189,9 @@ class Bin:
         Recreates the heightmap of the bin based on the items packed in it.
         """
         self.heightmap = np.zeros((self.length, self.width), dtype=int)
-        for item in sorted(self.packed_items, key=lambda x: x.position.z, reverse=True):
+        for item in sorted(
+            self._packed_items, key=lambda x: x.position.z, reverse=True
+        ):
             x, y, z = item.position.x, item.position.y, item.position.z
             self.heightmap[y : y + item.length, x : x + item.width] = z + item.height
 
@@ -209,7 +216,7 @@ class Bin:
         for gap in sorted(gaps, key=lambda x: x.start_x, reverse=True):
             # find all items right of the gap
             items_right = [
-                item for item in self.packed_items if item.position.x >= gap.end_x
+                item for item in self._packed_items if item.position.x >= gap.end_x
             ]
             for item in items_right:
                 item.position.x -= gap.end_x - gap.start_x
@@ -332,7 +339,7 @@ class Bin:
         Returns:
             float: The used volume of the Bin.
         """
-        used_volume = sum([item.volume for item in self.packed_items])
+        used_volume = sum([item.volume for item in self._packed_items])
 
         if use_percentage:
             return int(used_volume / self.volume * 100)
@@ -411,7 +418,7 @@ class Bin:
         """
         m, x, y, z = [], [], [], []
 
-        for item in self.packed_items:
+        for item in self._packed_items:
             m.append(item.volume if use_volume else item.weight)
             x.append(item.centerpoint.x)
             y.append(item.centerpoint.y)
@@ -429,7 +436,7 @@ class Bin:
 
     def __repr__(self):
         return (
-            f"Bin: {self.width} {self.length} {self.height} - Items{self.packed_items}"
+            f"Bin: {self.width} {self.length} {self.height} - Items{self._packed_items}"
         )
 
     def __eq__(self, other):
@@ -437,11 +444,11 @@ class Bin:
             self.width == other.width
             and self.length == other.length
             and self.height == other.height
-            and self.packed_items == other.packed_items
+            and self._packed_items == other.packed_items
         )
 
     def __hash__(self):
-        return hash((self.width, self.length, self.height, tuple(self.packed_items)))
+        return hash((self.width, self.length, self.height, tuple(self._packed_items)))
 
 
 if __name__ == "__main__":

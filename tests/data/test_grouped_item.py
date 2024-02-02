@@ -1,7 +1,7 @@
 import unittest
 from packutils.data.position import Position
 from packutils.data.single_item import SingleItem
-from packutils.data.grouped_item import GroupedItem, GroupingMode
+from packutils.data.grouped_item import GroupedItem, ItemGroupingMode
 
 
 class TestGroupedItem(unittest.TestCase):
@@ -10,7 +10,7 @@ class TestGroupedItem(unittest.TestCase):
         item2 = SingleItem(identifier="test", width=1, length=2, height=2, weight=5)
         item3 = SingleItem(identifier="test", width=1, length=3, height=2, weight=6)
         items_to_group = [item1, item2, item3]
-        grouping_mode = GroupingMode.LENGTHWISE
+        grouping_mode = ItemGroupingMode.LENGTHWISE
 
         grouped_item = GroupedItem(items_to_group, grouping_mode)
 
@@ -19,7 +19,7 @@ class TestGroupedItem(unittest.TestCase):
         self.assertEqual(grouped_item.length, 6)
         self.assertEqual(grouped_item.weight, 15)
         self.assertEqual(
-            grouped_item.identifier, "ItemGroup (lengthwise): 3 Items (1, 2, 6)"
+            grouped_item.identifier, "ItemGroup (lengthwise): 3 Items (1, 6, 2)"
         )
 
     def test_pack_lengthwise(self):
@@ -27,7 +27,7 @@ class TestGroupedItem(unittest.TestCase):
         item2 = SingleItem(identifier="test", width=1, length=3, height=3, weight=5)
         item3 = SingleItem(identifier="test", width=1, length=4, height=3, weight=6)
         items_to_group = [item1, item2, item3]
-        grouping_mode = GroupingMode.LENGTHWISE
+        grouping_mode = ItemGroupingMode.LENGTHWISE
 
         grouped_item = GroupedItem(items_to_group, grouping_mode)
         position = Position(x=0, y=0, z=0)
@@ -42,7 +42,7 @@ class TestGroupedItem(unittest.TestCase):
         item2 = SingleItem(identifier="test", width=1, length=2, height=3, weight=5)
         item3 = SingleItem(identifier="test", width=1, length=2, height=3, weight=6)
         items_to_group = [item1, item2, item3]
-        grouping_mode = GroupingMode.LENGTHWISE
+        grouping_mode = ItemGroupingMode.LENGTHWISE
 
         grouped_item = GroupedItem(items_to_group, grouping_mode)
         stability_factor = 0.5
@@ -55,7 +55,7 @@ class TestGroupedItem(unittest.TestCase):
         item2 = SingleItem(identifier="test", width=1, length=2, height=3, weight=5)
         item3 = SingleItem(identifier="test", width=1, length=2, height=3, weight=6)
         items_to_group = [item1, item2, item3]
-        grouping_mode = GroupingMode.LENGTHWISE
+        grouping_mode = ItemGroupingMode.LENGTHWISE
 
         grouped_item = GroupedItem(items_to_group, grouping_mode)
         flattened_items = grouped_item.flatten()

@@ -9,6 +9,14 @@ class ExtendedEnum(Enum):
         return list(map(lambda c: c.value, cls))
 
 
+class ItemGroupingMode(str, ExtendedEnum):
+    """
+    An enumeration representing the different grouping modes for grouped items.
+    """
+
+    LENGTHWISE = "lengthwise"
+
+
 class ItemSelectStrategy(str, ExtendedEnum):
     LARGEST_VOLUME = "largest_volume"
     LARGEST_H_W_L = "largest_h_w_l"
@@ -64,6 +72,10 @@ class PackerConfiguration(BaseModel):
 
     remove_gaps: Optional[bool] = Field(
         description="Remove gaps in x-direction between item stacks", default=False
+    )
+
+    item_grouping_mode: Optional["ItemGroupingMode|None"] = Field(
+        description="Grouping mode for items", default=None
     )
 
     def __hash__(self):

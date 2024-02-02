@@ -6,7 +6,7 @@ from packutils.data.position import Position
 class ItemTestCase(unittest.TestCase):
     def test_item_creation(self):
         item = SingleItem(identifier="test", width=10, length=20, height=30)
-        self.assertEqual(item.id, "test")
+        self.assertEqual(item.identifier, "test")
         self.assertEqual(item.width, 10)
         self.assertEqual(item.length, 20)
         self.assertEqual(item.height, 30)

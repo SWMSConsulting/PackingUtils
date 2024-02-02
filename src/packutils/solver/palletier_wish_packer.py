@@ -7,6 +7,7 @@ from typing import List, Tuple
 from collections import namedtuple
 
 from packutils.data.bin import Bin
+from packutils.data.grouped_item import GroupedItem, ItemGroupingMode
 from packutils.data.item import Item
 from packutils.data.order import Order
 from packutils.data.position import Position
@@ -64,11 +65,19 @@ class PalletierWishPacker(AbstractPacker):
             variants.append(self.pack_variant(order, config))
         return variants
 
-    def pack_variant(
+    def prepare_items_to_pack(
         self, order: Order, config: PackerConfiguration = None
-    ) -> "PackingVariant | None":
-        self.reset(config)
+    ) -> List[Item]:
+        """
+        Prepare the items to be packed based on the given order and configuration.
 
+        Args:
+            order (Order): The order to be packed.
+            config (PackerConfiguration, optional): The configuration to use for packing. Defaults to None.
+
+        Returns:
+            List[Item]: The items to be packed.
+        """
         padding_x = 0 if config is None else config.padding_x
 
         items_to_pack = [
@@ -82,8 +91,57 @@ class PalletierWishPacker(AbstractPacker):
             for _ in range(a.amount)
         ]
 
-        variant = self._pack_variant(items_to_pack)
-        return variant
+        if config is None or config.item_grouping_mode is None:
+            return items_to_pack
+
+        # item grouping not
+        if config.item_grouping_mode == ItemGroupingMode.LENGTHWISE:
+            bin_length = self.reference_bins[0].width
+            overhang_f = config.overhang_y_stability_factor
+            groupable_items = [
+                item
+                for item in items_to_pack
+                if 2 * (item.length - item.get_max_overhang_y(overhang_f)) <= bin_length
+            ]
+
+            while len(groupable_items) > 0:
+                current_item = groupable_items[0]
+                same_items = [
+                    item
+                    for item in groupable_items
+                    if (item.width, item.height)
+                    == (current_item.width, current_item.height)
+                ]
+
+                if len(same_items) < 2:
+                    groupable_items.remove(current_item)
+                    continue
+
+                allowed_length = bin_length + 2 * min(
+                    [item.get_max_overhang_y(overhang_f) for item in same_items]
+                )
+                item_group = []
+                item_group_length = 0
+                for item in same_items:
+                    if item_group_length + item.length <= allowed_length:
+                        item_group.append(item)
+                        item_group_length += item.length
+                        groupable_items.remove(item)
+
+                for item in item_group:
+                    items_to_pack.remove(item)
+                items_to_pack.append(
+                    GroupedItem(item_group, ItemGroupingMode.LENGTHWISE)
+                )
+
+        return items_to_pack
+
+    def pack_variant(
+        self, order: Order, config: PackerConfiguration = None
+    ) -> "PackingVariant | None":
+        items_to_pack = self.prepare_items_to_pack(order, config)
+        self.reset(config)
+        return self._pack_variant(items_to_pack)
 
     def _pack_variant(self, items: List[Item]) -> PackingVariant:
         variant = PackingVariant()

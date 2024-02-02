@@ -19,7 +19,7 @@ class Item(ABC):
     position: "Position|None" = None
 
     @abstractmethod
-    def get_max_overhang_y(self, stability_factor) -> int:
+    def get_max_overhang_y(self, stability_factor: "float|None") -> int:
         """
         Returns the maximum overhang of the item in the y-direction.
 

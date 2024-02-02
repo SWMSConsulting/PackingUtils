@@ -22,7 +22,6 @@ class SingleItem(Item):
             length (int): The length of the item.
             height (int): The height of the item.
             weight (float, optional): The weight of the item. Default is 0.0.
-            position (Position, optional): The position of the item in the container. Default is None.
 
         """
         self.identifier = identifier
@@ -34,7 +33,9 @@ class SingleItem(Item):
     def flatten(self) -> List[Item]:
         return [self]
 
-    def get_max_overhang_y(self, stability_factor) -> int:
+    def get_max_overhang_y(self, stability_factor: "float|None") -> int:
+        if stability_factor is None:
+            return 0
         return int(math.floor(self.length * (1 - stability_factor)))
 
     def pack(self, position: "Position|None"):

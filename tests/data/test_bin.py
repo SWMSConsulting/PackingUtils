@@ -227,7 +227,7 @@ class TestBin(unittest.TestCase):
         item2 = SingleItem("test", width=2, length=1, height=2, weight=1)
         item2.position = Position(x=5, y=0, z=2)  # center: 6, 0.5, 3
 
-        bin.packed_items = [item1, item2]
+        bin._packed_items = [item1, item2]
 
         cg_weight = bin.get_center_of_gravity()
         self.assertEqual(cg_weight.x, 4)  # (2.5*1 + 6*1) / (1+1) = 4.25 => 4
@@ -386,7 +386,7 @@ class TestBin(unittest.TestCase):
         self.assertEqual(len(bin.packed_items), 3)
         self.assertEqual(np.count_nonzero(bin.heightmap), 4 * 10)
         for name, pos in expected_positions.items():
-            item = [i for i in bin.packed_items if i.id == name][0]
+            item = [i for i in bin.packed_items if i.identifier == name][0]
             self.assertEqual(item.position, pos)
 
 

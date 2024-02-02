@@ -8,6 +8,11 @@ from packutils.data.packing_variant import PackingVariant
 from packutils.visual.packing_visualization import PackingVisualization
 
 
+import matplotlib
+
+matplotlib.use("Agg")
+
+
 class TestPackingVisualization(unittest.TestCase):
     def setUp(self):
         self.clean_up = True
@@ -41,7 +46,6 @@ class TestPackingVisualization(unittest.TestCase):
                 os.removedirs(self.output_dir)
 
     def test_visualize_bin_3d(self):
-        return
         num_images_before = self._count_image_outputs()
         self.visualization.visualize_bin(
             self.variant.bins[0], title="Test", show=False, output_dir=self.output_dir
@@ -84,7 +88,7 @@ class TestPackingVisualization(unittest.TestCase):
         bin.length = 1
         num_images_before = self._count_image_outputs()
         self.visualization.visualize_bin(
-            bin, snappoint_min_z=0, show=True, output_dir=self.output_dir
+            bin, snappoint_min_z=0, show=False, output_dir=self.output_dir
         )
         self.assertEqual(self._count_image_outputs(), num_images_before + 1)
 
