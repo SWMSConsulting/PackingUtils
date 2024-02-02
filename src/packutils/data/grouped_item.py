@@ -38,7 +38,7 @@ class GroupedItem(Item):
 
         self.identifier = f"ItemGroup ({self.grouping_mode.value}): {len(self.grouped_items)} Items {self.width,self.length,self.height}"
 
-    def pack(self, position: Position | None):
+    def pack(self, position: "Position | None"):
         self.position = position
 
         if self.grouping_mode == ItemGroupingMode.LENGTHWISE:
