@@ -9,8 +9,7 @@ from packutils.dataset.data_generator_2d import DataGenerator2d
 from packutils.visual.packing_visualization import PackingVisualization
 
 
-class TestDataGenerator2d(unittest.TestCase):
-
+class TestDataGenerator2d:  # (unittest.TestCase):
     def setUp(self):
         # Create temporary directory for testing
         self.temp_dir = create_temporary_directory()
@@ -20,7 +19,7 @@ class TestDataGenerator2d(unittest.TestCase):
         self.articles = [
             Article("item1", 2, 5, 1, 8),
             Article("item2", 3, 6, 1, 8),
-            Article("item3", 4, 7, 1, 8)
+            Article("item3", 4, 7, 1, 8),
         ]
 
     def tearDown(self):
@@ -34,7 +33,7 @@ class TestDataGenerator2d(unittest.TestCase):
                 output_path=self.temp_dir,
                 reference_bins=self.reference_bins,
                 articles=self.articles,
-                pack_algo=pack_algo
+                pack_algo=pack_algo,
             )
             # Generate data
             generator.generate_data()
@@ -43,19 +42,20 @@ class TestDataGenerator2d(unittest.TestCase):
             self.assertTrue(os.path.exists(generator.dataset_dir))
 
             # Check if the orders are correctly generated
-            order_files = [f for f in os.listdir(
-                generator.dataset_dir) if f.startswith("order")]
+            order_files = [
+                f for f in os.listdir(generator.dataset_dir) if f.startswith("order")
+            ]
             self.assertEqual(len(order_files), self.num_data)
 
             # Check if the generated orders can be loaded and have packing variants
             for order_file in order_files:
-                order_file_path = os.path.join(
-                    generator.dataset_dir, order_file)
+                order_file_path = os.path.join(generator.dataset_dir, order_file)
                 packed_order = PackedOrder.load_from_file(order_file_path)
                 self.assertIsInstance(packed_order, PackedOrder)
                 self.assertTrue(len(packed_order.packing_variants) > 0)
                 self.assertLessEqual(
-                    len(packed_order.packing_variants[0].bins), len(self.reference_bins))
+                    len(packed_order.packing_variants[0].bins), len(self.reference_bins)
+                )
 
             remove_temporary_directory(generator.dataset_dir)
 
@@ -64,7 +64,7 @@ class TestDataGenerator2d(unittest.TestCase):
         articles = [
             Article("item1", 2, 1, 5, 8),
             Article("item2", 3, 1, 6, 8),
-            Article("item3", 4, 1, 7, 8)
+            Article("item3", 4, 1, 7, 8),
         ]
         generator = DataGenerator2d(
             num_data=self.num_data,
@@ -72,7 +72,7 @@ class TestDataGenerator2d(unittest.TestCase):
             reference_bins=reference_bins,
             articles=articles,
             max_articles_per_order=5,
-            packing_solver="palletier"
+            packing_solver="palletier",
         )
         # Generate data
         generator.generate_data()
@@ -81,8 +81,9 @@ class TestDataGenerator2d(unittest.TestCase):
         self.assertTrue(os.path.exists(generator.dataset_dir))
 
         # Check if the orders are correctly generated
-        order_files = glob.glob(os.path.join(
-            generator.dataset_dir, "**", "order*.json"))
+        order_files = glob.glob(
+            os.path.join(generator.dataset_dir, "**", "order*.json")
+        )
         self.assertEqual(len(order_files), self.num_data)
 
         # Check if the generated orders can be loaded and have packing variants
@@ -93,7 +94,8 @@ class TestDataGenerator2d(unittest.TestCase):
             self.assertIsInstance(packed_order, PackedOrder)
             self.assertTrue(len(packed_order.packing_variants) > 0)
             self.assertLessEqual(
-                len(packed_order.packing_variants[0].bins), len(self.reference_bins))
+                len(packed_order.packing_variants[0].bins), len(self.reference_bins)
+            )
 
         remove_temporary_directory(generator.dataset_dir)
 
@@ -103,7 +105,7 @@ class TestDataGenerator2d(unittest.TestCase):
             output_path=self.temp_dir,
             reference_bins=self.reference_bins,
             articles=self.articles,
-            packing_solver="py3dbp"
+            packing_solver="py3dbp",
         )
         # Generate data
         generator.generate_data()
@@ -112,8 +114,9 @@ class TestDataGenerator2d(unittest.TestCase):
         self.assertTrue(os.path.exists(generator.dataset_dir))
 
         # Check if the orders are correctly generated
-        order_files = glob.glob(os.path.join(
-            generator.dataset_dir, "**", "order*.json"))
+        order_files = glob.glob(
+            os.path.join(generator.dataset_dir, "**", "order*.json")
+        )
         self.assertEqual(len(order_files), self.num_data)
 
         # Check if the generated orders can be loaded and have packing variants
@@ -122,7 +125,8 @@ class TestDataGenerator2d(unittest.TestCase):
             self.assertIsInstance(packed_order, PackedOrder)
             self.assertTrue(len(packed_order.packing_variants) > 0)
             self.assertLessEqual(
-                len(packed_order.packing_variants[0].bins), len(self.reference_bins))
+                len(packed_order.packing_variants[0].bins), len(self.reference_bins)
+            )
 
         remove_temporary_directory(generator.dataset_dir)
 
@@ -137,5 +141,5 @@ def remove_temporary_directory(directory):
     shutil.rmtree(directory)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
