@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from ast import Tuple
 from typing import List
 
-from packutils.data.article import Article
 from packutils.data.position import Position
 
 
@@ -18,27 +17,6 @@ class Item(ABC):
     weight: float
 
     position: "Position|None" = None
-
-    def __init__(
-        self, identifier: str, width: int, length: int, height: int, weight: float = 0.0
-    ):
-        """
-        Initializes an Item object with the specified attributes.
-
-        Args:
-            id (str): The identifier of the item.
-            width (int): The width of the item.
-            length (int): The length of the item.
-            height (int): The height of the item.
-            weight (float, optional): The weight of the item. Default is 0.0.
-            position (Position, optional): The position of the item in the container. Default is None.
-
-        """
-        self.id = identifier
-        self.width = width
-        self.length = length
-        self.height = height
-        self.weight = weight
 
     @abstractmethod
     def get_max_overhang_y(self, stability_factor) -> int:
@@ -61,6 +39,13 @@ class Item(ABC):
         Args:
             position (Position): The position object representing the coordinates and rotation of the item.
 
+        """
+        pass
+
+    @abstractmethod
+    def flatten(self) -> List["Item"]:
+        """
+        Returns all items that are part of the item (group).
         """
         pass
 
@@ -198,7 +183,7 @@ class Item(ABC):
             str: The string representation of the item.
 
         """
-        return f"{self.id}: width={self.width}, length={self.length}, height={self.height}, position={self.position}"
+        return f"{self.identifier}: width={self.width}, length={self.length}, height={self.height}, position={self.position}"
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
@@ -212,31 +197,4 @@ class Item(ABC):
                 self.weight,
                 self.position.__hash__(),
             )
-        )
-
-    @classmethod
-    def from_article(cls, article: Article) -> "Item":
-        """
-        Create an Item object from an Article object.
-
-        Args:
-            article (Article): The Article object to create the Item from.
-
-        Returns:
-            Item: The created Item object.
-
-        Example:
-            >>> article = Article(article_id=1, width=10, length=20, height=5, weight=2)
-            >>> item = Item.from_article(article)
-            >>> print(item)
-            Item(id=1, width=10, length=20, height=5, weight=2, position=None)
-
-        """
-        return cls(
-            id=article.article_id,
-            width=article.width,
-            length=article.length,
-            height=article.height,
-            weight=article.weight,
-            position=None,
         )

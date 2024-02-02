@@ -32,7 +32,9 @@ class TestPalletierWishPacker(unittest.TestCase):
         original_item_ids = set(
             a.article_id for a in order.articles for _ in range(a.amount)
         )
-        unpacked_item_ids = set(item.id for item in packing_variant.unpacked_items)
+        unpacked_item_ids = set(
+            item.identifier for item in packing_variant.unpacked_items
+        )
 
         self.assertEqual(
             original_item_ids,
@@ -156,7 +158,9 @@ class TestPalletierWishPacker(unittest.TestCase):
                 snappoint=Snappoint(3, 0, 0, SnappointDirection.RIGHT),
                 max_z=10,
             )
-            ex_item = expected_item if expected_item.id.startswith("best") else None
+            ex_item = (
+                expected_item if expected_item.identifier.startswith("best") else None
+            )
             self.assertEqual(ex_item, item)
 
             items.remove(expected_item)
@@ -194,7 +198,9 @@ class TestPalletierWishPacker(unittest.TestCase):
                 snappoint=Snappoint(3, 0, 0, SnappointDirection.RIGHT),
                 max_z=10,
             )
-            ex_item = expected_item if expected_item.id.startswith("best") else None
+            ex_item = (
+                expected_item if expected_item.identifier.startswith("best") else None
+            )
             self.assertEqual(ex_item, item)
 
             items.remove(expected_item)

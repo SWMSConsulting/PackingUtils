@@ -76,7 +76,7 @@ class Bin:
         """
 
         if item.is_packed:
-            return False, f"{item.id}: Item already packed."
+            return False, f"{item.identifier}: Item already packed."
 
         x, y, z = position.x, position.y, position.z
         if (
@@ -89,7 +89,7 @@ class Bin:
         ):
             return (
                 False,
-                f"{item.id}: Item is out of bounds of the bin (containment condition).",
+                f"{item.identifier}: Item is out of bounds of the bin (containment condition).",
             )
 
         overhang_y = math.floor((item.length - self.length) / 2)
@@ -98,17 +98,20 @@ class Bin:
         ):
             return (
                 False,
-                f"{item.id}: Item overhangs the bin and is not stable (stability condition).",
+                f"{item.identifier}: Item overhangs the bin and is not stable (stability condition).",
             )
 
         if np.any(self.heightmap[y : y + item.length, x : x + item.width] > z):
             return (
                 False,
-                f"{item.id}: Position is already occupied (non-overlapping condition).",
+                f"{item.identifier}: Position is already occupied (non-overlapping condition).",
             )
 
         if not self._is_item_position_stable(item, position):
-            return False, f"{item.id}: Position is not stable (stability condition)."
+            return (
+                False,
+                f"{item.identifier}: Position is not stable (stability condition).",
+            )
 
         return True, None
 
@@ -126,7 +129,7 @@ class Bin:
 
         """
         if position is None:
-            return False, f"{item.id}: Position is None."
+            return False, f"{item.identifier}: Position is None."
 
         can_be_packed, info = self.can_item_be_packed(item, position)
 
@@ -156,7 +159,7 @@ class Bin:
 
         """
         if not item in self.packed_items:
-            return False, f"{item.id}: Item not found in bin."
+            return False, f"{item.identifier}: Item not found in bin."
 
         if np.any(
             self.heightmap[
@@ -167,7 +170,7 @@ class Bin:
         ):
             return (
                 False,
-                f"{item.id}: Item can not be removed because it is not on top.",
+                f"{item.identifier}: Item can not be removed because it is not on top.",
             )
 
         self.packed_items.remove(item)
