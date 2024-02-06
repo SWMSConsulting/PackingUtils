@@ -78,7 +78,7 @@ class PalletierWishPacker(AbstractPacker):
         Returns:
             List[Item]: The items to be packed.
         """
-        padding_x = 0 if config is None else config.padding_x
+        padding_x = 0 if config is None else config.padding_between_items
 
         items_to_pack = [
             SingleItem(

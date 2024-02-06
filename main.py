@@ -79,7 +79,7 @@ def get_possible_config_params() -> Tuple[List[PackerConfiguration], int]:
             bin_stability_factor=combination[3],
             allow_item_exceeds_layer=combination[4],
             mirror_walls=combination[5],
-            padding_x=padding_x,
+            padding_between_items=padding_x,
             overhang_y_stability_factor=overhang_y_stability_factor,
             remove_gaps=remove_gaps,
         )

@@ -15,16 +15,19 @@ RUN pip install git+https://github.com/SWMSConsulting/PackingUtils.git@stage
 
 EXPOSE 8000
 
+## fixed configuaration
+# ENV BIN_STABILITY_FACTOR="OPTIONAL bin stability factor(s)"
+# ENV OVERHANG_Y_STABILITY_FACTOR="OPTIONAL overhang y stability factor(s)"
+# ENV NUM_VARIANTS="OPTIONAL number of variants"
+# ENV PADDING_X="OPTIONAL padding x (width)"
 
+## variable configuration
 # ENV DEFAULT_SELECT_STRATEGY="OPTIONAL item select strategies"
 # ENV NEW_LAYER_SELECT_STRATEGY="OPTIONAL item select strategies"
-# ENV DIRECTION_CHANGE_VOLUMES="OPTIONAL proportion of direction change volumes"
+# ENV DIRECTION_CHANGE_VOLUMES="OPTIONAL proportion(s) of direction change volumes"
 # ENV ALLOW_ITEM_EXCEEDS_LAYER="OPTIONAL bool(s) to allow item exceeds layer"
 # ENV MIRROR_WALLS="OPTIONAL bool(s) to mirror walls"
 # ENV ITEM_GROUPING_MODE="OPTIONAL item grouping mode(s)"
 
-# ENV BIN_STABILITY_FACTOR="OPTIONAL bin stability factor(s)"
-# ENV NUM_VARIANTS="OPTIONAL number of variants"
-# ENV PADDING_X="OPTIONAL padding x (width)"
 
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

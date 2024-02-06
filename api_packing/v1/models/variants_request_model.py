@@ -48,3 +48,13 @@ class VariantsRequestModel(BaseModel):
     config: Optional[PackerConfiguration] = Field(
         description="Configuration for the packing algorithm", default=None
     )
+
+
+def validate_requested_order(
+    order: OrderModel, max_w: int, max_l: int, max_h: int
+) -> Optional[str]:
+    """Validate the order to be packed."""
+    # check if articles are valid
+    for article in order.articles:
+        if article.width > max_w or article.length > max_l or article.height > max_h:
+            return f"Article ({article}) too large for bin {max_w, max_l, max_h}"

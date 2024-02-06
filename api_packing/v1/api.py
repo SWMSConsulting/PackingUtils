@@ -6,7 +6,10 @@ from typing import List, Tuple
 from fastapi import FastAPI, Request
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse
-from v1.models.variants_request_model import VariantsRequestModel
+from v1.models.variants_request_model import (
+    VariantsRequestModel,
+    validate_requested_order,
+)
 
 from packutils.data.bin import Bin
 from packutils.data.order import Order
@@ -34,6 +37,18 @@ def get_possible_config_params(
         print("Loading .env file")
         load_dotenv(dotenv_path)
 
+    # fixed parameters
+    bin_stability_factor = float(os.environ.get("BIN_STABILITY_FACTOR", 1.0))
+
+    overhang_y_stability_factor = float(
+        os.environ.get("OVERHANG_Y_STABILITY_FACTOR", 1.0)
+    )
+
+    padding_between_items = int(os.environ.get("PADDING_BETWEEN_ITEMS", 0))
+
+    env_num_variants = os.environ.get("NUM_VARIANTS", None)
+
+    # variable parameters
     env_default_select_strategy = os.environ.get("DEFAULT_SELECT_STRATEGY", None)
     if env_default_select_strategy is None:
         possible_default_select_strategy = ItemSelectStrategy.list()
@@ -59,17 +74,6 @@ def get_possible_config_params(
             possible_new_layer_select_strategy = [
                 ItemSelectStrategy(env_new_layer_select_strategy)
             ]
-
-    env_bin_stability_factor = os.environ.get("BIN_STABILITY_FACTOR", None)
-    if env_bin_stability_factor is None:
-        possible_bin_stability_factor = [1.0]
-    else:
-        if env_bin_stability_factor.startswith("["):
-            possible_bin_stability_factor = [
-                float(f) for f in json.loads(env_bin_stability_factor)
-            ]
-        else:
-            possible_bin_stability_factor = [float(env_bin_stability_factor)]
 
     env_allow_item_exceeds_layer = os.environ.get("ALLOW_ITEM_EXCEEDS_LAYER", None)
     if env_allow_item_exceeds_layer is None:
@@ -113,11 +117,6 @@ def get_possible_config_params(
         else:
             possible_item_grouping_mode = [ItemGroupingMode(env_item_grouping_mode)]
 
-    env_padding_x = int(os.environ.get("PADDING_X", 0))
-
-    env_num_variants = os.environ.get("NUM_VARIANTS", None)
-    env_num_variants = int(env_num_variants) if env_num_variants is not None else None
-
     if change_volumes is None:
         change_volumes = possible_direction_change_volume or [1.0]
 
@@ -125,47 +124,61 @@ def get_possible_config_params(
         possible_default_select_strategy,
         possible_new_layer_select_strategy,
         change_volumes,
-        possible_bin_stability_factor,
         possible_allow_item_exceeds_layer,
         possible_mirror_walls,
         possible_item_grouping_mode,
         # add here other possible parameter
     ]
     combinations = list(itertools.product(*params))
+    num_variants = (
+        len(combinations) if env_num_variants is None else int(env_num_variants)
+    )
 
-    possible_params = {
+    fixed_params = {
+        "bin_stability_factor": bin_stability_factor,
+        "overhang_y_stability_factor": overhang_y_stability_factor,
+        "padding_between_items": padding_between_items,
+        "num_variants": num_variants,
+        "num_combinations": len(combinations),
+    }
+    print("Fixed parameters:")
+    for k, v in fixed_params.items():
+        print(f"{k :<50}: {v}")
+    print("")
+
+    changable_params = {
         "default_select_strategy": possible_default_select_strategy,
         "new_layer_select_strategy": possible_new_layer_select_strategy,
         "direction_change_volume": possible_direction_change_volume,
-        "bin_stability_factor": possible_bin_stability_factor,
         "allow_item_exceeds_layer": possible_allow_item_exceeds_layer,
         "mirror_walls": possible_mirror_walls,
         "item_grouping_mode": possible_item_grouping_mode,
-        "padding_x": env_padding_x,
-        "num_variants": env_num_variants,
-        "num_combinations": len(combinations),
     }
-    print("Used variables:")
-    for k, v in possible_params.items():
+    print("Variable parameters:")
+    for k, v in changable_params.items():
         print(f"{k :<50}: {v}")
     print("")
 
     return [
         PackerConfiguration(
+            bin_stability_factor=bin_stability_factor,
+            overhang_y_stability_factor=overhang_y_stability_factor,
+            padding_between_items=padding_between_items,
+            # variable parameters
             default_select_strategy=combination[0],
             new_layer_select_strategy=combination[1],
             direction_change_min_volume=combination[2],
-            bin_stability_factor=combination[3],
-            allow_item_exceeds_layer=combination[4],
-            mirror_walls=combination[5],
-            item_grouping_mode=combination[6],
-            padding_x=env_padding_x,
+            allow_item_exceeds_layer=combination[3],
+            mirror_walls=combination[4],
+            item_grouping_mode=combination[5],
         )
         for combination in combinations
-    ], env_num_variants
+    ], num_variants
 
 
 ENV_CONFIGS, ENV_NUM_VARIANTS = get_possible_config_params(None)
+
+ALLOW_OVERHANG_Y = True
 
 api_v1 = FastAPI()
 
@@ -188,10 +201,25 @@ def get_packing_variants(body: VariantsRequestModel):
     else:
         bins = [Bin(800, 1200, 500)]
 
-    bin_w = bins[0].width
-    bin_h = bins[0].height
-    bin_l = bins[0].length
+    max_w = bins[0].width
+    max_h = bins[0].height
+    max_l = 1e5 if ALLOW_OVERHANG_Y else bins[0].length
     bin_volume = bins[0].volume
+
+    error_msg = validate_requested_order(body.order, max_w, max_l, max_h)
+    if error_msg is not None:
+        return JSONResponse(
+            content={
+                "detail": [
+                    {
+                        "loc": ["body", "order", "articles"],
+                        "msg": error_msg,
+                        "type": "custom_error",
+                    }
+                ]
+            },
+            status_code=422,
+        )
 
     order = Order(
         order_id=body.order.order_id,
@@ -199,30 +227,13 @@ def get_packing_variants(body: VariantsRequestModel):
             Article(
                 article_id=a.id,
                 width=a.width,
-                length=a.length if a.length <= bin_l else bin_l,
+                length=a.length,
                 height=a.height,
                 amount=a.amount,
             )
             for a in body.order.articles
         ],
     )
-    # check if articles are valid
-    for i, article in enumerate(order.articles):
-        if article.width > bin_w or article.length > bin_l or article.height > bin_h:
-            print("Article too large for bin")
-            return JSONResponse(
-                content={
-                    "detail": [
-                        {
-                            "loc": ["body", "order", i, "articles"],
-                            "msg": f"Article ({article}) too large for bin {bin_w, bin_l, bin_h}",
-                            "type": "custom_error",
-                        }
-                    ]
-                },
-                status_code=422,
-            )
-
     num_variants = ENV_NUM_VARIANTS if body.num_variants is None else body.num_variants
 
     if body.config is not None and body.config.direction_change_min_volume is None:

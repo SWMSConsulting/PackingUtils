@@ -59,7 +59,7 @@ class PackerConfiguration(BaseModel):
         default=False,
     )
 
-    padding_x: Optional[int] = Field(
+    padding_between_items: Optional[int] = Field(
         description="Padding between items along the x-axis (width)", default=0, ge=0
     )
 
@@ -79,16 +79,4 @@ class PackerConfiguration(BaseModel):
     )
 
     def __hash__(self):
-        return hash(
-            (
-                self.default_select_strategy,
-                self.new_layer_select_strategy,
-                self.direction_change_min_volume,
-                self.bin_stability_factor,
-                self.allow_item_exceeds_layer,
-                self.mirror_walls,
-                self.padding_x,
-                self.overhang_y_stability_factor,
-                self.remove_gaps,
-            )
-        )
+        return hash(tuple(**self.__dict__.values()))
