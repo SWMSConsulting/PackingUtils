@@ -15,7 +15,7 @@ class PackingVariant:
 
     def __init__(self):
         self.bins: List[Bin] = []
-        self.unpacked_items: List[Item] = []
+        self._unpacked_items: List[Item] = []
         self.error_messages: List[str] = []
 
     def add_bin(self, bin: Bin):
@@ -35,15 +35,25 @@ class PackingVariant:
             item (Item): The item that failed to be packed.
             error_message (str | None): The error message describing the reason for the packing failure.
         """
-        self.unpacked_items.append(item)
+        self._unpacked_items.append(item)
         if error_message is not None:
             self.error_messages.append(error_message)
 
+    @property
+    def unpacked_items(self) -> List[Item]:
+        """
+        Get the list of unpacked items.
+
+        Returns:
+            List[Item]: A list of items that failed to be packed.
+        """
+        return sum([item.flatten() for item in self._unpacked_items], [])
+
     def __repr__(self):
-        return f"Bins: {self.bins}, unpacked items: {self.unpacked_items}"
+        return f"Bins: {self.bins}, unpacked items: {self._unpacked_items}"
 
     def __eq__(self, other):
-        return self.bins == other.bins and self.unpacked_items == other.unpacked_items
+        return self.bins == other.bins and self._unpacked_items == other._unpacked_items
 
     def __hash__(self):
         return hash(

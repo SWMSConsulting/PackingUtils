@@ -237,7 +237,7 @@ def get_packing_variants(body: VariantsRequestModel):
         configs = possible_configs
     else:
         configs = [body.config] if body.config is not None else []
-        configs += random.sample(possible_configs, num_variants - len(configs))
+        configs += list(random.sample(possible_configs, num_variants - len(configs)))
 
     packer = PalletierWishPacker(bins=bins)
     variants = packer.pack_variants(order, configs)
