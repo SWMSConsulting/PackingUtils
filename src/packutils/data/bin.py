@@ -95,7 +95,7 @@ class Bin:
         x, y, z = position.x, position.y, position.z
         if (
             x < 0
-            or y < 0
+            or (y < 0 and not self.allow_overhang_y)
             or z < 0
             or x + item.width > self.width
             or (y + item.length > self.length and not self.allow_overhang_y)
@@ -104,6 +104,12 @@ class Bin:
             return (
                 False,
                 f"{item.identifier}: Item is out of bounds of the bin (containment condition).",
+            )
+
+        if y < 0 and abs(y) > item.get_max_overhang_y(self.overhang_y_stability_factor):
+            return (
+                False,
+                f"{item.identifier}: Item overhangs the bin and is not stable (stability condition).",
             )
 
         overhang_y = math.floor((item.length - self.length) / 2)

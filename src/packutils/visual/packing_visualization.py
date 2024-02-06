@@ -2,12 +2,21 @@ import os
 import io
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from enum import Enum
+from typing import List
 
 from matplotlib.patches import Rectangle
 from PIL import Image
 
 from packutils.data.bin import Bin
 from packutils.data.packing_variant import PackingVariant
+
+
+class Perspective(str, Enum):
+    three_dimensional = "three_dimensional"
+    front = "front"
+    side = "side"
+    top = "top"
 
 
 class PackingVisualization:
@@ -21,21 +30,21 @@ class PackingVisualization:
     def visualize_bin(
         self,
         bin: Bin,
+        perspective: Perspective = Perspective.top,
         snappoint_min_z: "int|None" = None,
         title: str = None,
         show: bool = True,
         output_dir: "str | None" = None,
         return_png: bool = False,
-        force_2d: bool = False,
     ):
-        is_2d, _ = bin.is_packing_2d()
-        if is_2d or force_2d:
-            plot_fn = self._visualize_bin_2d
-        else:
+        if perspective == Perspective.three_dimensional:
             plot_fn = self._visualize_bin_3d
+        else:
+            plot_fn = self._visualize_bin_2d
 
         return plot_fn(
             bin=bin,
+            perspective=perspective,
             snappoint_min_z=snappoint_min_z,
             title=title,
             show=show,
@@ -65,15 +74,22 @@ class PackingVisualization:
     def _visualize_bin_2d(
         self,
         bin: Bin,
+        perspective: Perspective = Perspective.front,
         snappoint_min_z: "int|None" = None,
         title: str = None,
         show: bool = True,
         output_dir: "str | None" = None,
         return_png: bool = False,
     ):
-        is_2d, dimensions = bin.is_packing_2d()
-        if not is_2d:
+        if perspective == Perspective.front:
             dimensions = ["width", "height"]
+        elif perspective == Perspective.top:
+            dimensions = ["width", "length"]
+        elif perspective == Perspective.side:
+            dimensions = ["length", "height"]
+        else:
+            raise ValueError(f"Invalid perspective: {perspective}")
+            
 
         items = bin.packed_items
         fig, ax = plt.subplots()
@@ -132,12 +148,16 @@ class PackingVisualization:
     def _visualize_bin_3d(
         self,
         bin: Bin,
+        perspective: Perspective = Perspective.three_dimensional,
         snappoint_min_z: "int|None" = None,
         title: str = None,
         show: bool = True,
         output_dir: "str | None" = None,
         return_png: bool = False,
     ):
+        if perspective != Perspective.three_dimensional:
+            raise ValueError(f"Invalid perspective: {perspective}")
+
         items = bin.packed_items
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")

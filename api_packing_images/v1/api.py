@@ -41,6 +41,8 @@ def get_bin_image(request: BinImageRequestModel):
         width=request.colli_details.width,
         length=request.colli_details.length,
         height=request.colli_details.height,
+        stability_factor=0.7,
+        overhang_y_stability_factor=0.55,
     )
 
     errors = []
@@ -58,7 +60,7 @@ def get_bin_image(request: BinImageRequestModel):
     if len(errors) > 0:
         return responses.JSONResponse(status_code=422, content={"errors": errors})
 
-    image = vis.visualize_bin(bin, show=False, return_png=False)
+    image = vis.visualize_bin(bin, perspective=request.perspective, show=False, return_png=False)
 
     # convert the image into bytes
     buffer = BytesIO()

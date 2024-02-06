@@ -319,7 +319,7 @@ class TestBin(unittest.TestCase):
         self.assertIsNone(item.position)
 
     def test_pack_item_too_much_overhang(self):
-        bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
+        bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.8)
 
         item = SingleItem(identifier="test", width=5, length=12, height=5)
         result, _ = bin.pack_item(item, Position(0, -6, 0))
@@ -327,10 +327,6 @@ class TestBin(unittest.TestCase):
         self.assertFalse(result)
         self.assertEqual(len(bin.packed_items), 0)
         self.assertEqual(np.count_nonzero(bin.heightmap), 0)
-
-        result, _ = bin.pack_item(item, Position(0, -1, 0))
-
-        self.assertFalse(result)
 
     def test_pack_item_with_overhang_stack_multiple(self):
         bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
