@@ -45,22 +45,24 @@ def get_bin_image(request: BinImageRequestModel):
         overhang_y_stability_factor=0.55,
     )
 
-    errors = []
-    for idx, p in enumerate(request.packages):
-        done, msg = bin.pack_item(
+    items_with_positions = [
+        (
             SingleItem(identifier="", width=p.width, length=p.length, height=p.height),
             Position(x=p.x, y=p.y, z=p.z),
         )
-        if not done:
-            errors.append(f"Failed to pack index {idx}: {msg}")
+        for p in request.packages
+    ]
+    done, errors = bin.pack_items(items_with_positions)
 
-    if len(errors) == 0 and len(request.packages) != len(bin.packed_items):
-        errors.append("Failed to pack each item")
+    if done and len(request.packages) != len(bin.packed_items):
+        errors = ["Failed to pack all items"]
 
-    if len(errors) > 0:
+    if errors is not None and len(errors) > 0:
         return responses.JSONResponse(status_code=422, content={"errors": errors})
 
-    image = vis.visualize_bin(bin, perspective=request.perspective, show=False, return_png=False)
+    image = vis.visualize_bin(
+        bin, perspective=request.perspective, show=False, return_png=False
+    )
 
     # convert the image into bytes
     buffer = BytesIO()

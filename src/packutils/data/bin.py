@@ -238,7 +238,7 @@ class Bin:
                 item = group_items_lengthwise(items_to_group, position_offsets)
                 if item is None:
                     error_messages.append(
-                        f"Failed to group items {items_to_group} at position {position}."
+                        f"Failed to group items {items_to_group} with position offsets {position_offsets}."
                     )
                     continue
 
