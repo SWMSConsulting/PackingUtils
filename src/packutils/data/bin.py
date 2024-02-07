@@ -4,10 +4,9 @@ import math
 from packutils.data.item import Item
 from typing import List, Tuple
 import numpy as np
-from packutils.data.packer_configuration import ItemGroupingMode
 
 from packutils.data.position import Position
-from packutils.data.grouped_item import GroupedItem, group_items_lengthwise
+from packutils.data.grouped_item import group_items_lengthwise
 from packutils.data.snappoint import Snappoint, SnappointDirection
 
 # describes the percentage of the bottom area required to lay on top of other item
@@ -510,16 +509,8 @@ class Bin:
             f"Bin: {self.width} {self.length} {self.height} - Items{self._packed_items}"
         )
 
-    def __eq__(self, other):
-        return (
-            self.width == other.width
-            and self.length == other.length
-            and self.height == other.height
-            and self._packed_items == other.packed_items
-        )
-
-    def __hash__(self):
-        return hash((self.width, self.length, self.height, tuple(self._packed_items)))
+    def __eq__(self, other: "Bin"):
+        return self.packed_items == other.packed_items
 
 
 if __name__ == "__main__":

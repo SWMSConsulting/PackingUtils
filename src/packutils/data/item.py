@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from ast import Tuple
 from typing import List
 
 from packutils.data.position import Position
 
 
+@dataclass
 class Item(ABC):
     """
     An abstract class representing an item to be packed in a container.
@@ -130,71 +132,3 @@ class Item(ABC):
             w, h, l = self.width, self.height, self.length
 
         return w, l, h
-
-    def to_position_and_dimension_2d(self, dimensions: List[str]):
-        """
-        Returns the 2D position and dimensions of the item based on the specified dimensions.
-
-        Args:
-            dimensions (List[str]): The dimensions to extract from the item. Should contain two strings out of ["width", "length", "height"].
-
-        Returns:
-            Tuple[Tuple[int], Tuple[int]]: The 2D position and dimension of the item based on the input dimensions. Returns None, None if the item os not packed.
-
-        Raises:
-            ValueError: If the dimensions list does not contain two valid dimension strings.
-
-        """
-        if not self.is_packed:
-            return None, None
-
-        if (
-            dimensions.count("width")
-            + dimensions.count("length")
-            + dimensions.count("height")
-            != 2
-        ):
-            raise ValueError(
-                "dimensions should contain two strings out of [width, length, height]."
-            )
-
-        pos = []
-        dim = []
-        for d in dimensions:
-            if d == "width":
-                pos.append(self.position.x)
-                dim.append(self.width)
-
-            if d == "length":
-                pos.append(self.position.y)
-                dim.append(self.length)
-
-            if d == "height":
-                pos.append(self.position.z)
-                dim.append(self.height)
-
-        return tuple(pos), tuple(dim)
-
-    def __repr__(self) -> str:
-        """
-        Returns a string representation of the item.
-
-        Returns:
-            str: The string representation of the item.
-
-        """
-        return f"{self.identifier}: width={self.width}, length={self.length}, height={self.height}, position={self.position}"
-
-    def __eq__(self, other):
-        return self.__hash__() == other.__hash__()
-
-    def __hash__(self):
-        return hash(
-            (
-                self.width,
-                self.length,
-                self.height,
-                self.weight,
-                self.position.__hash__(),
-            )
-        )
