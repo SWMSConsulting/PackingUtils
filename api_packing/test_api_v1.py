@@ -1,13 +1,19 @@
-import json
-from fastapi.testclient import TestClient
-from api import app
 import unittest
+import pytest
 
-from v1.models.variants_request_model import ArticleModel, OrderModel
+from fastapi.testclient import TestClient
+
+from api import app
+
+
+@pytest.fixture
+def change_dir(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.chdir("api_packing")
 
 
 class TestPackerAPI(unittest.TestCase):
     def setUp(self):
+
         self.client = TestClient(app)
         self.base_endpoint = "/api/v1"
 
@@ -25,8 +31,9 @@ class TestPackerAPI(unittest.TestCase):
             {"id": "test2", "width": 6, "length": 10, "height": 6, "amount": 11},
         ]
 
-        data = {"order": self.order, "num_variants": num_variants, "config": None}
+        data = {"order": self.order, "num_variants": num_variants}
         response = self.client.post(f"{self.base_endpoint}/variants", json=data)
+        print(response.json())
 
         self.assertEqual(response.status_code, 200)
 
@@ -49,7 +56,7 @@ class TestPackerAPI(unittest.TestCase):
 
         for article in invalid_articles:
             self.order["articles"] = [article]
-            data = {"order": self.order, "num_variants": num_variants, "config": None}
+            data = {"order": self.order, "num_variants": num_variants}
             response = self.client.post(f"{self.base_endpoint}/variants", json=data)
             self.assertEqual(response.status_code, 422)
 
@@ -65,7 +72,7 @@ class TestPackerAPI(unittest.TestCase):
         for colli in invalid_collis:
             self.order["colli_details"] = colli
 
-        data = {"order": self.order, "num_variants": num_variants, "config": None}
+        data = {"order": self.order, "num_variants": num_variants}
         response = self.client.post(f"{self.base_endpoint}/variants", json=data)
 
         self.assertEqual(response.status_code, 422)
@@ -83,7 +90,7 @@ class TestPackerAPI(unittest.TestCase):
 
         for article in invalid_articles:
             self.order["articles"] = [article]
-            data = {"order": self.order, "num_variants": num_variants, "config": None}
+            data = {"order": self.order, "num_variants": num_variants}
             response = self.client.post(f"{self.base_endpoint}/variants", json=data)
 
             self.assertEqual(response.status_code, 422)

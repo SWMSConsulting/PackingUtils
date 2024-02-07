@@ -33,3 +33,6 @@ class Position:
         self.y = y
         self.z = z
         self.rotation = rotation
+
+    def __hash__(self) -> int:
+        return hash((self.x, self.y, self.z, self.rotation))
