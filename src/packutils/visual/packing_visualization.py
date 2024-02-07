@@ -1,14 +1,16 @@
 import os
 import io
+from matplotlib import patheffects
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from enum import Enum
-from typing import List
+from typing import Callable, List, Tuple
 
 from matplotlib.patches import Rectangle
 from PIL import Image
 
 from packutils.data.bin import Bin
+from packutils.data.item import Item
 from packutils.data.packing_variant import PackingVariant
 
 
@@ -17,6 +19,56 @@ class Perspective(str, Enum):
     front = "front"
     side = "side"
     top = "top"
+
+
+Rect = Tuple[float, float, float, float]
+
+
+def extract_rectangles_with_count(
+    items: List[Item], perspective: Perspective
+) -> List[Tuple[Rect, int]]:
+
+    rectangles = []
+    prev_rect = None
+    count = 0
+
+    if perspective == Perspective.front:
+        items = sorted(items, key=lambda item: (item.position.z, item.position.x))
+        to_rect: Callable[[Item], Rect] = lambda item: (
+            item.position.x,
+            item.position.z,
+            item.width,
+            item.height,
+        )
+    elif perspective == Perspective.top:
+        to_rect: Callable[[Item], Rect] = lambda item: (
+            item.position.x,
+            item.position.y,
+            item.width,
+            item.length,
+        )
+    elif perspective == Perspective.side:
+        to_rect: Callable[[Item], Rect] = lambda item: (
+            item.position.y,
+            item.position.z,
+            item.length,
+            item.height,
+        )
+    else:
+        raise ValueError(f"Invalid perspective: {perspective}")
+
+    for item in items:
+        rect = to_rect(item)
+        if prev_rect == rect:
+            count += 1
+        else:
+            if prev_rect is not None:
+                rectangles.append((prev_rect, count))
+            prev_rect = rect
+            count = 1
+
+    rectangles.append((prev_rect, count))
+    return rectangles
 
 
 class PackingVisualization:
@@ -30,7 +82,7 @@ class PackingVisualization:
     def visualize_bin(
         self,
         bin: Bin,
-        perspective: Perspective = Perspective.top,
+        perspective: Perspective,
         snappoint_min_z: "int|None" = None,
         title: str = None,
         show: bool = True,
@@ -55,6 +107,7 @@ class PackingVisualization:
     def visualize_packing_variant(
         self,
         variant: PackingVariant,
+        perspective: Perspective,
         show: bool = True,
         output_dir: "str | None" = None,
         return_png=False,
@@ -63,6 +116,7 @@ class PackingVisualization:
         for idx, bin in enumerate(variant.bins):
             img = self.visualize_bin(
                 bin=bin,
+                perspective=perspective,
                 title=f"Bin {idx+1}",
                 show=show,
                 output_dir=output_dir,
@@ -81,42 +135,64 @@ class PackingVisualization:
         output_dir: "str | None" = None,
         return_png: bool = False,
     ):
-        if perspective == Perspective.front:
-            dimensions = ["width", "height"]
-        elif perspective == Perspective.top:
-            dimensions = ["width", "length"]
-        elif perspective == Perspective.side:
-            dimensions = ["length", "height"]
-        else:
-            raise ValueError(f"Invalid perspective: {perspective}")
-            
-
-        items = bin.packed_items
         fig, ax = plt.subplots()
 
-        pos_dim_2d = [item.to_position_and_dimension_2d(dimensions) for item in items]
-        x_max, y_max = bin.get_dimension_2d(dimensions)
+        if perspective == Perspective.front:
+            ax.axes.set_xlim(0, bin.width)
+            ax.axes.set_ylim(0, bin.height)
+            ax.set_xlabel("Breite")
+            ax.set_ylabel("Höhe")
+        elif perspective == Perspective.top:
+            snappoint_min_z = None
+            ax.axes.set_xlim(0, bin.width)
+            ax.axes.set_ylim(0, bin.length)
+            ax.set_xlabel("Breite")
+            ax.set_ylabel("Länge")
+        elif perspective == Perspective.side:
+            snappoint_min_z = None
+            ax.axes.set_xlim(0, bin.length)
+            ax.axes.set_ylim(0, bin.height)
+            ax.set_xlabel("Länge")
+            ax.set_ylabel("Höhe")
+        else:
+            raise ValueError(f"Invalid perspective: {perspective}")
 
-        ax.axes.set_xlim(0, x_max)
-        ax.axes.set_ylim(0, y_max)
-        ax.set_xlabel(dimensions[0])
-        ax.set_ylabel(dimensions[1])
+        items = bin.packed_items
+
+        rectangles = extract_rectangles_with_count(items, perspective)
+        print(rectangles)
+        # x_max = max([r[0] + r[2] for r, _ in rectangles])
+        # y_max = max([r[1] + r[3] for r, _ in rectangles])
 
         if title is not None:
             ax.set_title(title)
         ax.set_aspect("equal")
 
-        for idx, (pos, dim) in enumerate(pos_dim_2d):
+        for idx, (rect, count) in enumerate(rectangles):
+
             ax.add_patch(
                 Rectangle(
-                    pos,
-                    dim[0],
-                    dim[1],
+                    (rect[0], rect[1]),
+                    rect[2],
+                    rect[3],
                     facecolor=self.get_color(idx),
                     edgecolor="black",
                     linewidth=2,
                 )
             )
+            if count > 1:
+                txt = ax.text(
+                    rect[0] + rect[2] / 2,
+                    rect[1] + rect[3] / 2,
+                    str(count),
+                    ha="center",
+                    va="center",
+                    fontsize=12,
+                    color="white",
+                )
+                txt.set_path_effects(
+                    [patheffects.withStroke(linewidth=2, foreground="black")]
+                )
 
         if snappoint_min_z is not None:
             snappoints = bin.get_snappoints(snappoint_min_z)
