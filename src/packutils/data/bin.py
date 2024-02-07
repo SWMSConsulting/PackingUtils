@@ -121,11 +121,25 @@ class Bin:
                 f"{item.identifier}: Item overhangs the bin and is not stable (stability condition).",
             )
 
-        if np.any(self._heightmap[x : x + item.width, 0] > z):
-            return (
-                False,
-                f"{item.identifier}: Position is already occupied (non-overlapping condition).",
-            )
+        is_overlapping = np.any(self._heightmap[x : x + item.width, 0] > z)
+        stacked_items_y = [
+            i for i in self._packed_items if (x == i.position.x and z == i.position.z)
+        ]
+        overlapping_items_y = [
+            i
+            for i in stacked_items_y
+            if y < i.position.y + i.length and i.position.y < y + item.length
+        ]
+        is_overlapping_y = len(overlapping_items_y) > 0
+
+        if is_overlapping:
+            if is_overlapping_y:
+                return (
+                    False,
+                    f"{item.identifier}: Position is already occupied (non-overlapping condition).",
+                )
+            else:
+                return True, None
 
         if not self._is_item_position_stable(item, position):
             return (
