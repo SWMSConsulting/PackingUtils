@@ -59,7 +59,7 @@ class Bin:
         self.stability_factor = stability_factor
 
         assert overhang_y_stability_factor is None or (
-            overhang_y_stability_factor >= 0.5 and overhang_y_stability_factor < 1
+            overhang_y_stability_factor >= 0.5 and overhang_y_stability_factor <= 1
         ), "Overhang y stability factor must be between 0 and 1."
         self.allow_overhang_y = overhang_y_stability_factor != None
         self.overhang_y_stability_factor = overhang_y_stability_factor
@@ -511,6 +511,9 @@ class Bin:
 
     def __eq__(self, other: "Bin"):
         return self.packed_items == other.packed_items
+
+    def __hash__(self):
+        return hash(tuple(self.packed_items))
 
 
 if __name__ == "__main__":

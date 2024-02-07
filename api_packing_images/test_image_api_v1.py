@@ -1,24 +1,34 @@
-import json
+import unittest
+import pytest
+
 from PIL import Image
 from io import BytesIO
 from fastapi.testclient import TestClient
+
 from api import app
-import unittest
 
 
-class TestPackerAPI(unittest.TestCase):
+@pytest.fixture
+def get_app(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.chdir("api_packing_images")
+
+
+class TestImageAPI(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
         self.base_endpoint = "/api/v1"
         self.image_endpioint = f"{self.base_endpoint}/bin"
 
     def test_ping(self):
+
         response = self.client.get(self.base_endpoint)
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "Healthy"})
 
     def test_bin_image(self):
         data = {
+            "perspective": "front",
             "packages": [
                 {"width": 2, "length": 1, "height": 2, "x": 0, "y": 0, "z": 0}
             ],
@@ -26,6 +36,7 @@ class TestPackerAPI(unittest.TestCase):
         }
 
         response = self.client.post(self.image_endpioint, json=data)
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers["content-type"], "image/png")
 
@@ -35,16 +46,19 @@ class TestPackerAPI(unittest.TestCase):
 
     def test_bin_image_colli_invalid(self):
         data = {
+            "perspective": "front",
             "packages": [],
             "colli_details": {"width": 0, "length": 1, "height": 10},
         }
 
         response = self.client.post(self.image_endpioint, json=data)
+
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.headers["content-type"], "application/json")
 
     def test_bin_image_package_invalid(self):
         data = {
+            "perspective": "front",
             "packages": [
                 {"width": 0, "length": 1, "height": 2, "x": 0, "y": 0, "z": 0}
             ],
@@ -52,11 +66,13 @@ class TestPackerAPI(unittest.TestCase):
         }
 
         response = self.client.post(self.image_endpioint, json=data)
+
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.headers["content-type"], "application/json")
 
     def test_bin_image_position_invalid(self):
         data = {
+            "perspective": "front",
             "packages": [
                 {"width": 2, "length": 1, "height": 2, "x": 0, "y": 0, "z": 2}
             ],
@@ -64,6 +80,7 @@ class TestPackerAPI(unittest.TestCase):
         }
 
         response = self.client.post(self.image_endpioint, json=data)
+
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.headers["content-type"], "application/json")
 

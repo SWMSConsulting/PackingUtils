@@ -132,3 +132,15 @@ class Item(ABC):
             w, h, l = self.width, self.height, self.length
 
         return w, l, h
+
+    def __hash__(self) -> int:
+        return hash(
+            (
+                self.identifier,
+                self.width,
+                self.length,
+                self.height,
+                self.weight,
+                self.position.__hash__(),
+            )
+        )
