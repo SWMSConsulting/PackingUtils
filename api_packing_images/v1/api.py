@@ -47,10 +47,12 @@ def get_bin_image(request: BinImageRequestModel):
 
     items_with_positions = [
         (
-            SingleItem(identifier="", width=p.width, length=p.length, height=p.height),
+            SingleItem(
+                identifier=f"Item {i}", width=p.width, length=p.length, height=p.height
+            ),
             Position(x=p.x, y=p.y, z=p.z),
         )
-        for p in request.packages
+        for i, p in enumerate(request.packages)
     ]
     done, errors = bin.pack_items(items_with_positions)
 
