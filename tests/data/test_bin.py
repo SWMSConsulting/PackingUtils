@@ -408,6 +408,30 @@ class TestBin(unittest.TestCase):
         self.assertEqual(len(bin.packed_items), 3)
         self.assertEqual(np.count_nonzero(bin.heightmap), 4)
 
+    def test_pack_items_overlapping_y(self):
+        bin = Bin(width=10, length=10, height=10)
+
+        items_and_positions = [
+            (
+                SingleItem(identifier="test1", width=2, length=10, height=2),
+                Position(0, 0, 0),
+            ),
+            (
+                SingleItem(identifier="test2", width=2, length=5, height=2),
+                Position(2, 0, 0),
+            ),
+            (
+                SingleItem(identifier="test3", width=2, length=5, height=2),
+                Position(2, 4, 0),
+            ),
+        ]
+
+        result, info = bin.pack_items(items_and_positions)
+
+        self.assertIsNotNone(info)
+        self.assertFalse(result)
+        self.assertEqual(len(bin.packed_items), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
