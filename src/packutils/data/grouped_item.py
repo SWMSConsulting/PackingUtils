@@ -1,57 +1,83 @@
-from typing import List
+from typing import List, Tuple
 from packutils.data.item import Item
 from packutils.data.packer_configuration import ItemGroupingMode
 from packutils.data.position import Position
 
 
+def group_items_lengthwise(
+    items_to_group: List[Item],
+    position_offsets: "List[Position]| None" = None,
+    padding_between_items: int = 0,
+) -> "GroupedItem|None":
+    """
+    Groups the items according to the specified grouping mode.
+    """
+    width = items_to_group[0].width
+    height = items_to_group[0].height
+    assert all(
+        item.width == width and item.height == height for item in items_to_group
+    ), "All items must have the same width and height"
+
+    assert position_offsets is None or all(
+        p.x == 0 and p.z == 0 for p in position_offsets
+    ), "When grouping lengthwise, only y offsets are allowed"
+
+    if position_offsets is None:
+        position_offsets = []
+        grouped_items: List[Item] = []
+        y_offset = 0
+        for item in sorted(items_to_group, key=lambda item: item.length):
+            grouped_items.append(item)
+            position_offsets.append(Position(0, y_offset, 0))
+            y_offset += item.length + padding_between_items
+
+    else:
+        grouped_items = items_to_group
+        y_offset = -1e5
+        for item, position_offset in sorted(
+            zip(items_to_group, position_offsets), key=lambda x: x[1].y
+        ):
+            if y_offset > position_offset.y:
+                return None  # two items overlap
+            y_offset = position_offset.y + item.length
+
+    return GroupedItem(grouped_items, ItemGroupingMode.LENGTHWISE, position_offsets)
+
+
 class GroupedItem(Item):
     grouping_mode: ItemGroupingMode
     grouped_items: List[Item]
+    position_offsets: List[Position]
 
-    def __init__(self, items_to_group: List[Item], grouping_mode: ItemGroupingMode):
+    def __init__(
+        self,
+        grouped_items: List[Item],
+        grouping_mode: ItemGroupingMode,
+        position_offsets: List[Position],
+    ):
         self.grouping_mode = grouping_mode
-        self.grouped_items = items_to_group
+        self.grouped_items = grouped_items
+        self.position_offsets = position_offsets
 
-        self.weight = sum(item.weight for item in items_to_group)
-
-        self.group_items()
-
-    def group_items(self):
-        """
-        Groups the items according to the specified grouping mode.
-        """
         if self.grouping_mode == ItemGroupingMode.LENGTHWISE:
-            self.width = self.grouped_items[0].width
-            self.height = self.grouped_items[0].height
-
-            assert all(
-                item.width == self.width and item.height == self.height
-                for item in self.grouped_items
-            ), "All items must have the same width and height"
-
-            self.length = sum(item.length for item in self.grouped_items)
-
-        else:
-            raise NotImplementedError(
-                f"Grouping mode not implemented {self.grouping_mode}"
-            )
+            self.weight = sum(item.weight for item in grouped_items)
+            self.width = grouped_items[0].width
+            self.height = grouped_items[0].height
+            self.length = max(
+                p.y + i.length
+                for i, p in zip(self.grouped_items, self.position_offsets)
+            ) - min(p.y for p in position_offsets)
 
         self.identifier = f"ItemGroup ({self.grouping_mode.value}): {len(self.grouped_items)} Items {self.width,self.length,self.height}"
 
     def pack(self, position: "Position | None"):
         self.position = position
 
-        if self.grouping_mode == ItemGroupingMode.LENGTHWISE:
-            position_offset = 0
-            for item in self.grouped_items:
-                pos = Position(position.x, position.y + position_offset, position.z)
-                item.pack(pos)
-                position_offset += item.length
-
-        else:
-            raise NotImplementedError(
-                f"Grouping mode not implemented {self.grouping_mode}"
+        for item, offset in zip(self.grouped_items, self.position_offsets):
+            pos = Position(
+                position.x + offset.x, position.y + offset.y, position.z + offset.z
             )
+            item.pack(pos)
 
     def get_max_overhang_y(self, stability_factor: "float|None") -> int:
         return min(

@@ -4,8 +4,10 @@ import math
 from packutils.data.item import Item
 from typing import List, Tuple
 import numpy as np
+from packutils.data.packer_configuration import ItemGroupingMode
 
 from packutils.data.position import Position
+from packutils.data.grouped_item import GroupedItem, group_items_lengthwise
 from packutils.data.snappoint import Snappoint, SnappointDirection
 
 # describes the percentage of the bottom area required to lay on top of other item
@@ -122,24 +124,11 @@ class Bin:
             )
 
         is_overlapping = np.any(self._heightmap[x : x + item.width, 0] > z)
-        stacked_items_y = [
-            i for i in self._packed_items if (x == i.position.x and z == i.position.z)
-        ]
-        overlapping_items_y = [
-            i
-            for i in stacked_items_y
-            if y < i.position.y + i.length and i.position.y < y + item.length
-        ]
-        is_overlapping_y = len(overlapping_items_y) > 0
-
         if is_overlapping:
-            if is_overlapping_y:
-                return (
-                    False,
-                    f"{item.identifier}: Position is already occupied (non-overlapping condition).",
-                )
-            else:
-                return True, None
+            return (
+                False,
+                f"{item.identifier}: Position is already occupied (non-overlapping condition).",
+            )
 
         if not self._is_item_position_stable(item, position):
             return (
@@ -210,6 +199,59 @@ class Bin:
         item.pack(None)
 
         return True, None
+
+    def pack_items(
+        self, items_with_positions: List[Tuple[Item, Position]]
+    ) -> Tuple[bool, "List[str] | None"]:
+
+        items_with_positions = sorted(
+            items_with_positions, key=lambda x: (x[1].z, x[1].y, x[1].x)
+        )
+
+        error_messages = []
+
+        while len(items_with_positions) > 0:
+            # check if multiple items are grouped together
+            item, position = items_with_positions[0]
+
+            same_items = [
+                (i, p)
+                for i, p in items_with_positions
+                if i.width == item.width
+                and i.height == item.height
+                and p.z == position.z
+                and p.x == position.x
+            ]
+
+            if len(same_items) > 1:
+                items_to_group = []
+                position_offsets = []
+
+                position.y = min([p.y for _, p in same_items])
+
+                for i, p in same_items:
+                    items_to_group.append(i)
+                    position_offsets.append(Position(0, p.y - position.y, 0))
+
+                    items_with_positions.remove((i, p))
+
+                item = group_items_lengthwise(items_to_group, position_offsets)
+                if item is None:
+                    error_messages.append(
+                        f"Failed to group items {items_to_group} with position offsets {position_offsets}."
+                    )
+                    continue
+
+            else:
+                items_with_positions.pop(0)
+
+            can_be_packed, info = self.pack_item(item, position)
+            if not can_be_packed:
+                error_messages.append(info)
+
+        successful = len(error_messages) == 0
+
+        return successful, None if successful else error_messages
 
     def recreate_heightmap(self):
         """
