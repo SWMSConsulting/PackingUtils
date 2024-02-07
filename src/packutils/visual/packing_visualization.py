@@ -160,9 +160,6 @@ class PackingVisualization:
         items = bin.packed_items
 
         rectangles = extract_rectangles_with_count(items, perspective)
-        print(rectangles)
-        # x_max = max([r[0] + r[2] for r, _ in rectangles])
-        # y_max = max([r[1] + r[3] for r, _ in rectangles])
 
         if title is not None:
             ax.set_title(title)
