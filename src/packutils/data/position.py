@@ -1,3 +1,7 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class Position:
     """
     Represents a position in 3D space.
@@ -29,12 +33,3 @@ class Position:
         self.y = y
         self.z = z
         self.rotation = rotation
-
-    def __repr__(self):
-        return f"Postion: {self.x, self.y, self.z, self.rotation}"
-
-    def __eq__(self, other):
-        return self.__hash__() == other.__hash__()
-
-    def __hash__(self):
-        return hash((self.x, self.y, self.z, self.rotation))

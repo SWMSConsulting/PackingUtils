@@ -1,4 +1,5 @@
 import unittest
+from packutils.data.position import Position
 from packutils.data.single_item import SingleItem
 from packutils.data.bin import Bin
 from packutils.data.packing_variant import PackingVariant
@@ -44,6 +45,82 @@ class TestPackingVariant(unittest.TestCase):
         variant2.add_bin(bin)
 
         self.assertEqual(variant1, variant2)
+
+    def test_compare_variants_same(self):
+        variant = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        bin.pack_item(
+            SingleItem(identifier="test_item", width=5, length=5, height=5),
+            Position(0, 0, 0),
+        )
+        variant.add_bin(bin)
+
+        same_variant = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        bin.pack_item(
+            SingleItem(identifier="test_item", width=5, length=5, height=5),
+            Position(0, 0, 0),
+        )
+        same_variant.add_bin(bin)
+
+        self.assertEqual(variant, same_variant)
+
+    def test_compare_variants_different_position(self):
+        variant = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        bin.pack_item(
+            SingleItem(identifier="test_item", width=5, length=5, height=5),
+            Position(0, 0, 0),
+        )
+        variant.add_bin(bin)
+
+        other_variant = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        bin.pack_item(
+            SingleItem(identifier="test_item", width=5, length=5, height=5),
+            Position(10, 0, 0),
+        )
+        other_variant.add_bin(bin)
+
+        self.assertNotEqual(variant, other_variant)
+
+    def test_compare_variants_different_articles(self):
+        variant = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        bin.pack_item(
+            SingleItem(identifier="test_item", width=5, length=5, height=5),
+            Position(0, 0, 0),
+        )
+        variant.add_bin(bin)
+
+        other_variant = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        bin.pack_item(
+            SingleItem(identifier="another_identifier", width=5, length=5, height=5),
+            Position(0, 0, 0),
+        )
+        other_variant.add_bin(bin)
+
+        self.assertNotEqual(variant, other_variant)
+
+    def test_compare_variants_different_unpacked_articles(self):
+        variant = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        bin.pack_item(
+            SingleItem(identifier="test_item", width=5, length=5, height=5),
+            Position(0, 0, 0),
+        )
+        variant.add_bin(bin)
+
+        different_variant = PackingVariant()
+        bin = Bin(width=10, length=10, height=10)
+        different_variant.add_bin(bin)
+        different_variant.add_unpacked_item(
+            SingleItem(identifier="test_item", width=2, length=5, height=5),
+            error_message="",
+        )
+
+        self.assertNotEqual(variant, different_variant)
 
 
 if __name__ == "__main__":
