@@ -383,6 +383,31 @@ class TestBin(unittest.TestCase):
             item = [i for i in bin.packed_items if i.identifier == name][0]
             self.assertEqual(item.position, pos)
 
+    def test_pack_items(self):
+        bin = Bin(width=10, length=10, height=10)
+
+        items_and_positions = [
+            (
+                SingleItem(identifier="test1", width=2, length=10, height=2),
+                Position(0, 0, 0),
+            ),
+            (
+                SingleItem(identifier="test2", width=2, length=5, height=2),
+                Position(2, 0, 0),
+            ),
+            (
+                SingleItem(identifier="test3", width=2, length=5, height=2),
+                Position(2, 5, 0),
+            ),
+        ]
+
+        result, info = bin.pack_items(items_and_positions)
+
+        self.assertIsNone(info)
+        self.assertTrue(result)
+        self.assertEqual(len(bin.packed_items), 3)
+        self.assertEqual(np.count_nonzero(bin.heightmap), 4)
+
 
 if __name__ == "__main__":
     unittest.main()

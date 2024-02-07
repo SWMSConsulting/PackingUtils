@@ -7,7 +7,11 @@ from typing import List, Tuple
 from collections import namedtuple
 
 from packutils.data.bin import Bin
-from packutils.data.grouped_item import GroupedItem, ItemGroupingMode
+from packutils.data.grouped_item import (
+    GroupedItem,
+    ItemGroupingMode,
+    group_items_lengthwise,
+)
 from packutils.data.item import Item
 from packutils.data.order import Order
 from packutils.data.position import Position
@@ -78,12 +82,12 @@ class PalletierWishPacker(AbstractPacker):
         Returns:
             List[Item]: The items to be packed.
         """
-        padding_x = 0 if config is None else config.padding_between_items
+        padding_between_items = 0 if config is None else config.padding_between_items
 
         items_to_pack = [
             SingleItem(
                 identifier=a.article_id,
-                width=a.width + padding_x,
+                width=a.width + padding_between_items,
                 length=a.length,
                 height=a.height,
             )
@@ -131,7 +135,9 @@ class PalletierWishPacker(AbstractPacker):
                 for item in item_group:
                     items_to_pack.remove(item)
                 items_to_pack.append(
-                    GroupedItem(item_group, ItemGroupingMode.LENGTHWISE)
+                    group_items_lengthwise(
+                        item_group, padding_between_items=padding_between_items
+                    )
                 )
 
         return items_to_pack
