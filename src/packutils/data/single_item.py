@@ -25,6 +25,7 @@ class SingleItem(Item):
 
         """
         self.identifier = identifier
+        self.index = -1
         self.width = width
         self.length = length
         self.height = height
@@ -38,12 +39,13 @@ class SingleItem(Item):
             return 0
         return int(math.floor(self.length * (1 - stability_factor)))
 
-    def pack(self, position: "Position|None"):
+    def pack(self, position: "Position|None", index: int) -> None:
         assert position is None or isinstance(
             position, Position
         ), "This method requires a Position object as input."
 
         self.position = position
+        self.index = index
 
     @classmethod
     def from_article(cls, article: Article) -> "Item":

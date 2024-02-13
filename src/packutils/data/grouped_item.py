@@ -69,15 +69,18 @@ class GroupedItem(Item):
             ) - min(p.y for p in position_offsets)
 
         self.identifier = f"ItemGroup ({self.grouping_mode.value}): {len(self.grouped_items)} Items {self.width,self.length,self.height}"
+        self.index = -1
 
-    def pack(self, position: "Position | None"):
+    def pack(self, position: "Position | None", index: int) -> None:
         self.position = position
+        self.index = index
 
         for item, offset in zip(self.grouped_items, self.position_offsets):
             pos = Position(
                 position.x + offset.x, position.y + offset.y, position.z + offset.z
             )
-            item.pack(pos)
+            item.pack(pos, index)
+            index += 10
 
     def get_max_overhang_y(self, stability_factor: "float|None") -> int:
         return min(
