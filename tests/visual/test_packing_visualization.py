@@ -16,7 +16,7 @@ from packutils.visual.packing_visualization import (
 
 import matplotlib
 
-matplotlib.use("Agg")
+# matplotlib.use("Agg")
 
 
 class TestPackingVisualization(unittest.TestCase):

@@ -170,17 +170,18 @@ class PackingVisualization:
 
         for rect, count in rectangles:
 
+            color_idx += count
+
             ax.add_patch(
                 Rectangle(
                     (rect[0], rect[1]),
                     rect[2],
                     rect[3],
-                    facecolor=self.get_color(color_idx),
+                    facecolor=self.get_color(color_idx - 1),
                     edgecolor="black",
                     linewidth=2,
                 )
             )
-            color_idx += count
             if count > 1:
                 txt = ax.text(
                     rect[0] + rect[2] / 2,
@@ -188,11 +189,11 @@ class PackingVisualization:
                     str(count),
                     ha="center",
                     va="center",
-                    fontsize=12,
+                    fontsize=18,
                     color="white",
                 )
                 txt.set_path_effects(
-                    [patheffects.withStroke(linewidth=2, foreground="black")]
+                    [patheffects.withStroke(linewidth=4, foreground="black")]
                 )
 
         if snappoint_min_z is not None:
