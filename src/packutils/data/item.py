@@ -13,6 +13,8 @@ class Item(ABC):
     """
 
     identifier: str
+    index: int
+
     width: int
     length: int
     height: int
@@ -34,7 +36,7 @@ class Item(ABC):
         pass
 
     @abstractmethod
-    def pack(self, position: "Position|None"):
+    def pack(self, position: "Position|None", index: int) -> None:
         """
         Sets the position of the item in the container.
 

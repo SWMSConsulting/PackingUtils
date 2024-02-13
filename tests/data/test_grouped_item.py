@@ -33,7 +33,7 @@ class TestGroupedItem(unittest.TestCase):
 
         grouped_item = group_items_lengthwise(items_to_group)
         position = Position(x=0, y=0, z=0)
-        grouped_item.pack(position)
+        grouped_item.pack(position, 1)
 
         self.assertEqual(item1.position, Position(x=0, y=0, z=0))
         self.assertEqual(item2.position, Position(x=0, y=2, z=0))
@@ -74,8 +74,8 @@ class TestGroupedItem(unittest.TestCase):
         grouped_item = group_items_lengthwise(items_to_group, position_offsets)
         flattened_items = grouped_item.flatten()
 
-        item1.pack(position_offsets[0])
-        item2.pack(position_offsets[1])
+        item1.pack(position_offsets[0], 1)
+        item2.pack(position_offsets[1], 2)
 
         self.assertEqual(len(flattened_items), 2)
         packed1, packed2 = flattened_items

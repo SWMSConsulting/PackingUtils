@@ -32,8 +32,9 @@ def extract_rectangles_with_count(
     prev_rect = None
     count = 0
 
+    items = sorted(items, key=lambda item: item.index)
+
     if perspective == Perspective.front:
-        items = sorted(items, key=lambda item: (item.position.z, item.position.x))
         to_rect: Callable[[Item], Rect] = lambda item: (
             item.position.x,
             item.position.z,
@@ -165,18 +166,21 @@ class PackingVisualization:
             ax.set_title(title)
         ax.set_aspect("equal")
 
-        for idx, (rect, count) in enumerate(rectangles):
+        color_idx = 0
+
+        for rect, count in rectangles:
 
             ax.add_patch(
                 Rectangle(
                     (rect[0], rect[1]),
                     rect[2],
                     rect[3],
-                    facecolor=self.get_color(idx),
+                    facecolor=self.get_color(color_idx),
                     edgecolor="black",
                     linewidth=2,
                 )
             )
+            color_idx += count
             if count > 1:
                 txt = ax.text(
                     rect[0] + rect[2] / 2,

@@ -30,7 +30,15 @@ class TestImageAPI(unittest.TestCase):
         data = {
             "perspective": "front",
             "packages": [
-                {"width": 2, "length": 1, "height": 2, "x": 0, "y": 0, "z": 0}
+                {
+                    "width": 2,
+                    "length": 1,
+                    "height": 2,
+                    "index": 0,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0,
+                }
             ],
             "colli_details": {"width": 10, "length": 1, "height": 10},
         }
@@ -60,7 +68,15 @@ class TestImageAPI(unittest.TestCase):
         data = {
             "perspective": "front",
             "packages": [
-                {"width": 0, "length": 1, "height": 2, "x": 0, "y": 0, "z": 0}
+                {
+                    "width": 0,
+                    "length": 1,
+                    "height": 2,
+                    "index": 0,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0,
+                }
             ],
             "colli_details": {"width": 10, "length": 1, "height": 10},
         }
@@ -74,7 +90,15 @@ class TestImageAPI(unittest.TestCase):
         data = {
             "perspective": "front",
             "packages": [
-                {"width": 2, "length": 1, "height": 2, "x": 0, "y": 0, "z": 2}
+                {
+                    "width": 2,
+                    "length": 1,
+                    "height": 2,
+                    "index": 0,
+                    "x": 0,
+                    "y": 0,
+                    "z": 2,
+                }
             ],
             "colli_details": {"width": 10, "length": 1, "height": 10},
         }
