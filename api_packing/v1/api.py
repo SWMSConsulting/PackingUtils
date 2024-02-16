@@ -27,6 +27,11 @@ from packutils.eval.packing_evaluation import (
 from packutils.solver.palletier_wish_packer import PalletierWishPacker
 
 
+def to_bool(value: str) -> bool:
+    print(value)
+    return value.lower() in ("yes", "true", "t", "1")
+
+
 def get_possible_config_params(
     change_volumes: "List[float] | None" = None,
 ) -> Tuple[List[PackerConfiguration], int]:
@@ -81,19 +86,19 @@ def get_possible_config_params(
     else:
         if env_allow_item_exceeds_layer.startswith("["):
             possible_allow_item_exceeds_layer = [
-                bool(b) for b in json.loads(env_allow_item_exceeds_layer)
+                to_bool(b) for b in json.loads(env_allow_item_exceeds_layer)
             ]
         else:
-            possible_allow_item_exceeds_layer = [bool(env_allow_item_exceeds_layer)]
+            possible_allow_item_exceeds_layer = [to_bool(env_allow_item_exceeds_layer)]
 
     env_mirror_walls = os.environ.get("MIRROR_WALLS", None)
     if env_mirror_walls is None:
         possible_mirror_walls = [True, False]
     else:
         if env_mirror_walls.startswith("["):
-            possible_mirror_walls = [bool(b) for b in json.loads(env_mirror_walls)]
+            possible_mirror_walls = [to_bool(b) for b in json.loads(env_mirror_walls)]
         else:
-            possible_mirror_walls = [bool(env_mirror_walls)]
+            possible_mirror_walls = [to_bool(env_mirror_walls)]
 
     env_direction_change_volumes = os.environ.get("DIRECTION_CHANGE_VOLUMES", None)
     possible_direction_change_volume = (
