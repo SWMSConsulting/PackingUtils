@@ -146,12 +146,11 @@ class Bin:
             self._packed_items.append(item)
             x = position.x
             max_z = position.z + item.height
-            y = max(position.y, 0)
             self._heightmap[x : x + item.width, 0] = max_z
             self._heightmap[x : x + item.width, 1] = item.length
 
-            if item.length > self.length and self.allow_overhang_y:
-                position.y -= math.floor((item.length - self.length) / 2)
+            # center item lengthwise
+            position.y = (self.length - item.length) // 2
 
             item.pack(position, index)
         return can_be_packed, info
