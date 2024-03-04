@@ -98,14 +98,10 @@ class PalletierWishPacker(AbstractPacker):
         if config is None or config.item_grouping_mode is None:
             return items_to_pack
 
-        # item grouping not
         if config.item_grouping_mode == ItemGroupingMode.LENGTHWISE:
-            bin_length = self.reference_bins[0].width
-            overhang_f = config.overhang_y_stability_factor
+            bin_length = self.reference_bins[0].length
             groupable_items = [
-                item
-                for item in items_to_pack
-                if 2 * (item.length - item.get_max_overhang_y(overhang_f)) <= bin_length
+                item for item in items_to_pack if item.length < bin_length
             ]
 
             while len(groupable_items) > 0:
@@ -121,9 +117,8 @@ class PalletierWishPacker(AbstractPacker):
                     groupable_items.remove(current_item)
                     continue
 
-                allowed_length = bin_length + 2 * min(
-                    [item.get_max_overhang_y(overhang_f) for item in same_items]
-                )
+                allowed_length = bin_length
+
                 item_group = []
                 item_group_length = 0
                 for item in same_items:

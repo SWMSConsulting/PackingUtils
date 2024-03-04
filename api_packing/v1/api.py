@@ -200,11 +200,10 @@ def get_packing_variants(body: VariantsRequestModel):
         ]
     else:
         bins = [Bin(800, 1200, 500)]
-
-    max_w = bins[0].width
-    max_h = bins[0].height
-    max_l = 1e5 if ALLOW_OVERHANG_Y else bins[0].length
-    bin_volume = bins[0].volume
+    max_w = min([b.width for b in bins])
+    max_h = min([b.height for b in bins])
+    max_l = min([b.length for b in bins])
+    bin_volume = min([b.volume for b in bins])
 
     error_msg = validate_requested_order(body.order, max_w, max_l, max_h)
     if error_msg is not None:
