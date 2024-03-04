@@ -392,7 +392,10 @@ class PalletierWishPacker(AbstractPacker):
 
             if not can_both_fit:
                 possible_items.remove(new_layer_item)
-                possible_items.remove(new_layer_item)
+                same_item = get_item_with_dimension(
+                    possible_items, new_layer_item.dimensions
+                )
+                possible_items.remove(same_item)
 
         next_item = select_item_from_list(
             possible_items, self.config.default_select_strategy, self.prev_item
