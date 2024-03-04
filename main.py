@@ -25,16 +25,15 @@ matplotlib.use("Agg")
 
 @st.cache_data
 def get_possible_config_params() -> Tuple[List[PackerConfiguration], int]:
-    possible_default_select_strategy = [
-        ItemSelectStrategy.LARGEST_L_H_W,
-        ItemSelectStrategy.LARGEST_L_W_H,
-    ]
+
+    possible_default_select_strategy = ItemSelectStrategy.list()
+
     possible_new_layer_select_strategy = [
-        ItemSelectStrategy.LARGEST_L_H_W,
-        ItemSelectStrategy.LARGEST_L_W_H,
+        ItemSelectStrategy.LARGEST_VOLUME,
+        ItemSelectStrategy.LARGEST_W_H_L,
     ]
 
-    possible_bin_stability_factor = [1.0]
+    possible_bin_stability_factor = [0.9]
 
     possible_allow_item_exceeds_layer = [False]
 
@@ -52,7 +51,7 @@ def get_possible_config_params() -> Tuple[List[PackerConfiguration], int]:
         possible_direction_change_volume,
         possible_bin_stability_factor,
         possible_allow_item_exceeds_layer,
-        possible_mirror_walls
+        possible_mirror_walls,
         # add here other possible parameter
     ]
     combinations = list(itertools.product(*params))
@@ -95,7 +94,7 @@ st.write("""# Packing Visualisation""")
 # logging.basicConfig(level=logging.INFO)
 
 max_bins = 3
-bins = [Bin(800, 10, 600) for _ in range(max_bins)]
+bins = [Bin(1200, 2400, 1000) for _ in range(max_bins)]
 packer = PalletierWishPacker(bins=bins)
 
 with st.expander("Order", expanded=True):
@@ -214,7 +213,7 @@ else:
 
         for bin_idx, bin in enumerate(variant.bins):
             cols = st.columns(max_bins)
-            fig = vis.visualize_bin(bin, show=False, force_2d=True)
+            fig = vis.visualize_bin(bin, show=False, perspective="front")
             cols[bin_idx].pyplot(fig)
             plt.close(fig)
 

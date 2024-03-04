@@ -141,6 +141,8 @@ class Bin:
         can_be_packed, info = self.can_item_be_packed(item, position)
 
         if can_be_packed:
+            index = len(self.packed_items) * 10
+
             self._packed_items.append(item)
             x = position.x
             max_z = position.z + item.height
@@ -151,7 +153,7 @@ class Bin:
             if item.length > self.length and self.allow_overhang_y:
                 position.y -= math.floor((item.length - self.length) / 2)
 
-            item.pack(position)
+            item.pack(position, index)
         return can_be_packed, info
 
     def remove_item(self, item: Item) -> Tuple[bool, "str | None"]:
@@ -180,7 +182,7 @@ class Bin:
 
         self._packed_items.remove(item)
         self.recreate_heightmap()
-        item.pack(None)
+        item.pack(None, -1)
 
         return True, None
 
@@ -188,9 +190,9 @@ class Bin:
         self, items_with_positions: List[Tuple[Item, Position]]
     ) -> Tuple[bool, "List[str] | None"]:
 
-        items_with_positions = sorted(
-            items_with_positions, key=lambda x: (x[1].z, x[1].y, x[1].x)
-        )
+        # items_with_positions = sorted(
+        #     items_with_positions, key=lambda x: (x[1].z, x[1].y, x[1].x)
+        # )
 
         error_messages = []
 

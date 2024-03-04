@@ -15,9 +15,10 @@ class ItemTestCase(unittest.TestCase):
     def test_item_pack(self):
         item = SingleItem(identifier="test", width=10, length=20, height=30)
         position = Position(x=5, y=5, z=5, rotation=0)
-        item.pack(position)
+        item.pack(position, 1)
         self.assertEqual(item.is_packed, True)
         self.assertEqual(item.position, position)
+        self.assertEqual(item.index, 1)
 
     def test_get_max_overhang_y(self):
         item = SingleItem(identifier="test", width=10, length=20, height=30)

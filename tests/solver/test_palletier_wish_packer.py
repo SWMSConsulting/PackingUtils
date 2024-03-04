@@ -68,13 +68,13 @@ class TestPalletierWishPacker(unittest.TestCase):
         self.assertIsNotNone(packing_variant, "pack_variant returned None")
 
         item1 = SingleItem(identifier="2", width=8, length=1, height=2)
-        item1.pack(position=Position(0, 0, 0))
+        item1.pack(position=Position(0, 0, 0), index=0)
 
         item2 = SingleItem(identifier="1", width=4, length=1, height=4)
-        item2.pack(position=Position(0, 0, 2))
+        item2.pack(position=Position(0, 0, 2), index=10)
 
         item3 = SingleItem(identifier="1", width=4, length=1, height=4)
-        item3.pack(position=Position(4, 0, 2))
+        item3.pack(position=Position(4, 0, 2), index=20)
 
         expected_items = [item1, item2, item3]
 
@@ -101,13 +101,13 @@ class TestPalletierWishPacker(unittest.TestCase):
         self.assertIsNotNone(packing_variant, "pack_variant returned None")
 
         item1 = SingleItem(identifier="1", width=4, length=1, height=4)
-        item1.pack(position=Position(0, 0, 0))
+        item1.pack(position=Position(0, 0, 0), index=0)
 
         item2 = SingleItem(identifier="1", width=4, length=1, height=4)
-        item2.pack(position=Position(4, 0, 0))
+        item2.pack(position=Position(4, 0, 0), index=10)
 
         item3 = SingleItem(identifier="2", width=7, length=1, height=2)
-        item3.pack(position=Position(0, 0, 4))
+        item3.pack(position=Position(0, 0, 4), index=20)
 
         expected_items = [item1, item2, item3]
 
@@ -343,14 +343,14 @@ class TestPalletierWishPacker(unittest.TestCase):
         print(packing_variant)
 
         item1 = SingleItem(identifier="1", width=5, length=4, height=5)
-        item1.pack(position=Position(0, 0, 0))
+        item1.pack(position=Position(0, 0, 0), index=0)
         item2 = SingleItem(identifier="1", width=5, length=4, height=5)
-        item2.pack(position=Position(0, 4, 0))
+        item2.pack(position=Position(0, 4, 0), index=10)
 
         item3 = SingleItem(identifier="2", width=3, length=2, height=3)
-        item3.pack(position=Position(5, 0, 0))
+        item3.pack(position=Position(5, 0, 0), index=20)
         item4 = SingleItem(identifier="2", width=3, length=2, height=3)
-        item4.pack(position=Position(5, 2, 0))
+        item4.pack(position=Position(5, 2, 0), index=30)
 
         expected_items = [item1, item2, item3, item4]
 
@@ -381,14 +381,14 @@ class TestPalletierWishPacker(unittest.TestCase):
         print(packing_variant)
 
         item1 = SingleItem(identifier="1", width=5, length=4, height=5)
-        item1.pack(position=Position(0, 0, 0))
+        item1.pack(position=Position(0, 0, 0), index=0)
         item2 = SingleItem(identifier="1", width=5, length=4, height=5)
-        item2.pack(position=Position(0, 4, 0))
+        item2.pack(position=Position(0, 4, 0), index=10)
 
         item3 = SingleItem(identifier="2", width=3, length=6, height=3)
-        item3.pack(position=Position(5, -1, 0))
+        item3.pack(position=Position(5, -1, 0), index=20)
         item4 = SingleItem(identifier="2", width=3, length=6, height=3)
-        item4.pack(position=Position(5, 5, 0))
+        item4.pack(position=Position(5, 5, 0), index=30)
 
         expected_items = [item1, item2, item3, item4]
 

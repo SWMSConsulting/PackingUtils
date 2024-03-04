@@ -32,8 +32,9 @@ def extract_rectangles_with_count(
     prev_rect = None
     count = 0
 
+    items = sorted(items, key=lambda item: item.index)
+
     if perspective == Perspective.front:
-        items = sorted(items, key=lambda item: (item.position.z, item.position.x))
         to_rect: Callable[[Item], Rect] = lambda item: (
             item.position.x,
             item.position.z,
@@ -165,14 +166,18 @@ class PackingVisualization:
             ax.set_title(title)
         ax.set_aspect("equal")
 
-        for idx, (rect, count) in enumerate(rectangles):
+        color_idx = 0
+
+        for rect, count in rectangles:
+
+            color_idx += count
 
             ax.add_patch(
                 Rectangle(
                     (rect[0], rect[1]),
                     rect[2],
                     rect[3],
-                    facecolor=self.get_color(idx),
+                    facecolor=self.get_color(color_idx - 1),
                     edgecolor="black",
                     linewidth=2,
                 )
@@ -184,11 +189,11 @@ class PackingVisualization:
                     str(count),
                     ha="center",
                     va="center",
-                    fontsize=12,
+                    fontsize=18,
                     color="white",
                 )
                 txt.set_path_effects(
-                    [patheffects.withStroke(linewidth=2, foreground="black")]
+                    [patheffects.withStroke(linewidth=4, foreground="black")]
                 )
 
         if snappoint_min_z is not None:
