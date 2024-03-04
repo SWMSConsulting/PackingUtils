@@ -44,7 +44,8 @@ pip install py3dbp
 
 ## Run the solver API (Docker)
 ### Build docker image and publish
-```
+
+```bash
 cd _api_packing
 docker build -t packingsolver .
 
@@ -54,6 +55,6 @@ docker push harbor.swms-cloud.com/binpacking/packingsolver:latest
 ```
 
 ### Run the docker container 
-```
+```bash
 docker run -p 8000:8000 packingsolver
 ```
