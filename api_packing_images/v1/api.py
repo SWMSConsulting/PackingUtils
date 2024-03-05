@@ -52,7 +52,7 @@ def get_bin_image(request: BinImageRequestModel):
             ),
             Position(x=p.x, y=p.y, z=p.z),
         )
-        for i, p in enumerate(sorted(request.packages, key=lambda p: (p.z, p.x, p.y)))
+        for i, p in enumerate(sorted(request.packages, key=lambda p: p.index))
     ]
     done, errors = bin.pack_items(items_with_positions)
 
