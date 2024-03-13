@@ -54,6 +54,7 @@ class PalletierWishPacker(AbstractPacker):
                 width=b.width,
                 length=b.length,
                 height=b.height,
+                max_length=b.max_length,
                 max_weight=b.max_weight,
                 stability_factor=config.bin_stability_factor,
                 overhang_y_stability_factor=config.overhang_y_stability_factor,
@@ -104,7 +105,7 @@ class PalletierWishPacker(AbstractPacker):
 
         if config.item_grouping_mode == ItemGroupingMode.LENGTHWISE:
             allowed_length = self.reference_bins[0].max_length
-
+            print("allowed_length", allowed_length)
             groupable_items = [
                 item for item in items_to_pack if item.length < allowed_length
             ]
