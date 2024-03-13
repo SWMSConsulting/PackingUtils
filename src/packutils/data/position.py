@@ -36,3 +36,6 @@ class Position:
 
     def __hash__(self) -> int:
         return hash((self.x, self.y, self.z, self.rotation))
+
+    def __repr__(self) -> str:
+        return f"Position(x={self.x}, y={self.y}, z={self.z}, rotation={self.rotation})"

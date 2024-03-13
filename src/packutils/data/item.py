@@ -146,3 +146,6 @@ class Item(ABC):
                 self.position.__hash__(),
             )
         )
+
+    def __eq__(self, other: "Item") -> bool:
+        return hash(self) == hash(other)
