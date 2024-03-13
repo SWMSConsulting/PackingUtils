@@ -209,13 +209,12 @@ def get_packing_variants(body: VariantsRequestModel):
         for _ in range(details.max_collis)
     ]
 
-    max_w = min([b.width for b in bins])
-    max_h = min([b.height for b in bins])
-    max_l = min([b.length for b in bins])
     bin_volume = min([b.volume for b in bins])
     safety_distance = details.safety_distance_smaller_articles
 
-    error_msg = validate_requested_order(body.order, max_w, max_l, max_h)
+    error_msg = validate_requested_order(
+        body.order, details.width, details.max_length, details.height
+    )
     if error_msg is not None:
         return JSONResponse(
             content={
