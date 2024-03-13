@@ -84,8 +84,8 @@ class TestPackedOrder(unittest.TestCase):
         variant1 = PackingVariant()
         variant2 = PackingVariant()
 
-        bin1 = Bin(10, 10, 10)
-        bin2 = Bin(20, 20, 20)
+        bin1 = Bin(10, 1, 10)
+        bin2 = Bin(20, 1, 20)
 
         item1 = SingleItem(identifier="item1", width=1, height=1, length=1, weight=1.0)
         item2 = SingleItem(identifier="item2", width=1, height=1, length=1, weight=2.0)
@@ -108,7 +108,7 @@ class TestPackedOrder(unittest.TestCase):
                     {
                         "colli": 1,
                         "colli_total": 1,
-                        "colli_dimension": {"width": 10, "length": 10, "height": 10},
+                        "colli_dimension": {"width": 10, "length": 1, "height": 10},
                         "positions": [
                             {
                                 "article_id": "item1",
@@ -127,7 +127,7 @@ class TestPackedOrder(unittest.TestCase):
                     {
                         "colli": 1,
                         "colli_total": 1,
-                        "colli_dimension": {"width": 20, "length": 20, "height": 20},
+                        "colli_dimension": {"width": 20, "length": 1, "height": 20},
                         "positions": [
                             {
                                 "article_id": "item2",

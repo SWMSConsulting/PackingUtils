@@ -58,18 +58,12 @@ def extract_rectangles_with_count(
     else:
         raise ValueError(f"Invalid perspective: {perspective}")
 
-    for item in items:
-        rect = to_rect(item)
-        if prev_rect == rect:
-            count += 1
-        else:
-            if prev_rect is not None:
-                rectangles.append((prev_rect, count))
-            prev_rect = rect
-            count = 1
+    rectangles = [to_rect(i) for i in items]
+    unique_rectangles = sorted(set(rectangles))
 
-    rectangles.append((prev_rect, count))
-    return rectangles
+    counted_rectangles = [(r, rectangles.count(r)) for r in unique_rectangles]
+
+    return counted_rectangles
 
 
 class PackingVisualization:

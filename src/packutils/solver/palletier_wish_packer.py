@@ -30,6 +30,10 @@ class PalletierWishPacker(AbstractPacker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.safety_distance_smaller_articles = kwargs.get(
+            "safety_distance_smaller_articles", 0
+        )
+
         self.reset(None)
 
     def reset(self, config: "PackerConfiguration | None"):
@@ -99,9 +103,10 @@ class PalletierWishPacker(AbstractPacker):
             return items_to_pack
 
         if config.item_grouping_mode == ItemGroupingMode.LENGTHWISE:
-            bin_length = self.reference_bins[0].length
+            allowed_length = self.reference_bins[0].max_length
+
             groupable_items = [
-                item for item in items_to_pack if item.length < bin_length
+                item for item in items_to_pack if item.length < allowed_length
             ]
 
             while len(groupable_items) > 0:
@@ -116,8 +121,6 @@ class PalletierWishPacker(AbstractPacker):
                 if len(same_items) < 2:
                     groupable_items.remove(current_item)
                     continue
-
-                allowed_length = bin_length
 
                 item_group = []
                 item_group_length = 0
@@ -313,6 +316,11 @@ class PalletierWishPacker(AbstractPacker):
         if snappoint.direction == SnappointDirection.RIGHT:
             position = Position(snappoint.x, snappoint.y, snappoint.z)
 
+        if is_safety_distance_required(
+            item, position, bin, self.safety_distance_smaller_articles
+        ):
+            position.x += self.safety_distance_smaller_articles
+
         done, info = bin.pack_item(item, position)
         if info is not None:
             logging.info(f"{info} - {item}")
@@ -367,6 +375,19 @@ class PalletierWishPacker(AbstractPacker):
                 if can_pack_on_snappoint(bin, item, snappoint, max_z)
             ]
 
+        if self.safety_distance_smaller_articles > 0:
+            for item in [
+                i
+                for i in possible_items
+                if is_safety_distance_required(
+                    i, snappoint, bin, self.safety_distance_smaller_articles
+                )
+            ]:
+                larger_item = copy.deepcopy(item)
+                larger_item.width += self.safety_distance_smaller_articles
+                if not can_pack_on_snappoint(bin, larger_item, snappoint, max_z):
+                    possible_items.remove(item)
+
         if len(possible_items) < 1:
             return None
 
@@ -404,6 +425,41 @@ class PalletierWishPacker(AbstractPacker):
 
 
 ## Helper functions
+
+
+def is_safety_distance_required(
+    item: Item, snappoint: "Position|Snappoint", bin: Bin, safety_distance: int
+) -> bool:
+    """
+    Determines whether a safety distance is required for an item at a given snappoint in a bin.
+
+    Args:
+        item (Item): The item to check for.
+        snappoint (Snappoint): The snappoint to place the item.
+        bin (Bin): The bin to pack the item into.
+        safety_distance (int): The safety distance to check for.
+
+    Returns:
+        bool: True if a safety distance is required, False otherwise.
+    """
+    if safety_distance < 1:
+        return False
+
+    if isinstance(snappoint, Snappoint):
+        position = (
+            Position(snappoint.x, snappoint.y, snappoint.z)
+            if snappoint.direction == SnappointDirection.RIGHT
+            else Position(snappoint.x - item.width, snappoint.y, snappoint.z)
+        )
+    else:
+        position = snappoint
+
+    if position.x < 1:
+        return False
+
+    maxY = max(bin.heightmap[position.x - safety_distance : position.x])
+
+    return maxY > position.z + item.height
 
 
 def can_fit_in_layer(bin: Bin, item: Item, min_z: int, max_z: int):

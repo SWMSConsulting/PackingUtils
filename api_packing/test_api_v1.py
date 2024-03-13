@@ -17,7 +17,16 @@ class TestPackerAPI(unittest.TestCase):
         self.client = TestClient(app)
         self.base_endpoint = "/api/v1"
 
-        self.order = {"order_id": "test", "articles": []}
+        self.order = {
+            "order_id": "test",
+            "colli_details": {
+                "width": 10,
+                "length": 10,
+                "height": 10,
+                "max_collis": 10,
+            },
+            "articles": [],
+        }
 
     def test_ping(self):
         response = self.client.get(self.base_endpoint)
@@ -27,8 +36,8 @@ class TestPackerAPI(unittest.TestCase):
     def test_packing_variants(self):
         num_variants = 2
         self.order["articles"] = [
-            {"id": "test1", "width": 26, "length": 10, "height": 16, "amount": 30},
-            {"id": "test2", "width": 6, "length": 10, "height": 6, "amount": 11},
+            {"id": "test1", "width": 2, "length": 10, "height": 2, "amount": 3},
+            {"id": "test2", "width": 4, "length": 10, "height": 4, "amount": 4},
         ]
 
         data = {"order": self.order, "num_variants": num_variants}
@@ -40,9 +49,9 @@ class TestPackerAPI(unittest.TestCase):
     def test_packing_variants_invalid_articles(self):
         num_variants = 2
         invalid_articles = [
-            {"id": "test1", "width": 0, "length": 10, "height": 10, "amount": 30},
-            {"id": "test1", "width": 10, "length": 0, "height": 10, "amount": 30},
-            {"id": "test1", "width": 10, "length": 10, "height": 0, "amount": 30},
+            {"id": "test1", "width": 0, "length": 10, "height": 10, "amount": 3},
+            {"id": "test1", "width": 10, "length": 0, "height": 10, "amount": 3},
+            {"id": "test1", "width": 10, "length": 10, "height": 0, "amount": 3},
             {"id": "test1", "width": 10, "length": 10, "height": 10, "amount": 0},
             {
                 "id": "test1",
