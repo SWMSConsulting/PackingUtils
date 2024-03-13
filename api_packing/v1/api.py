@@ -242,6 +242,7 @@ def get_packing_variants(body: VariantsRequestModel):
             for a in body.order.articles
         ],
     )
+    print(order)
     num_variants = ENV_NUM_VARIANTS if body.num_variants is None else body.num_variants
 
     if body.config is not None and body.config.direction_change_min_volume is None:
