@@ -294,7 +294,13 @@ class TestBin(unittest.TestCase):
         self.assertEqual(snappoints, expected_snappoints)
 
     def test_pack_item_with_overhang(self):
-        bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
+        bin = Bin(
+            width=10,
+            length=10,
+            height=10,
+            max_length=12,
+            overhang_y_stability_factor=0.6,
+        )
 
         item = SingleItem(identifier="test", width=5, length=12, height=5)
         result, _ = bin.pack_item(item, Position(0, 0, 0))
@@ -305,7 +311,13 @@ class TestBin(unittest.TestCase):
         self.assertEqual(item.position.y, -1)
 
     def test_remove_item_with_overhang(self):
-        bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
+        bin = Bin(
+            width=10,
+            length=10,
+            height=10,
+            max_length=12,
+            overhang_y_stability_factor=0.6,
+        )
 
         item = SingleItem(identifier="test", width=5, length=12, height=5)
         bin.pack_item(item, Position(0, 0, 0))
@@ -329,17 +341,24 @@ class TestBin(unittest.TestCase):
         self.assertEqual(np.count_nonzero(bin.heightmap), 0)
 
     def test_pack_item_with_overhang_stack_multiple(self):
-        bin = Bin(width=10, length=10, height=10, overhang_y_stability_factor=0.6)
+        bin = Bin(
+            width=10,
+            length=10,
+            height=10,
+            max_length=16,
+            overhang_y_stability_factor=0.6,
+        )
 
-        item1 = SingleItem(identifier="test", width=5, length=18, height=5)
-        bin.pack_item(item1, Position(0, 0, 0))
-        item2 = SingleItem(identifier="test", width=5, length=18, height=5)
+        item1 = SingleItem(identifier="test", width=5, length=16, height=5)
+        _, info = bin.pack_item(item1, Position(0, 0, 0))
+        print(info)
+        item2 = SingleItem(identifier="test", width=5, length=16, height=5)
         _, info = bin.pack_item(item2, Position(0, 0, 5))
         print(info)
         self.assertTrue(item1.is_packed)
-        self.assertEqual(item1.position.y, -4)
+        self.assertEqual(item1.position.y, -3)
         self.assertTrue(item2.is_packed)
-        self.assertEqual(item2.position.y, -4)
+        self.assertEqual(item2.position.y, -3)
 
     def test_get_gaps(self):
         bin = Bin(width=10, length=10, height=10)

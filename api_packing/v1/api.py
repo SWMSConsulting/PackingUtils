@@ -197,18 +197,23 @@ def status():
 def get_packing_variants(body: VariantsRequestModel):
     """Get packing variants for an order."""
 
-    if body.order.colli_details is not None:
-        details = body.order.colli_details
-        bins = [
-            Bin(details.width, details.length, details.height, details.max_weight)
-            for _ in range(details.max_collis)
-        ]
-    else:
-        bins = [Bin(800, 1200, 500)]
+    details = body.order.colli_details
+    bins = [
+        Bin(
+            details.width,
+            details.length,
+            details.height,
+            details.max_length,
+            details.max_weight,
+        )
+        for _ in range(details.max_collis)
+    ]
+
     max_w = min([b.width for b in bins])
     max_h = min([b.height for b in bins])
     max_l = min([b.length for b in bins])
     bin_volume = min([b.volume for b in bins])
+    safety_distance = details.safety_distance_smaller_articles
 
     error_msg = validate_requested_order(body.order, max_w, max_l, max_h)
     if error_msg is not None:
@@ -254,7 +259,10 @@ def get_packing_variants(body: VariantsRequestModel):
         configs = [body.config] if body.config is not None else []
         configs += list(random.sample(possible_configs, num_variants - len(configs)))
 
-    packer = PalletierWishPacker(bins=bins)
+    packer = PalletierWishPacker(
+        bins=bins, safety_distance_smaller_articles=safety_distance
+    )
+
     variants = packer.pack_variants(order, configs)
 
     eval = PackingEvaluation(

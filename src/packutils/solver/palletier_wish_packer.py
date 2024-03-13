@@ -30,6 +30,10 @@ class PalletierWishPacker(AbstractPacker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.safety_distance_smaller_articles = kwargs.get(
+            "safety_distance_smaller_articles", 0
+        )
+
         self.reset(None)
 
     def reset(self, config: "PackerConfiguration | None"):
@@ -99,9 +103,10 @@ class PalletierWishPacker(AbstractPacker):
             return items_to_pack
 
         if config.item_grouping_mode == ItemGroupingMode.LENGTHWISE:
-            bin_length = self.reference_bins[0].length
+            allowed_length = self.reference_bins[0].max_length
+            print("allowed_length", allowed_length)
             groupable_items = [
-                item for item in items_to_pack if item.length < bin_length
+                item for item in items_to_pack if item.length < allowed_length
             ]
 
             while len(groupable_items) > 0:
@@ -116,8 +121,6 @@ class PalletierWishPacker(AbstractPacker):
                 if len(same_items) < 2:
                     groupable_items.remove(current_item)
                     continue
-
-                allowed_length = bin_length
 
                 item_group = []
                 item_group_length = 0

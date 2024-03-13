@@ -30,6 +30,7 @@ class Bin:
         width: int,
         length: int,
         height: int,
+        max_length: int = 0,
         max_weight: "float | None" = None,
         stability_factor: float = DEFAULT_STABILITY_FACTOR,
         overhang_y_stability_factor: "float | None" = None,
@@ -63,6 +64,11 @@ class Bin:
         ), "Overhang y stability factor must be between 0 and 1."
         self.allow_overhang_y = overhang_y_stability_factor != None
         self.overhang_y_stability_factor = overhang_y_stability_factor
+
+        if max_length < length:
+            f = (1 + overhang_y_stability_factor) if overhang_y_stability_factor else 1
+            max_length = length * f
+        self.max_length = max_length
 
         self._packed_items = []
         self.recreate_heightmap()
@@ -99,7 +105,7 @@ class Bin:
             or y < 0
             or z < 0
             or x + item.width > self.width
-            or y + item.length > self.length
+            or y + item.length > self.max_length
             or z + item.height > self.height
         ):
             return (

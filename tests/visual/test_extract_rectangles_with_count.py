@@ -23,8 +23,8 @@ def test_extract_rectangles_front_no_grouping():
     assert len(rectangles) == 4
     assert rectangles == [
         ((0, 0, 2, 2), 1),
-        ((2, 0, 2, 2), 1),
         ((0, 2, 2, 2), 1),
+        ((2, 0, 2, 2), 1),
         ((2, 2, 2, 2), 1),
     ]
 
@@ -41,7 +41,6 @@ def test_extract_rectangles_front_with_grouping():
     items = [item1, item2, item3, item4]
 
     rectangles = extract_rectangles_with_count(items, Perspective.front)
-    print(rectangles)
 
     assert len(rectangles) == 2
     assert rectangles == [

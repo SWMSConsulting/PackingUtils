@@ -367,7 +367,6 @@ class TestPalletierWishPacker(unittest.TestCase):
             Article(article_id="2", width=3, length=6, height=3, amount=2),
         ]
         order = Order(order_id="", articles=articles)
-        packer = PalletierWishPacker(bins=[Bin(10, 10, 10)])
 
         config = PackerConfiguration(
             default_select_strategy=ItemSelectStrategy.LARGEST_VOLUME,
@@ -375,6 +374,9 @@ class TestPalletierWishPacker(unittest.TestCase):
             overhang_y_stability_factor=0.6,
             item_grouping_mode=ItemGroupingMode.LENGTHWISE,
         )
+        packer = PalletierWishPacker(bins=[Bin(10, 10, 10)])
+        packer.reset(config)
+
         items_to_pack = packer.prepare_items_to_pack(order, config=config)
 
         packing_variant = packer.pack_variant(order, config)
