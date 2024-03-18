@@ -377,7 +377,7 @@ class TestPalletierWishPacker(unittest.TestCase):
             overhang_y_stability_factor=0.6,
             item_grouping_mode=ItemGroupingMode.LENGTHWISE,
         )
-        packer = PalletierWishPacker(bins=[Bin(10, 10, 10)])
+        packer = PalletierWishPacker(bins=[Bin(10, 10, 10, max_length=12)])
         packer.reset(config)
 
         items_to_pack = packer.prepare_items_to_pack(order, config=config)
@@ -486,7 +486,7 @@ class TestPalletierWishPacker(unittest.TestCase):
         item2 = SingleItem(identifier="2", width=3, length=10, height=3)
         position = Snappoint(3, 0, 0, SnappointDirection.RIGHT)
 
-        required = is_safety_distance_required(item2, position, bin, 0)
+        required = is_safety_distance_required(item2, position, bin, 0, 10)
         self.assertFalse(required)
 
     def test_is_safety_distance_required_not_needed(self):
@@ -499,7 +499,7 @@ class TestPalletierWishPacker(unittest.TestCase):
         item2 = SingleItem(identifier="2", width=3, length=10, height=3)
         position = Snappoint(3, 0, 0, SnappointDirection.RIGHT)
 
-        required = is_safety_distance_required(item2, position, bin, 1)
+        required = is_safety_distance_required(item2, position, bin, 1, 10)
         self.assertFalse(required)
 
     def test_is_safety_distance_required_valid(self):
@@ -512,7 +512,7 @@ class TestPalletierWishPacker(unittest.TestCase):
         item2 = SingleItem(identifier="2", width=3, length=10, height=3)
         position = Snappoint(3, 0, 0, SnappointDirection.RIGHT)
 
-        required = is_safety_distance_required(item2, position, bin, 1)
+        required = is_safety_distance_required(item2, position, bin, 1, 10)
         self.assertTrue(required)
 
     def test_is_safety_distance_required_valid_left(self):
@@ -525,8 +525,21 @@ class TestPalletierWishPacker(unittest.TestCase):
         item2 = SingleItem(identifier="2", width=3, length=10, height=3)
         position = Snappoint(6, 0, 0, SnappointDirection.LEFT)
 
-        required = is_safety_distance_required(item2, position, bin, 1)
+        required = is_safety_distance_required(item2, position, bin, 1, 10)
         self.assertTrue(required)
+
+    def test_is_safety_distance_required_min_width(self):
+
+        bin = Bin(10, 10, 10)
+
+        item1 = SingleItem(identifier="higher", width=3, length=10, height=5)
+        bin.pack_item(item1, Position(0, 0, 0))
+
+        item2 = SingleItem(identifier="2", width=3, length=10, height=3)
+        position = Snappoint(6, 0, 0, SnappointDirection.LEFT)
+
+        required = is_safety_distance_required(item2, position, bin, 1, 3)
+        self.assertFalse(required)
 
 
 if __name__ == "__main__":

@@ -31,6 +31,11 @@ class ColliDetailsModel(BaseModel):
     safety_distance_smaller_articles: Optional[int] = Field(
         description="Sicherheitsabstand kleinerer Artikel", ge=0, default=0
     )
+    min_article_width_no_safety_distance: Optional[int] = Field(
+        description="Mindestbreite von Artikeln ohne Sicherheitsabstand",
+        ge=0,
+        default=0,
+    )
 
 
 class OrderModel(BaseModel):
