@@ -210,7 +210,6 @@ def get_packing_variants(body: VariantsRequestModel):
     ]
 
     bin_volume = min([b.volume for b in bins])
-    safety_distance = details.safety_distance_smaller_articles
 
     error_msg = validate_requested_order(
         body.order, details.width, details.max_length, details.height
@@ -260,7 +259,9 @@ def get_packing_variants(body: VariantsRequestModel):
         configs += list(random.sample(possible_configs, num_variants - len(configs)))
 
     packer = PalletierWishPacker(
-        bins=bins, safety_distance_smaller_articles=safety_distance
+        bins=bins,
+        safety_distance_smaller_articles=details.safety_distance_smaller_articles,
+        min_article_width_no_safety_distance=details.min_article_width_no_safety_distance,
     )
 
     variants = packer.pack_variants(order, configs)

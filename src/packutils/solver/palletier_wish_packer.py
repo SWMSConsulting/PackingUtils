@@ -33,6 +33,9 @@ class PalletierWishPacker(AbstractPacker):
         self.safety_distance_smaller_articles = kwargs.get(
             "safety_distance_smaller_articles", 0
         )
+        self.min_article_width_no_safety_distance = kwargs.get(
+            "min_article_width_no_safety_distance", 999999
+        )
 
         self.reset(None)
 
@@ -318,7 +321,11 @@ class PalletierWishPacker(AbstractPacker):
             position = Position(snappoint.x, snappoint.y, snappoint.z)
 
         if is_safety_distance_required(
-            item, position, bin, self.safety_distance_smaller_articles
+            item,
+            position,
+            bin,
+            self.safety_distance_smaller_articles,
+            self.min_article_width_no_safety_distance,
         ):
             position.x += self.safety_distance_smaller_articles
 
@@ -381,7 +388,11 @@ class PalletierWishPacker(AbstractPacker):
                 i
                 for i in possible_items
                 if is_safety_distance_required(
-                    i, snappoint, bin, self.safety_distance_smaller_articles
+                    i,
+                    snappoint,
+                    bin,
+                    self.safety_distance_smaller_articles,
+                    self.min_article_width_no_safety_distance,
                 )
             ]:
                 larger_item = copy.deepcopy(item)
@@ -429,7 +440,11 @@ class PalletierWishPacker(AbstractPacker):
 
 
 def is_safety_distance_required(
-    item: Item, snappoint: "Position|Snappoint", bin: Bin, safety_distance: int
+    item: Item,
+    snappoint: "Position|Snappoint",
+    bin: Bin,
+    safety_distance: int,
+    min_article_width_no_safety_distance: int,
 ) -> bool:
     """
     Determines whether a safety distance is required for an item at a given snappoint in a bin.
@@ -439,11 +454,15 @@ def is_safety_distance_required(
         snappoint (Snappoint): The snappoint to place the item.
         bin (Bin): The bin to pack the item into.
         safety_distance (int): The safety distance to check for.
+        min_article_width_no_safety_distance (int): The minimum width of an article without a safety distance.
 
     Returns:
         bool: True if a safety distance is required, False otherwise.
     """
     if safety_distance < 1:
+        return False
+
+    if item.width >= min_article_width_no_safety_distance:
         return False
 
     if isinstance(snappoint, Snappoint):
