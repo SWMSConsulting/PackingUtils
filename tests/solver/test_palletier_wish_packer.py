@@ -555,14 +555,10 @@ class TestPalletierWishPacker(unittest.TestCase):
         packer = PalletierWishPacker(bins=[bin])
         variant = packer.pack_variant(order=order, config=config)
 
-        for bin in variant.bins:
-            print("BIN: ", bin.packed_items)
-        print(variant.unpacked_items)
-
         self.assertEqual(len(variant.unpacked_items), 0)
         self.assertEqual(len(variant.bins), 1)
-        assert False
 
+    
 
 if __name__ == "__main__":
     unittest.main()
