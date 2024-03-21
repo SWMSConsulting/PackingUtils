@@ -541,6 +541,28 @@ class TestPalletierWishPacker(unittest.TestCase):
         required = is_safety_distance_required(item2, position, bin, 1, 3)
         self.assertFalse(required)
 
+    def test_avoid_multiple_pallets(self):
+
+        bin = Bin(10, 10, 10)
+
+        config = PackerConfiguration(mirror_walls=True)
+
+        order = Order(
+            order_id="1",
+            articles=[Article(article_id="1", width=8, length=10, height=1, amount=3)],
+        )
+
+        packer = PalletierWishPacker(bins=[bin])
+        variant = packer.pack_variant(order=order, config=config)
+
+        for bin in variant.bins:
+            print("BIN: ", bin.packed_items)
+        print(variant.unpacked_items)
+
+        self.assertEqual(len(variant.unpacked_items), 0)
+        self.assertEqual(len(variant.bins), 1)
+        assert False
+
 
 if __name__ == "__main__":
     unittest.main()
