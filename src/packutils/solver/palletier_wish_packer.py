@@ -231,9 +231,9 @@ class PalletierWishPacker(AbstractPacker):
                 logging.info(f"Item to pack: {best}")
 
                 if best is None:
-                    if self.config.mirror_walls and snappoint.x == 0:
-                        is_packing = False
-                        break
+                    # if self.config.mirror_walls and snappoint.x == 0:
+                    #    is_packing = False
+                    #    break
 
                     logging.info(
                         f"This snappoint is invalid, checking other snappoint. {snappoint}"
