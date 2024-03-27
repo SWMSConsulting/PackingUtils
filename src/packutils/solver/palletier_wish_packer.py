@@ -10,6 +10,7 @@ from packutils.data.bin import Bin
 from packutils.data.grouped_item import (
     GroupedItem,
     ItemGroupingMode,
+    group_items_horizontally,
     group_items_lengthwise,
 )
 from packutils.data.item import Item
@@ -103,9 +104,10 @@ class PalletierWishPacker(AbstractPacker):
             for _ in range(a.amount)
         ]
 
-        if config is None or config.item_grouping_mode is None:
+        if config is None:
             return items_to_pack
 
+        # group items lengthwise
         if config.item_grouping_mode == ItemGroupingMode.LENGTHWISE:
             allowed_length = self.reference_bins[0].max_length
 
@@ -140,6 +142,36 @@ class PalletierWishPacker(AbstractPacker):
                     group_items_lengthwise(
                         item_group, padding_between_items=padding_between_items
                     )
+                )
+
+        # group items horizontally
+        if config.group_narrow_items_w > 0:
+            groupable_items = [
+                item
+                for item in items_to_pack
+                if item.width <= config.group_narrow_items_w
+            ]
+
+            while len(groupable_items) > 0:
+                current_item = groupable_items.pop(0)
+                same_items = [
+                    item
+                    for item in groupable_items
+                    if (item.length, item.height)
+                    == (current_item.length, current_item.height)
+                ]
+
+                if len(same_items) < 1:
+                    continue
+                same_item = same_items[0]
+                groupable_items.remove(same_item)
+
+                item_group = [current_item, same_item]
+                for item in item_group:
+                    items_to_pack.remove(item)
+
+                items_to_pack.append(
+                    group_items_horizontally(item_group, padding_between_items=0)
                 )
 
         return items_to_pack

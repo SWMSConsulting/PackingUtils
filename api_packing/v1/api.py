@@ -122,6 +122,17 @@ def get_possible_config_params(
         else:
             possible_item_grouping_mode = [ItemGroupingMode(env_item_grouping_mode)]
 
+    env_group_narrow_items_w = os.environ.get("GROUP_NARROW_ITEMS_W", None)
+    if env_group_narrow_items_w is None:
+        possible_group_narrow_items_w = [0]
+    else:
+        if env_group_narrow_items_w.startswith("["):
+            possible_group_narrow_items_w = [
+                int(f) for f in json.loads(env_group_narrow_items_w)
+            ]
+        else:
+            possible_group_narrow_items_w = [int(env_group_narrow_items_w)]
+
     if change_volumes is None:
         change_volumes = possible_direction_change_volume or [1.0]
 
@@ -132,6 +143,7 @@ def get_possible_config_params(
         possible_allow_item_exceeds_layer,
         possible_mirror_walls,
         possible_item_grouping_mode,
+        possible_group_narrow_items_w,
         # add here other possible parameter
     ]
     combinations = list(itertools.product(*params))
@@ -158,6 +170,7 @@ def get_possible_config_params(
         "allow_item_exceeds_layer": possible_allow_item_exceeds_layer,
         "mirror_walls": possible_mirror_walls,
         "item_grouping_mode": possible_item_grouping_mode,
+        "group_narrow_items_w": possible_group_narrow_items_w,
     }
     print("Variable parameters:")
     for k, v in changable_params.items():
@@ -176,6 +189,7 @@ def get_possible_config_params(
             allow_item_exceeds_layer=combination[3],
             mirror_walls=combination[4],
             item_grouping_mode=combination[5],
+            group_narrow_items_w=combination[6],
         )
         for combination in combinations
     ], num_variants
