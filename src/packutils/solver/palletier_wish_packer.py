@@ -73,9 +73,17 @@ class PalletierWishPacker(AbstractPacker):
         self, order: Order, configs: List[PackerConfiguration]
     ) -> List[PackingVariant]:
         variants = []
+
+        self.min_num_bins = len(self.reference_bins)
+
         for config in configs:
             logging.info(f"Using config: {config}")
-            variants.append(self.pack_variant(order, config))
+            variant = self.pack_variant(order, config)
+            if variant is not None:
+                variants.append(variant)
+                self.min_num_bins = min(self.min_num_bins, len(variant.bins))
+
+        self.min_num_bins = len(self.reference_bins)
         return variants
 
     def prepare_items_to_pack(
@@ -183,10 +191,14 @@ class PalletierWishPacker(AbstractPacker):
         self.reset(config)
         return self._pack_variant(items_to_pack)
 
-    def _pack_variant(self, items: List[Item]) -> PackingVariant:
+    def _pack_variant(self, items: List[Item]) -> "PackingVariant | None":
         variant = PackingVariant()
         items_to_pack = copy.deepcopy(items)
         for bin_index, bin in enumerate(copy.deepcopy(self.reference_bins)):
+
+            if bin_index >= self.min_num_bins:
+                return None
+
             logging.info("-" * 20 + f" Bin {bin_index+1}")
             snappoints_to_ignore = []
             layer_z_max = bin.height

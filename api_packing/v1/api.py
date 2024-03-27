@@ -60,7 +60,8 @@ def get_possible_config_params(
     else:
         if env_default_select_strategy.startswith("["):
             possible_default_select_strategy = [
-                ItemSelectStrategy(s) for s in json.loads(env_default_select_strategy)
+                ItemSelectStrategy(s)
+                for s in json.loads(env_default_select_strategy.replace("'", '"'))
             ]
         else:
             possible_default_select_strategy = [
@@ -73,7 +74,8 @@ def get_possible_config_params(
     else:
         if env_new_layer_select_strategy.startswith("["):
             possible_new_layer_select_strategy = [
-                ItemSelectStrategy(s) for s in json.loads(env_new_layer_select_strategy)
+                ItemSelectStrategy(s)
+                for s in json.loads(env_new_layer_select_strategy.replace("'", '"'))
             ]
         else:
             possible_new_layer_select_strategy = [
