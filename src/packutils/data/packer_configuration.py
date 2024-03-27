@@ -15,6 +15,7 @@ class ItemGroupingMode(str, ExtendedEnum):
     """
 
     LENGTHWISE = "lengthwise"
+    HORIZONTAL = "horizontal"
 
 
 class ItemSelectStrategy(str, ExtendedEnum):
@@ -76,6 +77,12 @@ class PackerConfiguration(BaseModel):
 
     item_grouping_mode: Optional["ItemGroupingMode|None"] = Field(
         description="Grouping mode for items", default=None
+    )
+
+    group_narrow_items_w: Optional[int] = Field(
+        description="(max) width of the narrow items to group horizontally",
+        default=0,
+        ge=0,
     )
 
     def __hash__(self):
