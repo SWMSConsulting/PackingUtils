@@ -36,6 +36,9 @@ class ColliDetailsModel(BaseModel):
         ge=0,
         default=0,
     )
+    safety_distance_lengthwise: Optional[int] = Field(
+        description="Sicherheitsabstand zwischen Artikeln (längsseitig)", ge=0, default=0
+    )
 
 
 class OrderModel(BaseModel):

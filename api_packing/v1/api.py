@@ -278,6 +278,7 @@ def get_packing_variants(body: VariantsRequestModel):
         bins=bins,
         safety_distance_smaller_articles=details.safety_distance_smaller_articles,
         min_article_width_no_safety_distance=details.min_article_width_no_safety_distance,
+        safety_distance_lengthwise=details.safety_distance_lengthwise,
     )
 
     variants = packer.pack_variants(order, configs)

@@ -38,6 +38,8 @@ class PalletierWishPacker(AbstractPacker):
             "min_article_width_no_safety_distance", 999999
         )
 
+        self.safety_distance_lengthwise = kwargs.get("safety_distance_lengthwise", 0)
+
         self.reset(None)
 
     def reset(self, config: "PackerConfiguration | None"):
@@ -95,12 +97,11 @@ class PalletierWishPacker(AbstractPacker):
         Returns:
             List[Item]: The items to be packed.
         """
-        padding_between_items = 0 if config is None else config.padding_between_items
 
         items_to_pack = [
             SingleItem(
                 identifier=a.article_id,
-                width=a.width + padding_between_items,
+                width=a.width + config.padding_between_items_x,
                 length=a.length,
                 height=a.height,
             )
@@ -137,14 +138,14 @@ class PalletierWishPacker(AbstractPacker):
                 for item in same_items:
                     if item_group_length + item.length <= allowed_length:
                         item_group.append(item)
-                        item_group_length += item.length
+                        item_group_length += item.length + self.safety_distance_lengthwise
                         groupable_items.remove(item)
 
                 for item in item_group:
                     items_to_pack.remove(item)
                 items_to_pack.append(
                     group_items_lengthwise(
-                        item_group, padding_between_items=padding_between_items
+                        item_group, padding_between_items=self.safety_distance_lengthwise
                     )
                 )
 

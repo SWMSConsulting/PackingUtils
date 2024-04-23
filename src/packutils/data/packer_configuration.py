@@ -60,7 +60,7 @@ class PackerConfiguration(BaseModel):
         default=False,
     )
 
-    padding_between_items: Optional[int] = Field(
+    padding_between_items_x: Optional[int] = Field(
         description="Padding between items along the x-axis (width)", default=0, ge=0
     )
 
