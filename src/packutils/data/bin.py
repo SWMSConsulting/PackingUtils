@@ -52,7 +52,7 @@ class Bin:
         self.width = width
         self.length = length
         self.height = height
-        self.max_weight = max_weight
+        self.max_weight = None if max_weight == 0 else max_weight
 
         assert stability_factor is None or (
             stability_factor >= 0 and stability_factor <= 1
@@ -98,6 +98,12 @@ class Bin:
 
         if item.is_packed:
             return False, f"{item.identifier}: Item already packed."
+
+        if self.max_weight is not None and item.weight + self.get_used_weight() > self.max_weight:
+            return (
+                False,
+                f"{item.identifier}: Item exceeds the maximum weight of the bin.",
+            )
 
         x, y, z = position.x, position.y, position.z
         if (
@@ -408,6 +414,23 @@ class Bin:
         if use_percentage:
             return int(used_volume / self.volume * 100)
         return used_volume
+
+    def get_used_weight(self, use_percentage=False):
+        """
+        Calculate the used weight of the Bin.
+
+        Args:
+            use_percentage (bool, optional): Whether to return the used weight as a percentage of the maximum weight.
+                                            Defaults to False.
+
+        Returns:
+            float: The used weight of the Bin.
+        """
+        used_weight = sum([item.weight for item in self._packed_items])
+
+        if use_percentage:
+            return int(used_weight / self.max_weight * 100)
+        return used_weight
 
     def get_snappoints(self, min_z: "int | None" = None) -> List[Snappoint]:
         """

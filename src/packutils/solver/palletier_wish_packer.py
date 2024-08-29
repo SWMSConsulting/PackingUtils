@@ -104,6 +104,7 @@ class PalletierWishPacker(AbstractPacker):
                 width=a.width + config.padding_between_items_x,
                 length=a.length,
                 height=a.height,
+                weight=a.weight,
             )
             for a in order.articles
             for _ in range(a.amount)
@@ -557,7 +558,7 @@ def can_pack_on_snappoint(
     Returns:
         bool: True if the item can be packed on the snappoint, False otherwise.
     """
-
+    
     item = copy.deepcopy(item)
     if snappoint.direction == SnappointDirection.LEFT:
         position = Position(snappoint.x - item.width, snappoint.y, snappoint.z)
