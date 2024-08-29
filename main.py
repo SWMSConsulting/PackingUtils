@@ -94,7 +94,7 @@ st.write("""# Packing Visualisation""")
 # logging.basicConfig(level=logging.INFO)
 
 max_bins = 3
-bins = [Bin(1200, 2400, 1000) for _ in range(max_bins)]
+bins = [Bin(1200, 2400, 1000, max_weight=100) for _ in range(max_bins)]
 packer = PalletierWishPacker(bins=bins)
 
 with st.expander("Order", expanded=True):
@@ -104,14 +104,15 @@ with st.expander("Order", expanded=True):
     order = Order(
         "Test",
         articles=[
-            Article(f"Article {1}", width=68, length=10, height=68, amount=21),
-            Article(f"Article {2}", width=170, length=12, height=175, amount=19),
-            Article(f"Article {3}", width=82, length=10, height=20, amount=19),
-            Article(f"Article {4}", width=185, length=8, height=80, amount=8),
+            Article(f"Article {1}", width=200, length=10, height=200, weight=50, amount=3),
+            #Article(f"Article {1}", width=68, length=10, height=68, amount=21),
+            #Article(f"Article {2}", width=170, length=12, height=175, amount=19),
+            #Article(f"Article {3}", width=82, length=10, height=20, amount=19),
+            #Article(f"Article {4}", width=185, length=8, height=80, amount=8),
             # for idx in range(num_articles)
         ],
     )
-    _c0, _c1, _c2, _c3, _c4 = st.columns(5)
+    _c0, _c1, _c2, _c3, _c4, _c5 = st.columns(6)
     for article in order.articles:
         article.article_id = _c0.text_input(
             key=f"{article.article_id}_id",
@@ -143,7 +144,15 @@ with st.expander("Order", expanded=True):
             max_value=bins[0].height,
             step=1,
         )
-        article.amount = _c4.number_input(
+        article.weight = _c4.number_input(
+            key=f"{article.article_id}_weight",
+            value=article.weight,
+            label="Weight",
+            min_value=0,
+            max_value=bins[0].max_weight,
+            step=1,
+        )
+        article.amount = _c5.number_input(
             key=f"{article.article_id}_amount",
             value=article.amount,
             label="Amount",
