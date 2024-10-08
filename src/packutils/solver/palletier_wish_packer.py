@@ -11,6 +11,7 @@ from packutils.data.grouped_item import (
     GroupedItem,
     ItemGroupingMode,
     group_items_horizontally,
+    group_items_vertically,
     group_items_lengthwise,
 )
 from packutils.data.item import Item
@@ -251,6 +252,36 @@ class PalletierWishPacker(AbstractPacker):
 
                 items_to_pack.append(
                     group_items_horizontally(item_group, padding_between_items=0)
+                )
+
+        # stack wider items 
+        if config.group_wide_items_vertically:
+            groupable_items = [
+                item
+                for item in items_to_pack
+                if item.width > self.reference_bins[0].width / 2
+            ]
+
+            while len(groupable_items) > 0:
+                current_item = groupable_items.pop(0)
+                same_items = [
+                    item
+                    for item in groupable_items
+                    if (item.length, item.width) == (current_item.length, current_item.width)
+                ]
+
+                if len(same_items) < 1:
+                    continue
+                
+                for same_item in same_items:
+                    groupable_items.remove(same_item)
+
+                item_group = same_items + [current_item]
+                for item in item_group:
+                    items_to_pack.remove(item)
+
+                items_to_pack.append(
+                    group_items_vertically(item_group)
                 )
 
         return items_to_pack

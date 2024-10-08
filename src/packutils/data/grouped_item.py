@@ -41,6 +41,26 @@ def group_items_horizontally(
     return GroupedItem(grouped_items, ItemGroupingMode.HORIZONTAL, position_offsets)
 
 
+def group_items_vertically(
+    items_to_group: List[Item]
+) -> "GroupedItem|None":
+
+    width = items_to_group[0].width
+    assert all(
+        item.width == width for item in items_to_group
+    ), "All items must have the same width"
+
+    position_offsets = []
+    grouped_items: List[Item] = []
+    z_offset = 0
+    for item in sorted(items_to_group, key=lambda item: item.width):
+        grouped_items.append(item)
+        position_offsets.append(Position(0, 0, z_offset))
+        z_offset += item.height
+
+    return GroupedItem(grouped_items, ItemGroupingMode.VERTICAL, position_offsets)
+
+
 def group_items_lengthwise(
     items_to_group: List[Item],
     position_offsets: "List[Position]| None" = None,
@@ -108,6 +128,11 @@ class GroupedItem(Item):
             self.width = max(
                 p.x + i.width for i, p in zip(self.grouped_items, self.position_offsets)
             ) - min(p.x for p in position_offsets)
+
+        elif self.grouping_mode == ItemGroupingMode.VERTICAL:
+            self.width = grouped_items[0].width
+            self.length = max([i.length for i in grouped_items])
+            self.height = sum([i.height for i in grouped_items])
 
         else:
             raise ValueError(f"Unknown grouping mode: {self.grouping_mode}")

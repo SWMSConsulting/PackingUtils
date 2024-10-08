@@ -29,6 +29,7 @@ def get_possible_config_params() -> Tuple[List[PackerConfiguration], int]:
     possible_default_select_strategy = ItemSelectStrategy.list()
 
     possible_new_layer_select_strategy = [
+        ItemSelectStrategy.LARGEST_H_W_L,
         ItemSelectStrategy.LARGEST_VOLUME,
         ItemSelectStrategy.LARGEST_W_H_L,
     ]
@@ -104,9 +105,9 @@ with st.expander("Order", expanded=True):
     order = Order(
         "Test",
         articles=[
-            Article(f"Article {1}", width=200, length=10, height=200, weight=50, amount=3),
-            #Article(f"Article {1}", width=68, length=10, height=68, amount=21),
-            #Article(f"Article {2}", width=170, length=12, height=175, amount=19),
+            #Article(f"Article {1}", width=200, length=10, height=200, weight=50, amount=3),
+            Article(f"Article {1}", width=68, length=10, height=68,weight=5, amount=3),
+            Article(f"Article {2}", width=800, length=12, height=19,weight=5, amount=4),
             #Article(f"Article {3}", width=82, length=10, height=20, amount=19),
             #Article(f"Article {4}", width=185, length=8, height=80, amount=8),
             # for idx in range(num_articles)
@@ -169,20 +170,21 @@ with st.expander("Order", expanded=True):
         configurations = random.sample(POSSIBLE_CONFIGS, n_configs)
     else:
         configurations = POSSIBLE_CONFIGS
-    """
+    
     configurations = [
         PackerConfiguration(
             bin_stability_factor=1,
             default_select_strategy=ItemSelectStrategy.LARGEST_VOLUME,
-            new_layer_select_strategy=ItemSelectStrategy.LARGEST_VOLUME,
+            new_layer_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
             direction_change_min_volume=0,
             allow_item_exceeds_layer=False,
             mirror_walls=True,
+            group_wide_items_vertically=True,
         ),
     ]
-    """
+    
     variants = packer.pack_variants(order=order, configs=configurations)
-
+    print(variants[0])
     print("Variants calculated")
 
 vis = PackingVisualization()
