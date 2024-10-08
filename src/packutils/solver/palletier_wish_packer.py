@@ -124,7 +124,7 @@ class PalletierWishPacker(AbstractPacker):
         max_articles_in_row = bin_width // article.width
         max_rows = bin_height // article.height
 
-        max_articles = min(max_articles_in_row * max_rows, bin_max_weight // article.weight)
+        max_articles = min(max_articles_in_row * max_rows, (bin_max_weight // article.weight if article.weight > 0 else 10000))
 
         return article.amount >= max_articles
 
@@ -139,7 +139,7 @@ class PalletierWishPacker(AbstractPacker):
             List[Bin]: The list of bins filled with the article.
         """
         _article = copy.deepcopy(article)
-       
+
         bins = []
         bin_width = self.reference_bins[0].width
         bin_height = self.reference_bins[0].height
@@ -149,7 +149,7 @@ class PalletierWishPacker(AbstractPacker):
         max_articles_in_row = bin_width // _article.width
         max_rows = bin_height // _article.height
         
-        max_articles_per_bin = min(max_articles_in_row * max_rows, bin_max_weight // _article.weight)
+        max_articles_per_bin = min(max_articles_in_row * (bin_max_weight // _article.weight if _article.weight > 0 else 10000))
         n_bins = _article.amount // max_articles_per_bin
 
         _article.amount = max_articles_per_bin
