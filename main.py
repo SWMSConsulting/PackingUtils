@@ -46,6 +46,8 @@ def get_possible_config_params() -> Tuple[List[PackerConfiguration], int]:
     overhang_y_stability_factor = 0.6
     remove_gaps = True
 
+    group_wide_items_vertically = True
+
     params = [
         possible_default_select_strategy,
         possible_new_layer_select_strategy,
@@ -82,6 +84,7 @@ def get_possible_config_params() -> Tuple[List[PackerConfiguration], int]:
             padding_between_items=padding_x,
             overhang_y_stability_factor=overhang_y_stability_factor,
             remove_gaps=remove_gaps,
+            group_wide_items_vertically=group_wide_items_vertically,
         )
         for combination in combinations
     ]
