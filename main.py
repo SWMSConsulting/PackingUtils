@@ -94,7 +94,7 @@ st.write("""# Packing Visualisation""")
 # logging.basicConfig(level=logging.INFO)
 
 max_bins = 3
-bins = [Bin(1200, 2400, 1000, max_weight=100) for _ in range(max_bins)]
+bins = [Bin(1200, 2400, 1000, max_weight=800) for _ in range(max_bins)]
 packer = PalletierWishPacker(bins=bins)
 
 with st.expander("Order", expanded=True):

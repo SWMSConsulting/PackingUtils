@@ -15,6 +15,7 @@ from packutils.data.grouped_item import (
 )
 from packutils.data.item import Item
 from packutils.data.order import Order
+from packutils.data.article import Article
 from packutils.data.position import Position
 from packutils.data.single_item import SingleItem
 from packutils.data.packing_variant import PackingVariant
@@ -76,13 +77,85 @@ class PalletierWishPacker(AbstractPacker):
     ) -> List[PackingVariant]:
         variants = []
 
+        _order = copy.deepcopy(order)
+
+        default_config = PackerConfiguration()
+        default_config.mirror_walls = any([c.mirror_walls for c in configs])
+
+        # check if a article can fill a complete bin
+        additional_bins = []
+        for article in _order.articles:
+            if self.can_fill_complete_bin(article):
+                bins = self.pack_complete_bin(article, default_config)
+                additional_bins.extend(bins)
+                packed = sum([len(b.packed_items) for b in bins])
+                article.amount -= packed
+
         for config in configs:
             logging.info(f"Using config: {config}")
-            variant = self.pack_variant(order, config)
+            variant = self.pack_variant(_order, config)
             if variant is not None:
                 variants.append(variant)
+                for b in additional_bins:
+                    variant.add_bin(b)
+
+        if len(variants) < 1:
+            variant = PackingVariant()
+            for b in additional_bins:
+                variant.add_bin(b)
+            variants.append(variant)
 
         return variants
+
+    def can_fill_complete_bin(self, article: Article) -> bool:
+        """
+        Check if a article can fill a complete bin.
+
+        Args:
+            article (Article): The article to check.
+
+        Returns:
+            bool: True if the article can fill the bin, False otherwise.
+        """
+        bin_width = self.reference_bins[0].width
+        bin_height = self.reference_bins[0].height
+        bin_max_weight = self.reference_bins[0].max_weight
+
+        max_articles_in_row = bin_width // article.width
+        max_rows = bin_height // article.height
+
+        max_articles = min(max_articles_in_row * max_rows, bin_max_weight // article.weight)
+
+        return article.amount >= max_articles
+
+    def pack_complete_bin(self, article: Article, config: PackerConfiguration) -> List[Bin]:
+        """
+        Pack a complete bin with a single article.
+
+        Args:
+            article (Article): The article to pack the bin with.
+
+        Returns:
+            List[Bin]: The list of bins filled with the article.
+        """
+        _article = copy.deepcopy(article)
+       
+        bins = []
+        bin_width = self.reference_bins[0].width
+        bin_height = self.reference_bins[0].height
+        bin_length = self.reference_bins[0].length
+        bin_max_weight = self.reference_bins[0].max_weight
+
+        max_articles_in_row = bin_width // _article.width
+        max_rows = bin_height // _article.height
+        
+        max_articles_per_bin = min(max_articles_in_row * max_rows, bin_max_weight // _article.weight)
+        n_bins = _article.amount // max_articles_per_bin
+
+        _article.amount = max_articles_per_bin
+
+        variant = self.pack_variant(Order("", articles=[_article]), config)
+        return [variant.bins[0] for _ in range(n_bins)]
 
     def prepare_items_to_pack(
         self, order: Order, config: PackerConfiguration = None
@@ -101,7 +174,7 @@ class PalletierWishPacker(AbstractPacker):
         items_to_pack = [
             SingleItem(
                 identifier=a.article_id,
-                width=a.width + config.padding_between_items_x,
+                width=a.width + (config.padding_between_items_x if config is not None else 0),
                 length=a.length,
                 height=a.height,
                 weight=a.weight,
