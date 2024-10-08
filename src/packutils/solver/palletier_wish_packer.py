@@ -107,6 +107,26 @@ class PalletierWishPacker(AbstractPacker):
 
         return variants
 
+    def get_max_articles_for_bin(self, bin: Bin, article: Article) -> int:
+        """
+        Get the maximum amount of articles that can be packed into a bin.
+
+        Args:
+            bin (Bin): The bin to pack the articles into.
+            article (Article): The article to pack.
+
+        Returns:
+            int: The maximum amount of articles that can be packed into the bin.
+        """
+        bin_width = self.reference_bins[0].width
+        bin_height = self.reference_bins[0].height
+        bin_max_weight = self.reference_bins[0].max_weight
+
+        max_articles_in_row = bin_width // article.width
+        max_rows = bin_height // article.height
+
+        return min(max_articles_in_row * max_rows, (bin_max_weight // article.weight if article.weight > 0 else 10000))
+
     def can_fill_complete_bin(self, article: Article) -> bool:
         """
         Check if a article can fill a complete bin.
@@ -117,14 +137,7 @@ class PalletierWishPacker(AbstractPacker):
         Returns:
             bool: True if the article can fill the bin, False otherwise.
         """
-        bin_width = self.reference_bins[0].width
-        bin_height = self.reference_bins[0].height
-        bin_max_weight = self.reference_bins[0].max_weight
-
-        max_articles_in_row = bin_width // article.width
-        max_rows = bin_height // article.height
-
-        max_articles = min(max_articles_in_row * max_rows, (bin_max_weight // article.weight if article.weight > 0 else 10000))
+        max_articles = self.get_max_articles_for_bin(self.reference_bins[0], article)
 
         return article.amount >= max_articles
 
@@ -141,15 +154,8 @@ class PalletierWishPacker(AbstractPacker):
         _article = copy.deepcopy(article)
 
         bins = []
-        bin_width = self.reference_bins[0].width
-        bin_height = self.reference_bins[0].height
-        bin_length = self.reference_bins[0].length
-        bin_max_weight = self.reference_bins[0].max_weight
 
-        max_articles_in_row = bin_width // _article.width
-        max_rows = bin_height // _article.height
-        
-        max_articles_per_bin = min(max_articles_in_row * (bin_max_weight // _article.weight if _article.weight > 0 else 10000))
+        max_articles_per_bin = self.get_max_articles_for_bin(self.reference_bins[0], _article)
         n_bins = _article.amount // max_articles_per_bin
 
         _article.amount = max_articles_per_bin
