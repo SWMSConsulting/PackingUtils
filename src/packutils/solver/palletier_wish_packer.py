@@ -187,7 +187,7 @@ class PalletierWishPacker(AbstractPacker):
                 weight=a.weight,
             )
             for a in order.articles
-            for _ in range(a.amount)
+            for _ in range(int(a.amount))
         ]
 
         if config is None:
