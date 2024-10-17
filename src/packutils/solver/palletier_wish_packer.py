@@ -157,7 +157,7 @@ class PalletierWishPacker(AbstractPacker):
         bins = []
 
         max_articles_per_bin = self.get_max_articles_for_bin(self.reference_bins[0], _article)
-        n_bins = _article.amount // max_articles_per_bin
+        n_bins = int(_article.amount // max_articles_per_bin)
 
         _article.amount = max_articles_per_bin
 
