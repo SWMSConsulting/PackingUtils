@@ -126,7 +126,11 @@ class PalletierWishPacker(AbstractPacker):
         max_articles_in_row = bin_width // article.width
         max_rows = bin_height // article.height
 
-        return min(max_articles_in_row * max_rows, (bin_max_weight // article.weight if article.weight > 0 else 10000))
+        max_articles_weight = 100000
+        if article.weight > 0 and bin_max_weight is not None and bin_max_weight > 0:
+            max_articles_weight = bin_max_weight // article.weight
+
+        return min(max_articles_in_row * max_rows, max_articles_weight)
 
     def can_fill_complete_bin(self, article: Article) -> bool:
         """
