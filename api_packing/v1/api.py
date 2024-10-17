@@ -275,6 +275,11 @@ def get_packing_variants(body: VariantsRequestModel):
         configs = [body.config] if body.config is not None else []
         configs += list(random.sample(possible_configs, num_variants - len(configs)))
 
+    var number_of_articles = sum([a.amount for a in order.articles])
+    if number_of_articles > 50:
+        print("Too many articles, reducing to 20 variants")
+        configs = configs[:20]
+
     packer = PalletierWishPacker(
         bins=bins,
         safety_distance_smaller_articles=details.safety_distance_smaller_articles,
