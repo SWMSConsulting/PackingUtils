@@ -90,7 +90,7 @@ class PalletierWishPacker(AbstractPacker):
                 bins = self.pack_complete_bin(article, default_config)
                 additional_bins.extend(bins)
                 packed = sum([len(b.packed_items) for b in bins])
-                article.amount -= packed
+                article.amount -= int(packed)
 
         for config in configs:
             logging.info(f"Using config: {config}")
