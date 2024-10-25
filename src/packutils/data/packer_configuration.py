@@ -21,6 +21,8 @@ class ItemGroupingMode(str, ExtendedEnum):
 
 class ItemSelectStrategy(str, ExtendedEnum):
     LARGEST_VOLUME = "largest_volume"
+    LARGEST_DENSITY = "largest_density"
+
     LARGEST_H_W_L = "largest_h_w_l"
     LARGEST_W_H_L = "largest_w_h_l"
     LARGEST_L_H_W = "largest_l_h_w"

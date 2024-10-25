@@ -747,6 +747,10 @@ def select_item_from_list(
     if strategy == ItemSelectStrategy.LARGEST_VOLUME:
         sorted_items = sorted(items, key=lambda x: x.volume, reverse=True)
         return sorted_items[0]
+    
+    if strategy == ItemSelectStrategy.LARGEST_DENSITY:
+        sorted_items = sorted(items, key=lambda x: x.weight / x.volume, reverse=True)
+        return sorted_items[0]
 
     if strategy == ItemSelectStrategy.LARGEST_H_W_L:
         sorted_items = sorted(
