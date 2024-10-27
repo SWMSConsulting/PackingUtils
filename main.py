@@ -116,7 +116,7 @@ with st.expander("Order", expanded=True):
             # for idx in range(num_articles)
         ],
     )
-    _c0, _c1, _c2, _c3, _c4, _c5 = st.columns(6)
+    _c0, _c1, _c2, _c3, _c4, _c5, _c6 = st.columns(7)
     for article in order.articles:
         article.article_id = _c0.text_input(
             key=f"{article.article_id}_id",
@@ -156,7 +156,15 @@ with st.expander("Order", expanded=True):
             max_value=bins[0].max_weight,
             step=1,
         )
-        article.amount = _c5.number_input(
+        article.packing_sequence_priority = _c5.number_input(
+            key=f"{article.article_id}_packing_sequence_priority",
+            value=article.packing_sequence_priority,
+            label="packing_sequence_priority",
+            min_value=0,
+            max_value=10,
+            step=1,
+        )
+        article.amount = _c6.number_input(
             key=f"{article.article_id}_amount",
             value=article.amount,
             label="Amount",
@@ -179,9 +187,9 @@ with st.expander("Order", expanded=True):
             bin_stability_factor=1,
             default_select_strategy=ItemSelectStrategy.LARGEST_VOLUME,
             new_layer_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
-            direction_change_min_volume=0,
-            allow_item_exceeds_layer=False,
-            mirror_walls=True,
+            direction_change_min_volume=1,
+            allow_item_exceeds_layer=True,
+            mirror_walls=False,
             group_wide_items_vertically=True,
         ),
     ]

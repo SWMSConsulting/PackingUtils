@@ -254,6 +254,7 @@ def get_packing_variants(body: VariantsRequestModel):
                 height=a.height,
                 weight=a.weight,
                 amount=a.amount,
+                packing_sequence_priority=a.packingSequencePriority,
             )
             for a in body.order.articles
         ],

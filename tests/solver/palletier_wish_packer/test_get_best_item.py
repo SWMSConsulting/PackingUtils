@@ -192,3 +192,30 @@ class TestGetBestItem(unittest.TestCase):
 
             items.remove(expected_item)
         # self.vis.visualize_bin(bin)
+
+    def test_get_best_item_to_pack_packing_sequence_priority(self):
+        bin = Bin(10, 3, 15)
+        packer = PalletierWishPacker(bins=[bin])
+        config = PackerConfiguration(
+            new_layer_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
+        )
+        packer.reset(config)
+
+        items = [
+            SingleItem(identifier="item1", width=3, length=1, height=1, weight=15, packing_sequence_priority=4),
+            SingleItem(identifier="item2", width=3, length=1, height=2, weight=10, packing_sequence_priority=3),
+            SingleItem(identifier="item3", width=3, length=2, height=3, weight=10, packing_sequence_priority=2),
+            SingleItem(identifier="item4", width=3, length=3, height=4, weight=10, packing_sequence_priority=1),
+        ]
+
+        for expected_item in copy.deepcopy(items):
+            item = packer.get_best_item_to_pack(
+                items=copy.deepcopy(items),
+                bin=bin,
+                snappoint=Snappoint(0, 0, 0, SnappointDirection.RIGHT),
+                max_z=100,
+            )
+            self.assertEqual(expected_item, item)
+
+            items.remove(expected_item)
+        # self.vis.visualize_bin(bin)

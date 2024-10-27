@@ -20,6 +20,8 @@ class Item(ABC):
     height: int
     weight: float
 
+    packing_sequence_priority: int = 0
+
     position: "Position|None" = None
 
     @abstractmethod

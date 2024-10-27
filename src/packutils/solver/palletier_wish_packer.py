@@ -189,6 +189,7 @@ class PalletierWishPacker(AbstractPacker):
                 length=a.length,
                 height=a.height,
                 weight=a.weight,
+                packing_sequence_priority=a.packing_sequence_priority,
             )
             for a in order.articles
             for _ in range(int(a.amount))
@@ -743,6 +744,10 @@ def select_item_from_list(
         ]
         return same_dimensional_items[0]
     """
+
+    # filter all items with a smaller packing sequence priority
+    max_priority = max([i.packing_sequence_priority for i in items])
+    items = [i for i in items if i.packing_sequence_priority == max_priority]
 
     if strategy == ItemSelectStrategy.LARGEST_VOLUME:
         sorted_items = sorted(items, key=lambda x: x.volume, reverse=True)

@@ -11,7 +11,7 @@ class SingleItem(Item):
     """
 
     def __init__(
-        self, identifier: str, width: int, length: int, height: int, weight: float = 0.0
+        self, identifier: str, width: int, length: int, height: int, weight: float = 0.0, packing_sequence_priority: int = 0
     ):
         """
         Initializes an Item object with the specified attributes.
@@ -30,6 +30,7 @@ class SingleItem(Item):
         self.length = length
         self.height = height
         self.weight = weight
+        self.packing_sequence_priority = packing_sequence_priority
 
     def flatten(self) -> List[Item]:
         return [self]

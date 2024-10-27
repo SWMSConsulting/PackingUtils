@@ -24,6 +24,7 @@ class Article:
         height: int,
         amount: int,
         weight: float = 0.0,
+        packing_sequence_priority: int = 0,
     ):
         """
         Initializes an Article object with the specified attributes.
@@ -43,6 +44,7 @@ class Article:
         self.height = height
         self.amount = amount
         self.weight = weight
+        self.packing_sequence_priority = packing_sequence_priority
 
     def to_dict(self) -> dict:
         """
@@ -59,6 +61,7 @@ class Article:
             "height": self.height,
             "weight": self.weight,
             "amount": self.amount,
+            "packingSequencePriority": self.packing_sequence_priority,
         }
         return json_data
 
