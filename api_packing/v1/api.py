@@ -254,7 +254,8 @@ def get_packing_variants(body: VariantsRequestModel):
                 height=a.height,
                 weight=a.weight,
                 amount=a.amount,
-                packing_sequence_priority=a.packingSequencePriority,
+                packing_sequence_priority=a.packing_sequence_priority,
+                allow_rotation_around_length=a.allow_rotation_around_length,
             )
             for a in body.order.articles
         ],
@@ -290,6 +291,10 @@ def get_packing_variants(body: VariantsRequestModel):
         min_article_width_no_safety_distance=details.min_article_width_no_safety_distance,
         safety_distance_lengthwise=details.safety_distance_lengthwise,
     )
+
+    if(body.order.colli_details.allow_grouping_lengthwise == False):
+        for config in configs:
+            config.item_grouping_mode = None
 
     variants = packer.pack_variants(order, configs)
 

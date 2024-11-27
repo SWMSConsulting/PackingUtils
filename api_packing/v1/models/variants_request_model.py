@@ -13,7 +13,8 @@ class ArticleModel(BaseModel):
     height: int = Field(description="Article height", gt=0)
     weight: Optional[float] = Field(description="Article weight", ge=0, default=0)
     amount: int = Field(description="Amount of articles", gt=0)
-    packingSequencePriority: Optional[int] = Field(description="Priority in the packing sequence", ge=0, default=0)
+    packing_sequence_priority: Optional[int] = Field(description="Priority in the packing sequence", ge=0, default=0)
+    allow_rotation_around_length: Optional[bool] = Field(description="Enable the rotation around the length of the article", default=False)
 
 
 class ColliDetailsModel(BaseModel):
@@ -39,6 +40,9 @@ class ColliDetailsModel(BaseModel):
     )
     safety_distance_lengthwise: Optional[int] = Field(
         description="Sicherheitsabstand zwischen Artikeln (längsseitig)", ge=0, default=0
+    )
+    allow_grouping_lengthwise: Optional[bool] = Field(
+        description="Allow grouping of articles lengthwise", default=True
     )
 
 

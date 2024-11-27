@@ -25,6 +25,7 @@ class Article:
         amount: int,
         weight: float = 0.0,
         packing_sequence_priority: int = 0,
+        allow_rotation_around_length: bool = False,
     ):
         """
         Initializes an Article object with the specified attributes.
@@ -45,6 +46,7 @@ class Article:
         self.amount = amount
         self.weight = weight
         self.packing_sequence_priority = packing_sequence_priority
+        self.allow_rotation_around_length = allow_rotation_around_length
 
     def to_dict(self) -> dict:
         """
