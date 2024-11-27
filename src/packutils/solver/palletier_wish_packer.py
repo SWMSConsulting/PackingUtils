@@ -190,6 +190,7 @@ class PalletierWishPacker(AbstractPacker):
                 height=a.height,
                 weight=a.weight,
                 packing_sequence_priority=a.packing_sequence_priority,
+                allow_rotation_around_length=a.allow_rotation_around_length
             )
             for a in order.articles
             for _ in range(int(a.amount))
@@ -307,6 +308,7 @@ class PalletierWishPacker(AbstractPacker):
     def _pack_variant(self, items: List[Item]) -> "PackingVariant | None":
         variant = PackingVariant()
         items_to_pack = copy.deepcopy(items)
+        print([i.allow_rotation_around_length for i in items_to_pack])
         for bin_index, bin in enumerate(copy.deepcopy(self.reference_bins)):
 
             logging.info("-" * 20 + f" Bin {bin_index+1}")
@@ -415,7 +417,9 @@ class PalletierWishPacker(AbstractPacker):
                     continue
 
                 layer_z_max = bin.max_z
-                items_to_pack.remove(best)
+
+                packed_item = [i for i in items_to_pack if i.identifier == best.identifier][0]
+                items_to_pack.remove(packed_item)
                 snappoints_to_ignore = []
 
                 # check if the placement can be mirrored
@@ -438,7 +442,8 @@ class PalletierWishPacker(AbstractPacker):
                             bin=bin, item=mirror_item, snappoint=mirror_snappoint
                         )
                         if done:
-                            items_to_pack.remove(mirror_item)
+                            packed_item = [i for i in items_to_pack if i.identifier == mirror_item.identifier][0]
+                            items_to_pack.remove(packed_item)
 
             if len(bin.packed_items) > 0:
                 if self.config.remove_gaps:
@@ -517,6 +522,12 @@ class PalletierWishPacker(AbstractPacker):
             Item: The best item to pack or None if no item can be packed.
         """
 
+        items_to_compare = copy.deepcopy(items)        
+        rotated_items = [copy.deepcopy(item) for item in items_to_compare if item.allow_rotation_around_length] 
+        for item in rotated_items:
+            item.rotate_around_length()
+        items_to_compare.extend(rotated_items)    
+
         if self.config.mirror_walls and snappoint.x == 0:
             mirror_snappoint = Snappoint(
                 x=bin.width,
@@ -526,14 +537,14 @@ class PalletierWishPacker(AbstractPacker):
             )
             possible_items = [
                 copy.deepcopy(item)
-                for item in items
+                for item in items_to_compare
                 if can_pack_on_snappoint(bin, item, snappoint, max_z)
                 and can_pack_on_snappoint(bin, item, mirror_snappoint, max_z)
             ]
         else:
             possible_items = [
                 copy.deepcopy(item)
-                for item in items
+                for item in items_to_compare
                 if can_pack_on_snappoint(bin, item, snappoint, max_z)
             ]
 

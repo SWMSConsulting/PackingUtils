@@ -122,7 +122,7 @@ class PackedOrder:
                             "x": item.position.x,
                             "y": item.position.y,
                             "z": item.position.z,
-                            "rotation": item.position.rotation,
+                            "rotated_around_length": item.position.rotated_around_length,
                             "centerpoint_x": item.centerpoint.x,
                             "centerpoint_y": item.centerpoint.y,
                             "centerpoint_z": item.centerpoint.z,

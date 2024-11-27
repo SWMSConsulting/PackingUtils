@@ -114,32 +114,45 @@ class GroupedItem(Item):
         self.grouped_items = grouped_items
         self.position_offsets = position_offsets
 
+        self.update_dimensions()
+        
+        self.identifier = f"ItemGroup ({self.grouping_mode.value}): {len(self.grouped_items)} Items {self.width,self.length,self.height}"
+        self.index = -1
+
+        self.allow_rotation_around_length = all(
+            item.allow_rotation_around_length for item in grouped_items
+        )
+
+        self.packing_sequence_priority = max(
+            item.packing_sequence_priority for item in grouped_items
+        )
+
+    def update_dimensions(self) -> None:
+        self.weight = sum(item.weight for item in self.grouped_items)
+
         if self.grouping_mode == ItemGroupingMode.LENGTHWISE:
-            self.width = grouped_items[0].width
-            self.height = grouped_items[0].height
+            self.width = self.grouped_items[0].width
+            self.height = self.grouped_items[0].height
             self.length = max(
                 p.y + i.length
                 for i, p in zip(self.grouped_items, self.position_offsets)
-            ) - min(p.y for p in position_offsets)
+            ) - min(p.y for p in self.position_offsets)
 
         elif self.grouping_mode == ItemGroupingMode.HORIZONTAL:
-            self.height = grouped_items[0].height
-            self.length = max([i.length for i in grouped_items])
+            self.height = self.grouped_items[0].height
+            self.length = max([i.length for i in self.grouped_items])
             self.width = max(
                 p.x + i.width for i, p in zip(self.grouped_items, self.position_offsets)
-            ) - min(p.x for p in position_offsets)
+            ) - min(p.x for p in self.position_offsets)
 
         elif self.grouping_mode == ItemGroupingMode.VERTICAL:
-            self.width = grouped_items[0].width
-            self.length = max([i.length for i in grouped_items])
-            self.height = sum([i.height for i in grouped_items])
+            self.width = self.grouped_items[0].width
+            self.length = max([i.length for i in self.grouped_items])
+            self.height = sum([i.height for i in self.grouped_items])
 
         else:
             raise ValueError(f"Unknown grouping mode: {self.grouping_mode}")
 
-        self.weight = sum(item.weight for item in grouped_items)
-        self.identifier = f"ItemGroup ({self.grouping_mode.value}): {len(self.grouped_items)} Items {self.width,self.length,self.height}"
-        self.index = -1
 
     def pack(self, position: "Position | None", index: int) -> None:
         self.position = position
@@ -165,3 +178,9 @@ class GroupedItem(Item):
             List[Item]: The items in the group.
         """
         return sum((item.flatten() for item in self.grouped_items), [])
+
+    def rotate_around_length(self) -> None:
+        for item in self.grouped_items:
+            item.rotate_around_length()
+
+        self.update_dimensions()

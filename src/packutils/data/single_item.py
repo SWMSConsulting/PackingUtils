@@ -11,7 +11,11 @@ class SingleItem(Item):
     """
 
     def __init__(
-        self, identifier: str, width: int, length: int, height: int, weight: float = 0.0, packing_sequence_priority: int = 0
+        self, identifier: str, 
+        width: int, length: int, height: int, 
+        weight: float = 0.0, 
+        packing_sequence_priority: int = 0,
+        allow_rotation_around_length: bool = False,
     ):
         """
         Initializes an Item object with the specified attributes.
@@ -22,6 +26,7 @@ class SingleItem(Item):
             length (int): The length of the item.
             height (int): The height of the item.
             weight (float, optional): The weight of the item. Default is 0.0.
+            packing_sequence_priority (int, optional): The packing sequence priority of the item. Default is 0.
 
         """
         self.identifier = identifier
@@ -31,6 +36,7 @@ class SingleItem(Item):
         self.height = height
         self.weight = weight
         self.packing_sequence_priority = packing_sequence_priority
+        self.allow_rotation_around_length = allow_rotation_around_length
 
     def flatten(self) -> List[Item]:
         return [self]
@@ -45,8 +51,13 @@ class SingleItem(Item):
             position, Position
         ), "This method requires a Position object as input."
 
+        position.rotated_around_length = self.rotated_around_length
         self.position = position
         self.index = index
+
+    def rotate_around_length(self) -> None:
+        self.width, self.height = self.height, self.width
+        self.rotated_around_length = not self.rotated_around_length
 
     @classmethod
     def from_article(cls, article: Article) -> "Item":
@@ -73,4 +84,6 @@ class SingleItem(Item):
             height=article.height,
             weight=article.weight,
             position=None,
+            packing_sequence_priority=article.packing_sequence_priority,
+            allow_rotation_around_length=article.allow_rotation_around_length,
         )

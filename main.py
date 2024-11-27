@@ -110,13 +110,13 @@ with st.expander("Order", expanded=True):
         articles=[
             #Article(f"Article {1}", width=200, length=10, height=200, weight=50, amount=3),
             Article(f"Article {1}", width=68, length=10, height=68,weight=5, amount=3),
-            Article(f"Article {2}", width=800, length=12, height=19,weight=5, amount=4),
+            Article(f"Article {2}", width=140, length=12, height=100,weight=5, amount=4),
             #Article(f"Article {3}", width=82, length=10, height=20, amount=19),
             #Article(f"Article {4}", width=185, length=8, height=80, amount=8),
             # for idx in range(num_articles)
         ],
     )
-    _c0, _c1, _c2, _c3, _c4, _c5, _c6 = st.columns(7)
+    _c0, _c1, _c2, _c3, _c4, _c5, _c6, _c7 = st.columns(8)
     for article in order.articles:
         article.article_id = _c0.text_input(
             key=f"{article.article_id}_id",
@@ -159,12 +159,17 @@ with st.expander("Order", expanded=True):
         article.packing_sequence_priority = _c5.number_input(
             key=f"{article.article_id}_packing_sequence_priority",
             value=article.packing_sequence_priority,
-            label="packing_sequence_priority",
+            label="priority",
             min_value=0,
             max_value=10,
             step=1,
         )
-        article.amount = _c6.number_input(
+        article.allow_rotation_around_length = _c6.checkbox(
+            key=f"{article.article_id}_allow_rotation_around_length",
+            value=article.allow_rotation_around_length,
+            label="rotation"
+        )
+        article.amount = _c7.number_input(
             key=f"{article.article_id}_amount",
             value=article.amount,
             label="Amount",
@@ -185,7 +190,7 @@ with st.expander("Order", expanded=True):
     configurations = [
         PackerConfiguration(
             bin_stability_factor=1,
-            default_select_strategy=ItemSelectStrategy.LARGEST_VOLUME,
+            default_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
             new_layer_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
             direction_change_min_volume=1,
             allow_item_exceeds_layer=True,

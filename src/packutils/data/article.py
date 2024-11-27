@@ -64,11 +64,12 @@ class Article:
             "weight": self.weight,
             "amount": self.amount,
             "packingSequencePriority": self.packing_sequence_priority,
+            "allowRotationAroundLength": self.allow_rotation_around_length,
         }
         return json_data
 
     def __repr__(self):
-        return f"{self.amount}x {self.article_id} {self.width, self.length, self.height, self.weight}"
+        return f"{self.amount}x {self.article_id} {self.width, self.length, self.height, self.weight, self.packing_sequence_priority, self.allow_rotation_around_length}"
 
     def __eq__(self, other):
         return (

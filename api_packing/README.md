@@ -12,8 +12,8 @@ uvicorn api:app --reload --port 9001
 ```bash
 cd api_packing
 docker build -t packingsolver .
-docker tag packingsolver harbor.swms-cloud.com/binpacking/packingsolver:1.0.22
-docker push harbor.swms-cloud.com/binpacking/packingsolver:1.0.22
+docker tag packingsolver harbor.swms-cloud.com/binpacking/packingsolver:1.0.23
+docker push harbor.swms-cloud.com/binpacking/packingsolver:1.0.23
 ```
 
 - Run the docker container

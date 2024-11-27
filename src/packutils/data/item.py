@@ -22,7 +22,11 @@ class Item(ABC):
 
     packing_sequence_priority: int = 0
 
+    allow_rotation_around_length: bool = False
+
     position: "Position|None" = None
+
+    rotated_around_length: bool = False
 
     @abstractmethod
     def get_max_overhang_y(self, stability_factor: "float|None") -> int:
@@ -55,6 +59,13 @@ class Item(ABC):
         """
         pass
 
+    @abstractmethod
+    def rotate_around_length(self) -> None:
+        """
+        Rotates the item around its length.
+        """
+        pass
+
     @property
     def centerpoint(self) -> Position:
         """
@@ -71,7 +82,7 @@ class Item(ABC):
                 x=self.position.x + self.width / 2,
                 y=self.position.y + self.length / 2,
                 z=self.position.z + self.height / 2,
-                rotation=self.position.rotation,
+                rotated_around_length=self.position.rotated_around_length,
             )
         )
 
