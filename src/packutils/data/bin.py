@@ -6,7 +6,7 @@ from typing import List, Tuple
 import numpy as np
 
 from packutils.data.position import Position
-from packutils.data.grouped_item import group_items_lengthwise
+from packutils.data.grouped_item import build_group_lengthwise
 from packutils.data.snappoint import Snappoint, SnappointDirection
 
 # describes the percentage of the bottom area required to lay on top of other item
@@ -46,8 +46,11 @@ class Bin:
 
         """
         assert all(
-            isinstance(dim, int) and dim > 0 for dim in [width, length, height]
+            isinstance(dim, int) and dim > 0 for dim in [width, height]
         ), "Bin dimensions must be positive integers."
+
+        valid_length = length > 0 or max_length > 0
+        assert valid_length, "Either length or max_length must be greater than 0."
 
         self.width = width
         self.length = length
@@ -76,6 +79,10 @@ class Bin:
     @property
     def heightmap(self) -> np.ndarray:
         return self._heightmap[:, 0]
+    
+    @property
+    def lengthmap(self) -> np.ndarray:
+        return self._heightmap[:, 1]
 
     @property
     def packed_items(self) -> List[Item]:
@@ -232,7 +239,7 @@ class Bin:
 
                     items_with_positions.remove((i, p))
 
-                item = group_items_lengthwise(items_to_group, position_offsets)
+                item = build_group_lengthwise(items_to_group, position_offsets)
                 if item is None:
                     error_messages.append(
                         f"Failed to group items {items_to_group} with position offsets {position_offsets}."
@@ -320,12 +327,13 @@ class Bin:
             available_length = max(
                 self._heightmap[x, 1]
                 + item.get_max_overhang_y(self.overhang_y_stability_factor),
-                self.length,
+                self.max_length,
             )
             if available_length < item.length:
                 return False
 
         allowed_unstable = math.floor(item.width * (1 - self.stability_factor))
+
         return unstable_positions <= allowed_unstable
 
     def is_packing_2d(self) -> Tuple[bool, List[str]]:
@@ -396,6 +404,9 @@ class Bin:
         Returns:
         int: The volume of the Bin.
         """
+        if self.length == 0:
+            return int(self.width * self.max_length * self.height)
+
         return int(self.width * self.length * self.height)
 
     def get_used_volume(self, use_percentage=False):

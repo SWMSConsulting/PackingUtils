@@ -98,7 +98,7 @@ st.write("""# Packing Visualisation""")
 # logging.basicConfig(level=logging.INFO)
 
 max_bins = 3
-bins = [Bin(1200, 2400, 1000, max_weight=800) for _ in range(max_bins)]
+bins = [Bin(1200, 0, 1000, max_length=2400, max_weight=800, stability_factor=0.1, overhang_y_stability_factor=0.5) for _ in range(max_bins)]
 packer = PalletierWishPacker(bins=bins)
 
 with st.expander("Order", expanded=True):
@@ -109,8 +109,8 @@ with st.expander("Order", expanded=True):
         "Test",
         articles=[
             #Article(f"Article {1}", width=200, length=10, height=200, weight=50, amount=3),
-            Article(f"Article {1}", width=68, length=10, height=68,weight=5, amount=3),
-            Article(f"Article {2}", width=140, length=12, height=100,weight=5, amount=4),
+            Article(f"Article {1}", width=90, length=2100, height=90,weight=0, amount=4),
+            Article(f"Article {2}", width=140, length=2000, height=100,weight=0, amount=20),
             #Article(f"Article {3}", width=82, length=10, height=20, amount=19),
             #Article(f"Article {4}", width=185, length=8, height=80, amount=8),
             # for idx in range(num_articles)
@@ -129,7 +129,7 @@ with st.expander("Order", expanded=True):
             value=article.length,
             label="Length",
             min_value=2,
-            max_value=2 * bins[0].length,
+            max_value=2 * bins[0].max_length,
             step=1,
         )
         article.width = _c2.number_input(
@@ -196,6 +196,7 @@ with st.expander("Order", expanded=True):
             allow_item_exceeds_layer=True,
             mirror_walls=False,
             group_wide_items_vertically=True,
+            item_grouping_mode=ItemGroupingMode.LENGTHWISE
         ),
     ]
     

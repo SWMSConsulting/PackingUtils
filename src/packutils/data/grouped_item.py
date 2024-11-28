@@ -61,7 +61,7 @@ def group_items_vertically(
     return GroupedItem(grouped_items, ItemGroupingMode.VERTICAL, position_offsets)
 
 
-def group_items_lengthwise(
+def build_group_lengthwise(
     items_to_group: List[Item],
     position_offsets: "List[Position]| None" = None,
     padding_between_items: int = 0,

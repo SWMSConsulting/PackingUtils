@@ -12,7 +12,7 @@ from packutils.data.grouped_item import (
     ItemGroupingMode,
     group_items_horizontally,
     group_items_vertically,
-    group_items_lengthwise,
+    build_group_lengthwise,
 )
 from packutils.data.item import Item
 from packutils.data.order import Order
@@ -198,43 +198,10 @@ class PalletierWishPacker(AbstractPacker):
 
         if config is None:
             return items_to_pack
-
+        
         # group items lengthwise
-        if config.item_grouping_mode == ItemGroupingMode.LENGTHWISE:
-            allowed_length = self.reference_bins[0].max_length
-
-            groupable_items = [
-                item for item in items_to_pack if item.length < allowed_length
-            ]
-
-            while len(groupable_items) > 0:
-                current_item = groupable_items[0]
-                same_items = [
-                    item
-                    for item in groupable_items
-                    if (item.width, item.height)
-                    == (current_item.width, current_item.height)
-                ]
-
-                if len(same_items) < 2:
-                    groupable_items.remove(current_item)
-                    continue
-
-                item_group = []
-                item_group_length = 0
-                for item in same_items:
-                    if item_group_length + item.length <= allowed_length:
-                        item_group.append(item)
-                        item_group_length += item.length + self.safety_distance_lengthwise
-                        groupable_items.remove(item)
-
-                for item in item_group:
-                    items_to_pack.remove(item)
-                items_to_pack.append(
-                    group_items_lengthwise(
-                        item_group, padding_between_items=self.safety_distance_lengthwise
-                    )
-                )
+        # allowed_length = self.reference_bins[0].max_length
+        # items_to_pack = self.build_lenngthwise_group(items_to_pack, allowed_length)
 
         # group items horizontally
         if config.group_narrow_items_w > 0:
@@ -298,17 +265,80 @@ class PalletierWishPacker(AbstractPacker):
 
         return items_to_pack
 
+    def group_items_lenngthwise(self, items: List[Item], allowed_length: int, current_bin: Bin | None = None, snappoint: Snappoint | None = None) -> List[Item]:
+        
+        if self.config.item_grouping_mode != ItemGroupingMode.LENGTHWISE:
+            return items
+
+        items = copy.deepcopy(items)
+
+        groupable_items = [
+            item for item in items if item.length < allowed_length
+        ]
+
+        while len(groupable_items) > 0:
+            current_item = groupable_items[0]
+            same_items = [
+                item
+                for item in groupable_items
+                if (item.width, item.height)
+                == (current_item.width, current_item.height)
+            ]
+
+            if len(same_items) < 2:
+                groupable_items.remove(current_item)
+                continue
+
+            if snappoint is not None and current_bin is not None:
+                allowed_length = self.get_max_allowed_length(current_bin, snappoint, current_item)
+
+            item_group = []
+            item_group_length = 0
+            for item in same_items:
+                if item_group_length + item.length <= allowed_length:
+                    item_group.append(item)
+                    item_group_length += item.length + self.safety_distance_lengthwise
+                    groupable_items.remove(item)
+
+            if(len(item_group) < 2):
+                continue
+
+            for item in item_group:
+                items.remove(item)
+            items.append(
+                build_group_lengthwise(
+                    item_group, padding_between_items=self.safety_distance_lengthwise
+                )
+            )
+            
+        return items
+
+    def get_max_allowed_length(self, current_bin: Bin, snappoint: Snappoint, item: Item) -> int:
+        if(snappoint.z == 0):
+            return  current_bin.length if current_bin.length > 0 else item.length 
+        
+        available_length = current_bin.max_length
+        if snappoint.direction == SnappointDirection.RIGHT:
+            available_length = max(current_bin.lengthmap[snappoint.x : snappoint.x + item.width])
+
+        if snappoint.direction == SnappointDirection.LEFT:
+            available_length = max(current_bin.lengthmap[snappoint.x - item.width : snappoint.x])
+        
+        available_length = max(available_length, item.length)
+        
+        return available_length
+
     def pack_variant(
         self, order: Order, config: PackerConfiguration = None
     ) -> "PackingVariant | None":
-        items_to_pack = self.prepare_items_to_pack(order, config)
         self.reset(config)
+        items_to_pack = self.prepare_items_to_pack(order, config)
         return self._pack_variant(items_to_pack)
 
     def _pack_variant(self, items: List[Item]) -> "PackingVariant | None":
         variant = PackingVariant()
         items_to_pack = copy.deepcopy(items)
-        print([i.allow_rotation_around_length for i in items_to_pack])
+        
         for bin_index, bin in enumerate(copy.deepcopy(self.reference_bins)):
 
             logging.info("-" * 20 + f" Bin {bin_index+1}")
@@ -378,11 +408,16 @@ class PalletierWishPacker(AbstractPacker):
                 )
                 logging.info(f"Selected snappoint: {snappoint}")
 
+                
+                # group items
+                allowed_length = self.reference_bins[0].max_length
+                grouped_items = self.group_items_lenngthwise(items_to_pack, allowed_length, bin, snappoint)
+
                 allowed_max_z = (
                     bin.height if self.config.allow_item_exceeds_layer else layer_z_max
                 )
                 best = self.get_best_item_to_pack(
-                    items_to_pack, bin, snappoint, allowed_max_z
+                    grouped_items, bin, snappoint, allowed_max_z
                 )
                 logging.info(f"Item to pack: {best}")
 
@@ -400,8 +435,9 @@ class PalletierWishPacker(AbstractPacker):
                         if snappoint == left_snappoint
                         else left_snappoint
                     )
+                    grouped_items = self.group_items_lenngthwise(items_to_pack, allowed_length, bin, snappoint)
                     best = self.get_best_item_to_pack(
-                        items_to_pack, bin, snappoint, allowed_max_z
+                        grouped_items, bin, snappoint, allowed_max_z
                     )
 
                 if best is None:
@@ -418,10 +454,11 @@ class PalletierWishPacker(AbstractPacker):
 
                 layer_z_max = bin.max_z
 
-                packed_item = [i for i in items_to_pack if i.identifier == best.identifier][0]
-                items_to_pack.remove(packed_item)
+                for sub_item in best.flatten():
+                    packed_item = [i for i in items_to_pack if i.identifier == sub_item.identifier]
+                    items_to_pack.remove(packed_item[0])
                 snappoints_to_ignore = []
-
+                
                 # check if the placement can be mirrored
                 if self.config.mirror_walls and snappoint.x == 0:
                     logging.info("Mirroring walls")
@@ -522,7 +559,7 @@ class PalletierWishPacker(AbstractPacker):
             Item: The best item to pack or None if no item can be packed.
         """
 
-        items_to_compare = copy.deepcopy(items)        
+        items_to_compare = copy.deepcopy(items)       
         rotated_items = [copy.deepcopy(item) for item in items_to_compare if item.allow_rotation_around_length] 
         for item in rotated_items:
             item.rotate_around_length()
@@ -694,6 +731,11 @@ def can_pack_on_snappoint(
 
     can_be_packed, info = bin.can_item_be_packed(item, position)
     exceeds_height = item.height + snappoint.z > max_z if max_z is not None else False
+
+    if not can_be_packed and item.identifier == "Article 1":
+        print(snappoint)
+        print(info)
+
 
     return can_be_packed and not exceeds_height
 
