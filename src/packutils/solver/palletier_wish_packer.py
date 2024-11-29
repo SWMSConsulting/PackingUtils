@@ -315,7 +315,7 @@ class PalletierWishPacker(AbstractPacker):
 
     def get_max_allowed_length(self, current_bin: Bin, snappoint: Snappoint, item: Item) -> int:
         if(snappoint.z == 0):
-            return  current_bin.length if current_bin.length > 0 else item.length 
+            return max(current_bin.length, item.length)
         
         available_length = current_bin.max_length
         if snappoint.direction == SnappointDirection.RIGHT:
@@ -731,11 +731,6 @@ def can_pack_on_snappoint(
 
     can_be_packed, info = bin.can_item_be_packed(item, position)
     exceeds_height = item.height + snappoint.z > max_z if max_z is not None else False
-
-    if not can_be_packed and item.identifier == "Article 1":
-        print(snappoint)
-        print(info)
-
 
     return can_be_packed and not exceeds_height
 
