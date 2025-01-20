@@ -319,10 +319,10 @@ class PalletierWishPacker(AbstractPacker):
         
         available_length = current_bin.max_length
         if snappoint.direction == SnappointDirection.RIGHT:
-            available_length = max(current_bin.lengthmap[snappoint.x : snappoint.x + item.width])
+            available_length = max(current_bin.lengthmap[snappoint.x : min(snappoint.x + item.width, current_bin.width - 1)])
 
         if snappoint.direction == SnappointDirection.LEFT:
-            available_length = max(current_bin.lengthmap[snappoint.x - item.width : snappoint.x])
+            available_length = max(current_bin.lengthmap[max(snappoint.x - item.width, 0) : snappoint.x])
         
         available_length = max(available_length, item.length)
         
