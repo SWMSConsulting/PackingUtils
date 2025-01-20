@@ -21,11 +21,9 @@ class ColliDetailsModel(BaseModel):
     """Details of the bins to be packed."""
 
     width: int = Field(description="Width of the bins to be packed", gt=0)
-    length: int = Field(description="Length of the bins to be packed", gt=0)
+    length: int = Field(description="Length of the bins to be packed", ge=0)
     height: int = Field(description="Height of the bins to be packed", gt=0)
-    max_length: Optional[int] = Field(
-        description="Length of the bins to be packed", gt=0, default=0
-    )
+    max_length: int = Field(description="Length of the bins to be packed", gt=0)
     max_collis: int = Field(description="Maximum number of bins to be packed", gt=0)
     max_weight: Optional[float] = Field(
         description="Maximum weight of the bins to be packed", ge=0, default=None
