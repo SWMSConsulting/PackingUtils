@@ -169,7 +169,7 @@ class Bin:
             self._heightmap[x : x + item.width, 1] = item.length
 
             # center item lengthwise
-            position.y = (self.length - item.length) // 2
+            position.y = (self.max_length - item.length) // 2
 
             item.pack(position, index)
         return can_be_packed, info
