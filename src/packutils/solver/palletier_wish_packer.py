@@ -689,7 +689,7 @@ def is_safety_distance_required(
 
     maxY = max(bin.heightmap[max(0, position.x - safety_distance) : position.x])
 
-    difference = maxY - position.z + item.height
+    difference = maxY - (position.z + item.height)
 
     return difference > safety_distance_min_height_difference
 
