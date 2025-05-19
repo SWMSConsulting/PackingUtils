@@ -1,7 +1,7 @@
 ### Run the API locally
 ```
 cd api_packing_images
-uvicorn api:app --reload
+uvicorn api:app --reload --port 9001
 ```
 
 ### Run the API using docker

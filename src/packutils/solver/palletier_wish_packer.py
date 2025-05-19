@@ -40,6 +40,10 @@ class PalletierWishPacker(AbstractPacker):
             "min_article_width_no_safety_distance", 999999
         )
 
+        self.safety_distance_min_height_difference = kwargs.get(
+            "safety_distance_min_height_difference", 0
+        )
+
         self.safety_distance_lengthwise = kwargs.get("safety_distance_lengthwise", 0)
 
         self.reset(None)
@@ -522,6 +526,7 @@ class PalletierWishPacker(AbstractPacker):
             bin,
             self.safety_distance_smaller_articles,
             self.min_article_width_no_safety_distance,
+            self.safety_distance_min_height_difference
         ):
             position.x += self.safety_distance_smaller_articles
 
@@ -647,6 +652,7 @@ def is_safety_distance_required(
     bin: Bin,
     safety_distance: int,
     min_article_width_no_safety_distance: int,
+    safety_distance_min_height_difference: int = 0,
 ) -> bool:
     """
     Determines whether a safety distance is required for an item at a given snappoint in a bin.
@@ -657,6 +663,7 @@ def is_safety_distance_required(
         bin (Bin): The bin to pack the item into.
         safety_distance (int): The safety distance to check for.
         min_article_width_no_safety_distance (int): The minimum width of an article without a safety distance.
+        safety_distance_min_height_difference (int): The minimum height difference for the safety distance.
 
     Returns:
         bool: True if a safety distance is required, False otherwise.
@@ -681,7 +688,9 @@ def is_safety_distance_required(
 
     maxY = max(bin.heightmap[max(0, position.x - safety_distance) : position.x])
 
-    return maxY > position.z + item.height
+    difference = maxY - position.z + item.height
+
+    return difference > safety_distance_min_height_difference
 
 
 def can_fit_in_layer(bin: Bin, item: Item, min_z: int, max_z: int):
