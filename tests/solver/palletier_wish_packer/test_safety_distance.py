@@ -69,7 +69,7 @@ class TestSafetyDistance(unittest.TestCase):
         item2 = SingleItem(identifier="2", width=3, length=10, height=3)
         position = Snappoint(3, 0, 0, SnappointDirection.RIGHT)
 
-        required = is_safety_distance_required(item2, position, bin, 0, 10)
+        required = is_safety_distance_required(item2, position, bin, 0, 10, 0)
         self.assertFalse(required)
 
     def test_is_safety_distance_required_not_needed(self):
@@ -82,7 +82,7 @@ class TestSafetyDistance(unittest.TestCase):
         item2 = SingleItem(identifier="2", width=3, length=10, height=3)
         position = Snappoint(3, 0, 0, SnappointDirection.RIGHT)
 
-        required = is_safety_distance_required(item2, position, bin, 1, 10)
+        required = is_safety_distance_required(item2, position, bin, 1, 10, 0)
         self.assertFalse(required)
 
     def test_is_safety_distance_required_valid(self):
@@ -95,7 +95,7 @@ class TestSafetyDistance(unittest.TestCase):
         item2 = SingleItem(identifier="2", width=3, length=10, height=3)
         position = Snappoint(3, 0, 0, SnappointDirection.RIGHT)
 
-        required = is_safety_distance_required(item2, position, bin, 1, 10)
+        required = is_safety_distance_required(item2, position, bin, 1, 10, 0)
         self.assertTrue(required)
 
     def test_is_safety_distance_required_valid_left(self):
@@ -108,7 +108,7 @@ class TestSafetyDistance(unittest.TestCase):
         item2 = SingleItem(identifier="2", width=3, length=10, height=3)
         position = Snappoint(6, 0, 0, SnappointDirection.LEFT)
 
-        required = is_safety_distance_required(item2, position, bin, 1, 10)
+        required = is_safety_distance_required(item2, position, bin, 1, 10, 0)
         self.assertTrue(required)
 
     def test_is_safety_distance_required_min_width(self):
@@ -121,5 +121,5 @@ class TestSafetyDistance(unittest.TestCase):
         item2 = SingleItem(identifier="2", width=3, length=10, height=3)
         position = Snappoint(6, 0, 0, SnappointDirection.LEFT)
 
-        required = is_safety_distance_required(item2, position, bin, 1, 3)
+        required = is_safety_distance_required(item2, position, bin, 1, 3, 0)
         self.assertFalse(required)

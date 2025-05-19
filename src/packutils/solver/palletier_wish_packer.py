@@ -600,6 +600,7 @@ class PalletierWishPacker(AbstractPacker):
                     bin,
                     self.safety_distance_smaller_articles,
                     self.min_article_width_no_safety_distance,
+                    self.safety_distance_min_height_difference,
                 )
             ]:
                 larger_item = copy.deepcopy(item)
@@ -652,7 +653,7 @@ def is_safety_distance_required(
     bin: Bin,
     safety_distance: int,
     min_article_width_no_safety_distance: int,
-    safety_distance_min_height_difference: int = 0,
+    safety_distance_min_height_difference: int,
 ) -> bool:
     """
     Determines whether a safety distance is required for an item at a given snappoint in a bin.
