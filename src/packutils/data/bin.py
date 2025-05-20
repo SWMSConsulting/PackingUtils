@@ -324,7 +324,7 @@ class Bin:
             if self.heightmap[x] != position.z:
                 unstable_positions += 1
 
-            available_length = max(
+            available_length = min(
                 self._heightmap[x, 1]
                 + item.get_max_overhang_y(self.overhang_y_stability_factor),
                 self.max_length,

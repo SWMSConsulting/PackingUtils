@@ -53,6 +53,8 @@ def get_possible_config_params(
 
     env_num_variants = os.environ.get("NUM_VARIANTS", None)
 
+    remove_gaps = to_bool(os.environ.get("REMOVE_GAPS", ""))
+
     # variable parameters
     env_default_select_strategy = os.environ.get("DEFAULT_SELECT_STRATEGY", None)
     if env_default_select_strategy is None:
@@ -159,6 +161,7 @@ def get_possible_config_params(
         "padding_between_items": padding_between_items,
         "num_variants": num_variants,
         "num_combinations": len(combinations),
+        "remove_gaps": remove_gaps,
     }
     print("Fixed parameters:")
     for k, v in fixed_params.items():
@@ -184,6 +187,7 @@ def get_possible_config_params(
             bin_stability_factor=bin_stability_factor,
             overhang_y_stability_factor=overhang_y_stability_factor,
             padding_between_items=padding_between_items,
+            remove_gaps=remove_gaps,
             # variable parameters
             default_select_strategy=combination[0],
             new_layer_select_strategy=combination[1],
