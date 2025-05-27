@@ -13,6 +13,7 @@ class ArticleModel(BaseModel):
     height: int = Field(description="Article height", gt=0)
     weight: Optional[float] = Field(description="Article weight", ge=0, default=0)
     amount: int = Field(description="Amount of articles", gt=0)
+    pallet_group_index: Optional[int] = Field(description="Index of the pallet group", ge=0, default=0)
     packing_sequence_priority: Optional[int] = Field(description="Priority in the packing sequence", ge=0, default=0)
     allow_rotation_around_length: Optional[bool] = Field(description="Enable the rotation around the length of the article", default=False)
 

@@ -119,6 +119,8 @@ class GroupedItem(Item):
         self.identifier = f"ItemGroup ({self.grouping_mode.value}): {len(self.grouped_items)} Items {self.width,self.length,self.height}"
         self.index = -1
 
+        self.pallet_group_index = min([item.pallet_group_index for item in grouped_items], default=0)
+
         self.allow_rotation_around_length = all(
             item.allow_rotation_around_length for item in grouped_items
         )

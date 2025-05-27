@@ -20,6 +20,8 @@ class Item(ABC):
     height: int
     weight: float
 
+    pallet_group_index: int = 0
+    
     packing_sequence_priority: int = 0
 
     allow_rotation_around_length: bool = False

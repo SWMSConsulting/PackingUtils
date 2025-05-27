@@ -14,6 +14,7 @@ class SingleItem(Item):
         self, identifier: str, 
         width: int, length: int, height: int, 
         weight: float = 0.0, 
+        pallet_group_index: int = 0,
         packing_sequence_priority: int = 0,
         allow_rotation_around_length: bool = False,
     ):
@@ -35,6 +36,7 @@ class SingleItem(Item):
         self.length = length
         self.height = height
         self.weight = weight
+        self.pallet_group_index = pallet_group_index
         self.packing_sequence_priority = packing_sequence_priority
         self.allow_rotation_around_length = allow_rotation_around_length
 
@@ -84,6 +86,7 @@ class SingleItem(Item):
             height=article.height,
             weight=article.weight,
             position=None,
+            pallet_group_index=article.pallet_group_index,
             packing_sequence_priority=article.packing_sequence_priority,
             allow_rotation_around_length=article.allow_rotation_around_length,
         )

@@ -193,6 +193,7 @@ class PalletierWishPacker(AbstractPacker):
                 length=a.length,
                 height=a.height,
                 weight=a.weight,
+                pallet_group_index=a.pallet_group_index,
                 packing_sequence_priority=a.packing_sequence_priority,
                 allow_rotation_around_length=a.allow_rotation_around_length
             )
@@ -341,7 +342,8 @@ class PalletierWishPacker(AbstractPacker):
 
     def _pack_variant(self, items: List[Item]) -> "PackingVariant | None":
         variant = PackingVariant()
-        items_to_pack = copy.deepcopy(items)
+        all_items_to_pack = copy.deepcopy(items)
+        pallet_group_items = []
         
         for bin_index, bin in enumerate(copy.deepcopy(self.reference_bins)):
 
@@ -351,7 +353,13 @@ class PalletierWishPacker(AbstractPacker):
 
             is_packing = True
             while is_packing:
-                if len(items_to_pack) < 1:
+                if len(all_items_to_pack) < 1:
+                    is_packing = False
+                    break
+                
+                if len(pallet_group_items) < 1:
+                    pallet_group_index = min([item.pallet_group_index for item in all_items_to_pack], default=0)
+                    pallet_group_items = [item for item in all_items_to_pack if item.pallet_group_index == pallet_group_index]
                     is_packing = False
                     break
 
@@ -415,7 +423,7 @@ class PalletierWishPacker(AbstractPacker):
                 
                 # group items
                 allowed_length = self.reference_bins[0].max_length
-                grouped_items = self.group_items_lenngthwise(items_to_pack, allowed_length, bin, snappoint)
+                grouped_items = self.group_items_lenngthwise(pallet_group_items, allowed_length, bin, snappoint)
 
                 allowed_max_z = (
                     bin.height if self.config.allow_item_exceeds_layer else layer_z_max
@@ -439,7 +447,7 @@ class PalletierWishPacker(AbstractPacker):
                         if snappoint == left_snappoint
                         else left_snappoint
                     )
-                    grouped_items = self.group_items_lenngthwise(items_to_pack, allowed_length, bin, snappoint)
+                    grouped_items = self.group_items_lenngthwise(pallet_group_items, allowed_length, bin, snappoint)
                     best = self.get_best_item_to_pack(
                         grouped_items, bin, snappoint, allowed_max_z
                     )
@@ -459,8 +467,9 @@ class PalletierWishPacker(AbstractPacker):
                 layer_z_max = bin.max_z
 
                 for sub_item in best.flatten():
-                    packed_item = [i for i in items_to_pack if i.identifier == sub_item.identifier]
-                    items_to_pack.remove(packed_item[0])
+                    packed_item = [i for i in pallet_group_items if i.identifier == sub_item.identifier][0]
+                    pallet_group_items.remove(packed_item)
+                    all_items_to_pack.remove(packed_item)
                 snappoints_to_ignore = []
                 
                 # check if the placement can be mirrored
@@ -474,7 +483,7 @@ class PalletierWishPacker(AbstractPacker):
                         direction=SnappointDirection.LEFT,
                     )
                     mirror_item = get_item_with_dimension(
-                        items_to_pack, best.dimensions
+                        pallet_group_items, best.dimensions
                     )
                     if mirror_item is not None:
                         logging.info("No item with same dimensions found.")
@@ -483,15 +492,16 @@ class PalletierWishPacker(AbstractPacker):
                             bin=bin, item=mirror_item, snappoint=mirror_snappoint
                         )
                         if done:
-                            packed_item = [i for i in items_to_pack if i.identifier == mirror_item.identifier][0]
-                            items_to_pack.remove(packed_item)
+                            packed_item = [i for i in pallet_group_items if i.identifier == mirror_item.identifier][0]
+                            pallet_group_items.remove(packed_item)
+                            all_items_to_pack.remove(packed_item)
 
             if len(bin.packed_items) > 0:
                 if self.config.remove_gaps:
                     bin.remove_gaps()
                 variant.add_bin(bin)
 
-        for item in items_to_pack:
+        for item in all_items_to_pack:
             variant.add_unpacked_item(item, None)
 
         return variant

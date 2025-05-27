@@ -258,8 +258,9 @@ def get_packing_variants(body: VariantsRequestModel):
                 height=a.height,
                 weight=a.weight,
                 amount=a.amount,
+                pallet_group_index=a.pallet_group_index,
                 packing_sequence_priority=a.packing_sequence_priority,
-                allow_rotation_around_length=a.allow_rotation_around_length,
+                allow_rotation_around_length=a.allow_rotation_around_length
             )
             for a in body.order.articles
         ],
@@ -288,6 +289,9 @@ def get_packing_variants(body: VariantsRequestModel):
     elif number_of_articles > 50:
         print("Too many articles, reducing to 20 variants")
         configs = configs[:20]
+    elif number_of_articles > 30:
+        print("Too many articles, reducing to 40 variants")
+        configs = configs[:40]
 
     packer = PalletierWishPacker(
         bins=bins,

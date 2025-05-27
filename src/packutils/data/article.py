@@ -24,6 +24,7 @@ class Article:
         height: int,
         amount: int,
         weight: float = 0.0,
+        pallet_group_index: int = 0,
         packing_sequence_priority: int = 0,
         allow_rotation_around_length: bool = False,
     ):
@@ -38,6 +39,10 @@ class Article:
             amount (int): The amount of the article.
             weight (float, optional): The weight of the article. Default is 0.0.
 
+            pallet_group_index (int, optional): The index of the pallet group. Default is 0.
+            packing_sequence_priority (int, optional): The priority of the packing sequence. Default is 0.
+            allow_rotation_around_length (bool, optional): Whether the article can be rotated around its length. Default is False.
+
         """
         self.article_id = article_id
         self.width = width
@@ -45,6 +50,7 @@ class Article:
         self.height = height
         self.amount = amount
         self.weight = weight
+        self.pallet_group_index = pallet_group_index
         self.packing_sequence_priority = packing_sequence_priority
         self.allow_rotation_around_length = allow_rotation_around_length
 
@@ -63,6 +69,7 @@ class Article:
             "height": self.height,
             "weight": self.weight,
             "amount": self.amount,
+            "palletGroupIndex": self.pallet_group_index,
             "packingSequencePriority": self.packing_sequence_priority,
             "allowRotationAroundLength": self.allow_rotation_around_length,
         }

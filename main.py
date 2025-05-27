@@ -110,7 +110,7 @@ with st.expander("Order", expanded=True):
         articles=[
             #Article(f"Article {1}", width=200, length=10, height=200, weight=50, amount=3),
             Article(f"Article {1}", width=90, length=2100, height=90,weight=0, amount=4),
-            Article(f"Article {2}", width=140, length=2000, height=100,weight=0, amount=20),
+            Article(f"Article {2}", width=140, length=2000, height=100,weight=0, amount=4, pallet_group_index=1),
             #Article(f"Article {3}", width=82, length=10, height=20, amount=19),
             #Article(f"Article {4}", width=185, length=8, height=80, amount=8),
             # for idx in range(num_articles)
