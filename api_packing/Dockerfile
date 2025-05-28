@@ -11,7 +11,7 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN pip install -r /app/requirements.txt
-RUN pip install git+https://github.com/SWMSConsulting/PackingUtils.git@v1.0.27-test
+RUN pip install git+https://github.com/SWMSConsulting/PackingUtils.git@v1.0.28-gaps
 
 EXPOSE 8000
 

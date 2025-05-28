@@ -284,18 +284,39 @@ class Bin:
                 if start_x is not None:
                     gaps.append(Gap(start_x, x))
                     start_x = None
+
         return gaps
 
-    def remove_gaps(self):
+    def remove_gaps(self, safety_distance_min_height_difference, safety_distance):
         gaps = self.get_gaps()
-
+        print("-"*20)
         for gap in sorted(gaps, key=lambda x: x.start_x, reverse=True):
+            print("Gap:", gap)
             # find all items right of the gap
             items_right = [
                 item for item in self._packed_items if item.position.x >= gap.end_x
             ]
+            gap_offset = gap.end_x - gap.start_x
+
+            if gap_offset >= safety_distance:
+                # check if the new position requires a safety distance
+                gap_items_right = [
+                    item for item in self._packed_items if item.position.x == gap.end_x
+                ]
+                gap_items_left = [
+                    item for item in self._packed_items if item.position.x + item.width == gap.start_x
+                ]
+                for item in sorted(gap_items_right, key=lambda x: x.position.z):
+                    gap_items_left = sorted([i for i in gap_items_left if i.position.z + i.height >= item.position.z + item.height], key=lambda x: x.position.z)
+                    neighbour_item = gap_items_left[0] if gap_items_left else None
+                    difference = (neighbour_item.position.z + neighbour_item.height) - (item.position.z + item.height) if neighbour_item else 0
+                    
+                    if (difference > safety_distance_min_height_difference):
+                        gap_offset = gap_offset - safety_distance
+                        break
+
             for item in items_right:
-                item.position.x -= gap.end_x - gap.start_x
+                item.position.x -= gap_offset
 
         # update heightmap
         self.recreate_heightmap()

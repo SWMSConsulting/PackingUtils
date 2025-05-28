@@ -97,9 +97,16 @@ st.write("""# Packing Visualisation""")
 
 # logging.basicConfig(level=logging.INFO)
 
+safety_distance = 50
+safety_distance_min_height_difference = 0
+
 max_bins = 3
 bins = [Bin(1200, 0, 1000, max_length=2400, max_weight=800, stability_factor=0.1, overhang_y_stability_factor=0.5) for _ in range(max_bins)]
-packer = PalletierWishPacker(bins=bins)
+packer = PalletierWishPacker(
+    bins=bins, 
+    safety_distance_smaller_articles=safety_distance, 
+    safety_distance_min_height_difference=safety_distance_min_height_difference
+)
 
 with st.expander("Order", expanded=True):
     num_articles = st.number_input(
@@ -109,8 +116,8 @@ with st.expander("Order", expanded=True):
         "Test",
         articles=[
             #Article(f"Article {1}", width=200, length=10, height=200, weight=50, amount=3),
-            Article(f"Article {1}", width=90, length=2100, height=90,weight=0, amount=4),
-            Article(f"Article {2}", width=140, length=2000, height=100,weight=0, amount=4, pallet_group_index=1),
+            Article(f"Article {1}", width=90, length=2000, height=90,weight=0, amount=15),
+            Article(f"Article {2}", width=140, length=2000, height=100,weight=0, amount=15), #, pallet_group_index=1),
             #Article(f"Article {3}", width=82, length=10, height=20, amount=19),
             #Article(f"Article {4}", width=185, length=8, height=80, amount=8),
             # for idx in range(num_articles)
@@ -194,7 +201,8 @@ with st.expander("Order", expanded=True):
             new_layer_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
             direction_change_min_volume=1,
             allow_item_exceeds_layer=True,
-            mirror_walls=False,
+            mirror_walls=True,
+            remove_gaps=True,
             group_wide_items_vertically=True,
             item_grouping_mode=ItemGroupingMode.LENGTHWISE
         ),
