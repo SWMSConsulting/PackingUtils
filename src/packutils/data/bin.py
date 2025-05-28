@@ -289,9 +289,7 @@ class Bin:
 
     def remove_gaps(self, safety_distance_min_height_difference, safety_distance):
         gaps = self.get_gaps()
-        print("-"*20)
         for gap in sorted(gaps, key=lambda x: x.start_x, reverse=True):
-            print("Gap:", gap)
             # find all items right of the gap
             items_right = [
                 item for item in self._packed_items if item.position.x >= gap.end_x
