@@ -497,6 +497,7 @@ class PalletierWishPacker(AbstractPacker):
                             all_items_to_pack.remove(packed_item)
 
             if len(bin.packed_items) > 0:
+                bin.sort_items_by_position()
                 if self.config.remove_gaps:
                     bin.remove_gaps(self.safety_distance_min_height_difference, self.safety_distance_smaller_articles)
                 variant.add_bin(bin)

@@ -551,6 +551,17 @@ class Bin:
         cgz = np.sum(z * m) / np.sum(m)
         return Position(x=int(cgx), y=int(cgy), z=int(cgz))
 
+    def sort_items_by_position(self):
+        """
+        Sorts the packed items in the bin by their position.
+
+        Returns:
+            List[Item]: A list of items sorted by their position.
+        """
+        self._packed_items = sorted(
+            self._packed_items, key=lambda item: (item.position.z, item.position.y, item.position.x)
+        )
+
     def __repr__(self):
         return (
             f"Bin: {self.width} {self.length} {self.height} - Items{self._packed_items}"
