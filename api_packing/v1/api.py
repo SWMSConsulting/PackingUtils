@@ -138,8 +138,8 @@ def get_possible_config_params(
             possible_group_narrow_items_w = [int(env_group_narrow_items_w)]
 
     if change_volumes is None:
-        change_volumes = possible_direction_change_volume or [1.0]
-
+        change_volumes = possible_direction_change_volume or [None]
+    
     params = [
         possible_default_select_strategy,
         possible_new_layer_select_strategy,
@@ -171,7 +171,7 @@ def get_possible_config_params(
     changable_params = {
         "default_select_strategy": possible_default_select_strategy,
         "new_layer_select_strategy": possible_new_layer_select_strategy,
-        "direction_change_volume": possible_direction_change_volume,
+        "direction_change_volume": change_volumes,
         "allow_item_exceeds_layer": possible_allow_item_exceeds_layer,
         "mirror_walls": possible_mirror_walls,
         "item_grouping_mode": possible_item_grouping_mode,
