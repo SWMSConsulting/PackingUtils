@@ -547,7 +547,7 @@ class PalletierWishPacker(AbstractPacker):
         if done:
             logging.info(f"Packed item {item}")
             self.prev_item = item
-            if item.volume / bin.volume >= self.config.direction_change_min_volume:
+            if self.config.direction_change_min_volume is not None and item.volume / bin.volume >= self.config.direction_change_min_volume:
                 self.snappoint_direction = self.snappoint_direction.change()
                 logging.info(f"New snappoint direction: {self.snappoint_direction}")
 
