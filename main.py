@@ -116,8 +116,8 @@ with st.expander("Order", expanded=True):
         "Test",
         articles=[
             #Article(f"Article {1}", width=200, length=10, height=200, weight=50, amount=3),
-            Article(f"Article {1}", width=90, length=2000, height=90,weight=0, amount=15),
-            Article(f"Article {2}", width=140, length=2000, height=100,weight=0, amount=15), #, pallet_group_index=1),
+            Article(f"Article {1}", width=90, length=2000, height=90,weight=0, amount=3),
+            Article(f"Article {2}", width=140, length=1800, height=100,weight=0, amount=1), #, pallet_group_index=1),
             #Article(f"Article {3}", width=82, length=10, height=20, amount=19),
             #Article(f"Article {4}", width=185, length=8, height=80, amount=8),
             # for idx in range(num_articles)
@@ -197,14 +197,15 @@ with st.expander("Order", expanded=True):
     configurations = [
         PackerConfiguration(
             bin_stability_factor=1,
-            default_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
-            new_layer_select_strategy=ItemSelectStrategy.LARGEST_H_W_L,
-            direction_change_min_volume=1,
+            default_select_strategy=ItemSelectStrategy.LARGEST_L_H_W,
+            new_layer_select_strategy=ItemSelectStrategy.LARGEST_L_H_W,
+            direction_change_min_volume=None,
             allow_item_exceeds_layer=True,
-            mirror_walls=True,
+            mirror_walls=False,
             remove_gaps=True,
             group_wide_items_vertically=True,
-            item_grouping_mode=ItemGroupingMode.LENGTHWISE
+            item_grouping_mode=ItemGroupingMode.LENGTHWISE,
+            allowed_first_layer_variance=0.1,
         ),
     ]
     

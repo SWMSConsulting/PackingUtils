@@ -351,6 +351,8 @@ class PalletierWishPacker(AbstractPacker):
             snappoints_to_ignore = []
             layer_z_max = bin.height
 
+            self.first_layer_length = None
+
             is_packing = True
             while is_packing:
                 if len(all_items_to_pack) < 1:
@@ -364,7 +366,7 @@ class PalletierWishPacker(AbstractPacker):
                     break
 
                 is_new_layer = layer_z_max == bin.height
-
+                
                 snappoints = [
                     point
                     for point in bin.get_snappoints()
@@ -412,7 +414,7 @@ class PalletierWishPacker(AbstractPacker):
                 logging.info(
                     f"Selected snappoints: {left_snappoint}, {right_snappoint}"
                 )
-
+                
                 snappoint = (
                     right_snappoint
                     if self.snappoint_direction == SnappointDirection.LEFT
@@ -552,6 +554,10 @@ class PalletierWishPacker(AbstractPacker):
                 logging.info(f"New snappoint direction: {self.snappoint_direction}")
 
             new_z_max = position.z + item.height
+
+            if position.z == 0 and self.first_layer_length is None:
+                self.first_layer_length = item.length
+
             return done, new_z_max
 
         return done, None
@@ -574,8 +580,17 @@ class PalletierWishPacker(AbstractPacker):
         Returns:
             Item: The best item to pack or None if no item can be packed.
         """
+        items_to_compare = copy.deepcopy(items)  
 
-        items_to_compare = copy.deepcopy(items)       
+        if snappoint.z == 0 and self.config.allowed_first_layer_variance is not None and self.first_layer_length is not None:
+            min_length = self.first_layer_length * (1 - self.config.allowed_first_layer_variance / 2)
+            max_length = self.first_layer_length * (1 + self.config.allowed_first_layer_variance / 2)
+            items_to_compare = [
+                item
+                for item in items_to_compare
+                if item.length <= max_length and item.length >= min_length
+            ]
+
         rotated_items = [copy.deepcopy(item) for item in items_to_compare if item.allow_rotation_around_length] 
         for item in rotated_items:
             item.rotate_around_length()
@@ -618,7 +633,7 @@ class PalletierWishPacker(AbstractPacker):
                 larger_item.width += self.safety_distance_smaller_articles
                 if not can_pack_on_snappoint(bin, larger_item, snappoint, max_z):
                     possible_items.remove(item)
-
+        
         if len(possible_items) < 1:
             return None
 

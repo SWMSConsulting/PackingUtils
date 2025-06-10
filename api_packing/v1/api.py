@@ -55,6 +55,10 @@ def get_possible_config_params(
 
     remove_gaps = to_bool(os.environ.get("REMOVE_GAPS", ""))
 
+    allowed_first_layer_variance = os.environ.get("ALLOWED_FIRST_LAYER_VARIANCE")
+    if allowed_first_layer_variance is not None:
+        allowed_first_layer_variance = float(allowed_first_layer_variance)
+
     # variable parameters
     env_default_select_strategy = os.environ.get("DEFAULT_SELECT_STRATEGY", None)
     if env_default_select_strategy is None:
@@ -162,6 +166,7 @@ def get_possible_config_params(
         "num_variants": num_variants,
         "num_combinations": len(combinations),
         "remove_gaps": remove_gaps,
+        "allowed_first_layer_variance": allowed_first_layer_variance
     }
     print("Fixed parameters:")
     for k, v in fixed_params.items():
@@ -188,6 +193,8 @@ def get_possible_config_params(
             overhang_y_stability_factor=overhang_y_stability_factor,
             padding_between_items=padding_between_items,
             remove_gaps=remove_gaps,
+            allowed_first_layer_variance=allowed_first_layer_variance,
+
             # variable parameters
             default_select_strategy=combination[0],
             new_layer_select_strategy=combination[1],

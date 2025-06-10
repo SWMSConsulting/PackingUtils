@@ -92,5 +92,12 @@ class PackerConfiguration(BaseModel):
         description="Group wide items vertically", default=False
     )
 
+    allowed_first_layer_variance: Optional[float] = Field(
+        description="Allowed variance for the first layer",
+        default=None,
+        ge=0.0,
+        le=1.0,
+    )
+
     def __hash__(self):
         return hash(tuple(**self.__dict__.values()))
