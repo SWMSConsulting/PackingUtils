@@ -86,7 +86,7 @@ class PalletierWishPacker(AbstractPacker):
 
         default_config = PackerConfiguration()
         default_config.mirror_walls = any([c.mirror_walls for c in configs])
-
+        default_config.remove_gaps = any([c.remove_gaps for c in configs])
         # check if a article can fill a complete bin
         additional_bins = []
         for article in _order.articles:
@@ -162,23 +162,14 @@ class PalletierWishPacker(AbstractPacker):
         """
         _article = copy.deepcopy(article)
 
-        bins = []
-
         max_articles_per_bin = self.get_max_articles_for_bin(self.reference_bins[0], _article)
         n_bins = int(_article.amount // max_articles_per_bin)
 
         _article.amount = max_articles_per_bin
 
         variant = self.pack_variant(Order("", articles=[_article]), config)
-
-        if self.config.remove_gaps:
-            for bin in variant.bins:
-                bin.remove_gaps(
-                    self.safety_distance_min_height_difference,
-                    self.safety_distance_smaller_articles,
-                )
-
-        return [variant.bins[0] for _ in range(n_bins)]
+        complete_bin = copy.deepcopy(variant.bins[0])            
+        return [complete_bin for _ in range(n_bins)]
 
     def prepare_items_to_pack(
         self, order: Order, config: PackerConfiguration = None
