@@ -170,6 +170,14 @@ class PalletierWishPacker(AbstractPacker):
         _article.amount = max_articles_per_bin
 
         variant = self.pack_variant(Order("", articles=[_article]), config)
+
+        if self.config.remove_gaps:
+            for bin in variant.bins:
+                bin.remove_gaps(
+                    self.safety_distance_min_height_difference,
+                    self.safety_distance_smaller_articles,
+                )
+
         return [variant.bins[0] for _ in range(n_bins)]
 
     def prepare_items_to_pack(
